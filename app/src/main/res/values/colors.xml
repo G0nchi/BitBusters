@@ -2,6 +2,25 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Brand palette for reusable views -->
+    <color name="brand_deep_blue">#234F68</color>
+    <color name="brand_blue_dark">#204D6C</color>
+    <color name="brand_lime">#8BC83F</color>
+    <color name="brand_lime_bright">#8DFF00</color>
+
+    <color name="neutral_surface">#FFFFFFFF</color>
+    <color name="neutral_canvas">#FFEDEDED</color>
+    <color name="neutral_soft_1">#F5F4F8</color>
+    <color name="neutral_mid_1">#DFDFDF</color>
+    <color name="neutral_dark">#252B5C</color>
+    <color name="text_primary">#292929</color>
+
+    <color name="overlay_blue_50">#8021628A</color>
+    <color name="overlay_fade_end">#FF1F4C6B</color>
+    <color name="overlay_white_30">#4DFFFFFF</color>
+
+    <!-- Existing names kept so previous screen keeps compiling -->
     <color name="splash_card_bg">#234F68</color>
     <color name="splash_overlay">#8021628A</color>
     <color name="splash_fade_end">#FF1F4C6B</color>

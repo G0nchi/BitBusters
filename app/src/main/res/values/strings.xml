@@ -4,4 +4,15 @@
     <string name="splash_title">InmoApp</string>
     <string name="splash_cta">Comenzar</string>
     <string name="splash_subtitle">Gestión inmobiliaria en tus manos</string>
+
+    <string name="onboarding_skip">skip</string>
+    <string name="onboarding_title_line_1">Encuentra tu departamento</string>
+    <string name="onboarding_title_line_2_a">ideal al </string>
+    <string name="onboarding_title_line_2_b">mejor precio</string>
+    <string name="onboarding_body">Explora proyectos inmobiliarios verificados en Lima, filtra por ubicación, precio y tipología.</string>
+    <string name="onboarding_chip_all">Todos</string>
+    <string name="onboarding_chip_type_1">Tipo 1</string>
+    <string name="onboarding_chip_type_2">Tipo 2</string>
+    <string name="onboarding_chip_type_3">Tipo 3</string>
+    <string name="onboarding_next">Siguiente</string>
 </resources>
