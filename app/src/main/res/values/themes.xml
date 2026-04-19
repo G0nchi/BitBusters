@@ -5,6 +5,7 @@
         <item name="colorSecondary">@color/brand_lime</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorOnSecondary">@color/white</item>
+        <item name="materialButtonStyle">@style/Widget.Material3.Button</item>
         <item name="android:windowBackground">@color/neutral_canvas</item>
     </style>
 

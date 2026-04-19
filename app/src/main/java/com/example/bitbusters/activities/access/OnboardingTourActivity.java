@@ -1,11 +1,11 @@
-package com.example.bitbusters;
+package com.example.bitbusters.activities.access;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
-import android.graphics.Typeface;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -15,13 +15,15 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class MainActivity extends AppCompatActivity {
+import com.example.bitbusters.R;
+
+public class OnboardingTourActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_onboarding_tour);
 
         TextView titleLine2 = findViewById(R.id.titleLine2);
         String line2 = getString(R.string.onboarding_title_line_2_a) + getString(R.string.onboarding_title_line_2_b);
