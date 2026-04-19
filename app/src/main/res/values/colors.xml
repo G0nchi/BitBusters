@@ -2,4 +2,9 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="splash_card_bg">#234F68</color>
+    <color name="splash_overlay">#8021628A</color>
+    <color name="splash_fade_end">#FF1F4C6B</color>
+    <color name="splash_button_green">#8BC83F</color>
+    <color name="splash_logo_green">#8DFF00</color>
 </resources>

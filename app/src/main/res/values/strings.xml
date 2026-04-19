@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">BitBusters</string>
+    <string name="logo_content_description">InmoApp logo</string>
+    <string name="splash_title">InmoApp</string>
+    <string name="splash_cta">Comenzar</string>
+    <string name="splash_subtitle">Gestión inmobiliaria en tus manos</string>
 </resources>
