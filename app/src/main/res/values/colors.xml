@@ -38,8 +38,15 @@
     <color name="surface_card">#FFFFFF</color>
 
     <color name="text_secondary">#6B7280</color>
+    <color name="neutral_medium">#6B7280</color>
 
     <color name="border_light">#E5E7EB</color>
     <color name="status_error">#DC2626</color>
+
+    <!-- Avatar colors -->
+    <color name="brand_green">#4CAF50</color>
+    <color name="orange">#FF9800</color>
+    <color name="purple">#9C27B0</color>
+    <color name="coral">#FF6F61</color>
 
 </resources>

@@ -18,31 +18,17 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
 
     private void setupNavigationListeners() {
         // Back button in header
-        ImageButton backButton = findViewById(R.id.btnBack);
-        if (backButton != null) {
-            backButton.setOnClickListener(v -> finish());
+        ImageButton btnBackProject = findViewById(R.id.btnBackProject);
+        if (btnBackProject != null) {
+            btnBackProject.setOnClickListener(v -> finish());
         }
 
         // Edit project button
-        Button btnEditProject = findViewById(R.id.btnEditProject);
+        ImageButton btnEditProject = findViewById(R.id.btnEditProject);
         if (btnEditProject != null) {
             btnEditProject.setOnClickListener(v -> {
                 startActivity(new Intent(AdminDetallesProyectoActivity.this, AdminEditarProyectoActivity.class));
             });
-        }
-
-        // View report details button
-        Button btnViewReportDetails = findViewById(R.id.btnViewReportDetails);
-        if (btnViewReportDetails != null) {
-            btnViewReportDetails.setOnClickListener(v -> {
-                startActivity(new Intent(AdminDetallesProyectoActivity.this, AdminDetallesDeReporteProyectoActivity.class));
-            });
-        }
-
-        // Back button (secondary)
-        Button btnBackProject = findViewById(R.id.btnBackProject);
-        if (btnBackProject != null) {
-            btnBackProject.setOnClickListener(v -> finish());
         }
     }
 }
