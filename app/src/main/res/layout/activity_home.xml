@@ -277,6 +277,7 @@
                             android:layout_height="match_parent">
 
                             <ImageView
+                                android:id="@+id/imgDestacado1"
                                 android:layout_width="match_parent"
                                 android:layout_height="100dp"
                                 android:src="@android:drawable/ic_menu_gallery"
@@ -369,6 +370,7 @@
                             android:layout_height="match_parent">
 
                             <ImageView
+                                android:id="@+id/imgDestacado2"
                                 android:layout_width="match_parent"
                                 android:layout_height="100dp"
                                 android:src="@android:drawable/ic_menu_gallery"
@@ -489,6 +491,7 @@
                             android:layout_height="120dp">
 
                             <ImageView
+                                android:id="@+id/imgTorreMiramar"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:src="@android:drawable/ic_menu_gallery"
@@ -579,6 +582,7 @@
                             android:layout_height="120dp">
 
                             <ImageView
+                                android:id="@+id/imgResidencialPark"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:src="@android:drawable/ic_menu_gallery"
@@ -669,6 +673,7 @@
                             android:layout_height="120dp">
 
                             <ImageView
+                                android:id="@+id/imgCondominioLomas"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:src="@android:drawable/ic_menu_gallery"
@@ -759,6 +764,7 @@
                             android:layout_height="120dp">
 
                             <ImageView
+                                android:id="@+id/imgCatalinaSky"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:src="@android:drawable/ic_menu_gallery"

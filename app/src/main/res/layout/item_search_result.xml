@@ -23,7 +23,7 @@
                 android:id="@+id/imgProyecto"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:src="@android:drawable/ic_menu_gallery"
+                android:src="@drawable/proyecto_residencial_elpark"
                 android:scaleType="centerCrop" />
 
             <!-- Badge precio -->

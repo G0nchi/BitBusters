@@ -66,7 +66,7 @@
                         android:id="@+id/imgProyecto"
                         android:layout_width="110dp"
                         android:layout_height="match_parent"
-                        android:src="@android:drawable/ic_menu_gallery"
+                        android:src="@drawable/proyecto_catalina_ventor"
                         android:scaleType="centerCrop" />
 
                     <!-- Badge -->

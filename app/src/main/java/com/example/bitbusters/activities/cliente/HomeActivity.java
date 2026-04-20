@@ -3,10 +3,13 @@ package com.example.bitbusters.activities.cliente;
 import android.os.Bundle;
 import android.content.Intent;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.bitbusters.R;
+import com.example.bitbusters.utils.ImageUrls;
+import com.bumptech.glide.Glide;
 public class HomeActivity extends AppCompatActivity {
 
     private static final String EXTRA_PROYECTO = "proyecto";
@@ -20,6 +23,38 @@ public class HomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        // Cargar imágenes de destacados
+        ImageView imgDestacado1 = findViewById(R.id.imgDestacado1);
+        if (imgDestacado1 != null) {
+            Glide.with(this)
+                    .load(ImageUrls.PROYECTO_CATALINA_VENTOR)
+                    .centerCrop()
+                    .into(imgDestacado1);
+        }
+        
+        ImageView imgDestacado2 = findViewById(R.id.imgDestacado2);
+        if (imgDestacado2 != null) {
+            Glide.with(this)
+                    .load(ImageUrls.PROYECTO_RESIDENCIAL_PARK)
+                    .centerCrop()
+                    .into(imgDestacado2);
+        }
+
+        // Cargar imágenes de proyectos guardados
+        cargarImagenProyecto(R.id.imgTorreMiramar, ImageUrls.PROYECTO_TORRE_MIRAMAR);
+        cargarImagenProyecto(R.id.imgResidencialPark, ImageUrls.PROYECTO_RESIDENCIAL_ELPARK);
+        cargarImagenProyecto(R.id.imgCondominioLomas, ImageUrls.PROYECTO_CONDOMINIO_LOMAS);
+        cargarImagenProyecto(R.id.imgCatalinaSky, ImageUrls.PROYECTO_CATALINA_SKY);
+
+        // Cargar avatar de perfil
+        ImageView imgPerfil = findViewById(R.id.imgPerfil);
+        if (imgPerfil != null) {
+            Glide.with(this)
+                    .load(ImageUrls.AVATAR_JONATHAN)
+                    .centerCrop()
+                    .into(imgPerfil);
+        }
 
         btnTodos = findViewById(R.id.btnTodos);
         btnTipo1 = findViewById(R.id.btnTipo1);
@@ -95,5 +130,15 @@ public class HomeActivity extends AppCompatActivity {
         Intent intent = new Intent(this, ProjectDetailActivity.class);
         intent.putExtra(EXTRA_PROYECTO, nombreProyecto);
         startActivity(intent);
+    }
+
+    private void cargarImagenProyecto(int imgId, int drawableId) {
+        ImageView img = findViewById(imgId);
+        if (img != null) {
+            Glide.with(this)
+                    .load(drawableId)
+                    .centerCrop()
+                    .into(img);
+        }
     }
 }

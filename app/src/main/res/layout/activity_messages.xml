@@ -122,7 +122,7 @@
                         <de.hdodenhof.circleimageview.CircleImageView
                             android:layout_width="48dp"
                             android:layout_height="48dp"
-                            android:src="@android:drawable/ic_menu_myplaces" />
+                            android:src="@drawable/avatar_milano" />
 
                         <!-- Punto verde online -->
                         <View
@@ -205,7 +205,7 @@
                         android:layout_height="48dp"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
-                        android:src="@android:drawable/ic_menu_myplaces" />
+                        android:src="@drawable/avatar_samuel" />
 
                     <TextView
                         android:id="@+id/tvTime2"
@@ -291,6 +291,7 @@
                     </LinearLayout>
 
                     <TextView
+                        android:id="@+id/tvTime3"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_toStartOf="@id/btnDeleteChat"
@@ -337,7 +338,7 @@
                         android:layout_height="48dp"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
-                        android:src="@android:drawable/ic_menu_myplaces" />
+                        android:src="@drawable/avatar_sandra" />
 
                     <TextView
                         android:id="@+id/tvTime4"
@@ -402,7 +403,7 @@
                         android:layout_height="48dp"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
-                        android:src="@android:drawable/ic_menu_myplaces" />
+                        android:src="@drawable/avatar_valerai" />
 
                     <TextView
                         android:id="@+id/tvTime5"

@@ -25,7 +25,7 @@
                     android:id="@+id/imgHero"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:src="@android:drawable/ic_menu_gallery"
+                    android:src="@drawable/proyecto_catalina_ventor"
                     android:scaleType="centerCrop" />
 
                 <!-- Botón volver -->
@@ -107,14 +107,14 @@
                         android:layout_width="44dp"
                         android:layout_height="44dp"
                         android:layout_marginBottom="4dp"
-                        android:src="@android:drawable/ic_menu_gallery"
+                        android:src="@drawable/proyecto_catalina_sky"
                         android:scaleType="centerCrop"
                         android:background="@drawable/bg_rounded_8" />
 
                     <ImageView
                         android:layout_width="44dp"
                         android:layout_height="44dp"
-                        android:src="@android:drawable/ic_menu_gallery"
+                        android:src="@drawable/proyecto_torre_miramar"
                         android:scaleType="centerCrop"
                         android:background="@drawable/bg_rounded_8" />
 
@@ -209,56 +209,76 @@
                     </LinearLayout>
                 </RelativeLayout>
 
-                <!-- Botones Rentar / Comprar + QR -->
-                <LinearLayout
+                <!-- Botones Rentar / Comprar / Agendar + QR -->
+                <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:scrollbars="none"
                     android:layout_marginTop="14dp">
 
-                    <TextView
-                        android:id="@+id/btnRentar"
+                    <LinearLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:text="Rentar"
-                        android:textSize="13sp"
-                        android:textColor="#FFFFFF"
-                        android:gravity="center"
-                        android:paddingStart="22dp"
-                        android:paddingEnd="22dp"
-                        android:background="@drawable/bg_btn_rentar"
-                        android:layout_marginEnd="10dp" />
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
 
-                    <TextView
-                        android:id="@+id/btnComprar"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:text="Comprar"
-                        android:textSize="13sp"
-                        android:textColor="#1A1A2E"
-                        android:gravity="center"
-                        android:paddingStart="22dp"
-                        android:paddingEnd="22dp"
-                        android:background="@drawable/bg_btn_comprar"
-                        android:layout_marginEnd="10dp" />
+                        <TextView
+                            android:id="@+id/btnRentar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="Rentar"
+                            android:textSize="13sp"
+                            android:textColor="#FFFFFF"
+                            android:gravity="center"
+                            android:paddingStart="22dp"
+                            android:paddingEnd="22dp"
+                            android:background="@drawable/bg_btn_rentar"
+                            android:layout_marginEnd="10dp" />
 
-                    <ImageButton
-                        android:id="@+id/btnQR"
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@android:drawable/ic_menu_zoom"
-                        android:background="@drawable/bg_circle_outline"
-                        android:contentDescription="Ver QR"
-                        android:layout_marginEnd="8dp" />
+                        <TextView
+                            android:id="@+id/btnComprar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="Comprar"
+                            android:textSize="13sp"
+                            android:textColor="#1A1A2E"
+                            android:gravity="center"
+                            android:paddingStart="22dp"
+                            android:paddingEnd="22dp"
+                            android:background="@drawable/bg_btn_comprar"
+                            android:layout_marginEnd="10dp" />
 
-                    <ImageButton
-                        android:id="@+id/btnCompartirProyecto"
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@android:drawable/ic_menu_share"
-                        android:background="@drawable/bg_circle_outline"
-                        android:contentDescription="Compartir proyecto" />
-                </LinearLayout>
+                        <TextView
+                            android:id="@+id/btnAgendarCita"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="Agendar Cita"
+                            android:textSize="13sp"
+                            android:textColor="#FFFFFF"
+                            android:gravity="center"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
+                            android:background="@drawable/bg_btn_guardar"
+                            android:layout_marginEnd="10dp" />
+
+                        <ImageButton
+                            android:id="@+id/btnQR"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@android:drawable/ic_menu_zoom"
+                            android:background="@drawable/bg_circle_outline"
+                            android:contentDescription="Ver QR"
+                            android:layout_marginEnd="8dp" />
+
+                        <ImageButton
+                            android:id="@+id/btnCompartirProyecto"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@android:drawable/ic_menu_share"
+                            android:background="@drawable/bg_circle_outline"
+                            android:contentDescription="Compartir proyecto" />
+                    </LinearLayout>
+                </HorizontalScrollView>
 
                 <!-- Card Asesor -->
                 <androidx.cardview.widget.CardView
@@ -281,7 +301,7 @@
                             android:layout_height="44dp"
                             android:layout_alignParentStart="true"
                             android:layout_centerVertical="true"
-                            android:src="@android:drawable/ic_menu_myplaces" />
+                            android:src="@drawable/avatar_asesor_fabri" />
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -629,7 +649,7 @@
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
                                 android:layout_alignParentStart="true"
-                                android:src="@android:drawable/ic_menu_myplaces" />
+                                android:src="@drawable/avatar_milano" />
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
@@ -692,7 +712,7 @@
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
                                 android:layout_alignParentStart="true"
-                                android:src="@android:drawable/ic_menu_myplaces" />
+                                android:src="@drawable/avatar_samuel" />
 
                             <LinearLayout
                                 android:layout_width="wrap_content"

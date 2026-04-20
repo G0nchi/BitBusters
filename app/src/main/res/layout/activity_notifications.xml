@@ -113,14 +113,14 @@
                         android:layout_height="48dp"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
-                        android:src="@android:drawable/ic_menu_myplaces" />
+                        android:src="@drawable/avatar_jonathan" />
                     <ImageView
                         android:id="@+id/imgProperty1"
                         android:layout_width="56dp"
                         android:layout_height="56dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        android:src="@android:drawable/ic_menu_gallery"
+                        android:src="@drawable/proyecto_torre_miramar"
                         android:scaleType="centerCrop" />
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -176,14 +176,14 @@
                         android:layout_height="48dp"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
-                        android:src="@android:drawable/ic_menu_myplaces" />
+                        android:src="@drawable/avatar_samuel" />
                     <ImageView
                         android:id="@+id/imgProperty2"
                         android:layout_width="56dp"
                         android:layout_height="56dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        android:src="@android:drawable/ic_menu_gallery"
+                        android:src="@drawable/proyecto_residencial_park"
                         android:scaleType="centerCrop" />
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -239,7 +239,7 @@
                         android:layout_height="48dp"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
-                        android:src="@android:drawable/ic_menu_myplaces" />
+                        android:src="@drawable/avatar_wendy" />
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -304,14 +304,14 @@
                         android:layout_height="48dp"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
-                        android:src="@android:drawable/ic_menu_myplaces" />
+                        android:src="@drawable/avatar_velma" />
                     <ImageView
                         android:id="@+id/imgProperty4"
                         android:layout_width="56dp"
                         android:layout_height="56dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        android:src="@android:drawable/ic_menu_gallery"
+                        android:src="@drawable/proyecto_catalina_sky"
                         android:scaleType="centerCrop" />
                     <LinearLayout
                         android:layout_width="match_parent"
