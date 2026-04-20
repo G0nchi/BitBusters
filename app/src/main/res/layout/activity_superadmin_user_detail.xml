@@ -25,6 +25,7 @@
                 android:id="@+id/backButton"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
+                android:contentDescription="@string/back_button_content_description"
                 android:src="@drawable/ic_chevron_left"
                 android:tint="@color/white" />
 

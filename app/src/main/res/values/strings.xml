@@ -136,7 +136,6 @@
     <string name="sa_company">Empresa</string>
     <string name="sa_register_date">Fecha de Registro</string>
 
-    <string name="sa_approval_title">Aprobación de Asesores</string>
     <string name="sa_approvals_title">Aprobación de Asesores</string>
     <string name="sa_review_alert">Revisa cada solicitud</string>
     <string name="sa_review_alert_sub">Evalúa los datos de cada asesor antes de aprobar o rechazar su acceso.</string>
@@ -167,11 +166,14 @@
     <string name="sa_reports_period_year">Periodo: Este año</string>
     <string name="sa_reports_total_reservations">Separaciones Registradas</string>
     <string name="sa_reports_total_income">Pagos Aprobados</string>
-    <string name="sa_reports_company_title">Rendimiento por Inmobiliaria</string>
+    <string name="sa_reports_company_title">Participación por Inmobiliaria</string>
+    <string name="sa_reports_company_share_explain">% del total de separaciones registradas en el período</string>
     <string name="sa_reports_sales_state">Estado de Separaciones</string>
-    <string name="sa_reports_monthly_trend">Tendencia de Reservas y Ventas</string>
-    <string name="sa_reports_growth">Conversion Reserva a Venta</string>
+    <string name="sa_reports_monthly_trend">Tendencia de Separaciones</string>
+    <string name="sa_reports_growth">Conversión Reserva a Venta</string>
     <string name="sa_reports_monthly_avg">Cumplimiento de Citas</string>
+    <string name="sa_reports_growth_explain">(Ventas / Separaciones) del período</string>
+    <string name="sa_reports_monthly_avg_explain">(Citas atendidas / Citas agendadas)</string>
     <string name="sa_reports_kpi_attendance">Asistencia a Citas</string>
     <string name="sa_reports_kpi_expired">Separaciones Vencidas</string>
     <string name="sa_reports_kpi_payment_approval">Aprobacion de Pagos</string>

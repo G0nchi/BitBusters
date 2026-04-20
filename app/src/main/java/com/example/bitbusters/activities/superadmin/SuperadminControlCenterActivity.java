@@ -2,11 +2,12 @@ package com.example.bitbusters.activities.superadmin;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.example.bitbusters.utils.ImmersiveMode;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -62,7 +63,7 @@ public class SuperadminControlCenterActivity extends AppCompatActivity {
             quickReports.setOnClickListener(v -> open(SuperadminReportsActivity.class));
         }
         if (profileBadge != null) {
-            profileBadge.setOnClickListener(v -> showLogoutDialog());
+            profileBadge.setOnClickListener(this::showProfileMenu);
         }
         if (navUsers != null) {
             navUsers.setOnClickListener(v -> open(SuperadminUsersActivity.class));
@@ -82,13 +83,19 @@ public class SuperadminControlCenterActivity extends AppCompatActivity {
         startActivity(new Intent(this, destination));
     }
 
-    private void showLogoutDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.sa_logout_title)
-                .setMessage(R.string.sa_logout_message)
-                .setNegativeButton(R.string.sa_logout_cancel, null)
-                .setPositiveButton(R.string.sa_logout_confirm, (dialog, which) -> logout())
-                .show();
+    private void showProfileMenu(View anchor) {
+        PopupMenu popupMenu = new PopupMenu(this, anchor);
+        popupMenu.getMenuInflater().inflate(R.menu.sa_profile_menu, popupMenu.getMenu());
+        popupMenu.setOnMenuItemClickListener(this::onProfileMenuItemClick);
+        popupMenu.show();
+    }
+
+    private boolean onProfileMenuItemClick(MenuItem item) {
+        if (item.getItemId() == R.id.actionLogout) {
+            logout();
+            return true;
+        }
+        return false;
     }
 
     private void logout() {

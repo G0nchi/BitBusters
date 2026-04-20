@@ -17,9 +17,10 @@ public class SuperadminTrendLineChartView extends View {
     private final Paint gridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pointPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint pointStrokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint areaPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-    private final float[] values = new float[]{10f, 14f, 18f, 16f, 21f, 23f, 24.5f, 26f};
+    private float[] values = new float[]{10f, 14f, 18f, 16f, 21f, 23f, 24.5f, 26f};
 
     public SuperadminTrendLineChartView(Context context) {
         super(context);
@@ -50,6 +51,10 @@ public class SuperadminTrendLineChartView extends View {
         pointPaint.setStyle(Paint.Style.FILL);
         pointPaint.setColor(Color.WHITE);
         pointPaint.setStrokeWidth(3f);
+
+        pointStrokePaint.setStyle(Paint.Style.STROKE);
+        pointStrokePaint.setStrokeWidth(3f);
+        pointStrokePaint.setColor(Color.parseColor("#7ACF58"));
 
         areaPaint.setStyle(Paint.Style.FILL);
     }
@@ -111,17 +116,12 @@ public class SuperadminTrendLineChartView extends View {
         canvas.drawPath(areaPath, areaPaint);
         canvas.drawPath(linePath, linePaint);
 
-        Paint pointStroke = new Paint(Paint.ANTI_ALIAS_FLAG);
-        pointStroke.setStyle(Paint.Style.STROKE);
-        pointStroke.setStrokeWidth(3f);
-        pointStroke.setColor(Color.parseColor("#7ACF58"));
-
         for (int i = 0; i < values.length; i++) {
             float x = left + stepX * i;
             float norm = (values[i] - min) / range;
             float y = bottom - (norm * (bottom - top));
             canvas.drawCircle(x, y, dp(3), pointPaint);
-            canvas.drawCircle(x, y, dp(3), pointStroke);
+            canvas.drawCircle(x, y, dp(3), pointStrokePaint);
         }
     }
 
@@ -135,5 +135,13 @@ public class SuperadminTrendLineChartView extends View {
 
     private float dp(int value) {
         return value * getResources().getDisplayMetrics().density;
+    }
+
+    public void setValues(float[] newValues) {
+        if (newValues == null || newValues.length < 2) {
+            return;
+        }
+        values = newValues.clone();
+        invalidate();
     }
 }

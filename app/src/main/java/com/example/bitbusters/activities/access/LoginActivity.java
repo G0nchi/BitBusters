@@ -21,6 +21,12 @@ public class LoginActivity extends AppCompatActivity {
 
     private static final String SUPERADMIN_USER = "superadmin";
     private static final String SUPERADMIN_PASSWORD = "superadmin";
+    private static final String CLIENT_USER = "cliente";
+    private static final String CLIENT_PASSWORD = "cliente";
+    private static final String ADVISOR_USER = "asesor";
+    private static final String ADVISOR_PASSWORD = "asesor";
+    private static final String ADMIN_USER = "admin";
+    private static final String ADMIN_PASSWORD = "admin";
     private boolean passwordVisible = false;
 
     @Override
@@ -62,7 +68,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         if (loginButton != null) {
-            loginButton.setOnClickListener(v -> validateSuperadminLogin(emailInput, passwordInput));
+            loginButton.setOnClickListener(v -> validateLoginByRole(emailInput, passwordInput));
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -81,7 +87,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void validateSuperadminLogin(EditText emailInput, EditText passwordInput) {
+    private void validateLoginByRole(EditText emailInput, EditText passwordInput) {
         String user = emailInput != null && emailInput.getText() != null
                 ? emailInput.getText().toString().trim()
                 : "";
@@ -89,9 +95,23 @@ public class LoginActivity extends AppCompatActivity {
                 ? passwordInput.getText().toString().trim()
                 : "";
 
-        boolean isValid = SUPERADMIN_USER.equals(user) && SUPERADMIN_PASSWORD.equals(password);
-        if (isValid) {
+        if (SUPERADMIN_USER.equals(user) && SUPERADMIN_PASSWORD.equals(password)) {
             startActivity(new Intent(this, SuperadminControlCenterActivity.class));
+            return;
+        }
+
+        if (CLIENT_USER.equals(user) && CLIENT_PASSWORD.equals(password)) {
+            openIfAvailable(MainActivity.class);
+            return;
+        }
+
+        if (ADVISOR_USER.equals(user) && ADVISOR_PASSWORD.equals(password)) {
+            openIfAvailable(MainActivity.class);
+            return;
+        }
+
+        if (ADMIN_USER.equals(user) && ADMIN_PASSWORD.equals(password)) {
+            openIfAvailable(MainActivity.class);
             return;
         }
 
