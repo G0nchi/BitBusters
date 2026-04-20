@@ -37,4 +37,29 @@
     <color name="splash_fade_end">#FF1F4C6B</color>
     <color name="splash_button_green">#8BC83F</color>
     <color name="splash_logo_green">#8DFF00</color>
+
+    <!-- Agregado para el admin -->
+    <color name="primary_green">#4CAF50</color>
+    <color name="primary_green_dark">#388E3C</color>
+    <color name="primary_green_light">#A5D6A7</color>
+
+    <color name="secondary_blue">#2F3E5C</color>
+
+    <color name="background_main">#FFFFFF</color>
+    <color name="surface_card">#FFFFFF</color>
+
+    <color name="text_secondary">#6B7280</color>
+    <color name="neutral_medium">#6B7280</color>
+
+    <color name="border_light">#E5E7EB</color>
+    <color name="status_error">#DC2626</color>
+    <color name="status_success">#16A34A</color>
+    <color name="status_warning">#FF9800</color>
+
+    <!-- Avatar colors -->
+    <color name="brand_green">#4CAF50</color>
+    <color name="orange">#FF9800</color>
+    <color name="purple">#9C27B0</color>
+    <color name="coral">#FF6F61</color>
+
 </resources>

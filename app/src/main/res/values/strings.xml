@@ -16,6 +16,12 @@
     <string name="onboarding_chip_type_3">Tipo 3</string>
     <string name="onboarding_next">Siguiente</string>
 
+    <!-- Admin Navigation Menu -->
+    <string name="nav_dashboard">Inicio</string>
+    <string name="nav_proyectos">Proyectos</string>
+    <string name="nav_separaciones">Separaciones</string>
+    <string name="nav_reportes">Reportes</string>
+    <string name="nav_perfil">Perfil</string>
     <!-- Notifications & Messages screens -->
     <string name="tab_notifications">Notificaciones</string>
     <string name="tab_messages">Mensajes</string>
