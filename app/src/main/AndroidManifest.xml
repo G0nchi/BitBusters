@@ -23,6 +23,25 @@
         <activity
             android:name=".activities.access.OnboardingTourActivity"
             android:exported="false" />
+
+        <!-- Admin Activities -->
+        <activity android:name=".activities.admin.AdminMainActivity" />
+        <activity android:name=".activities.admin.AdminProyectosActivity" />
+        <activity android:name=".activities.admin.AdminSeparacionesActivity" />
+        <activity android:name=".activities.admin.AdminReportesActivity" />
+        <activity android:name=".activities.admin.AdminPerfilActivity" />
+        <activity android:name=".activities.admin.AdminNotificacionesActivity" />
+        <activity android:name=".activities.admin.AdminDetallesInmobiliariaActivity" />
+        <activity android:name=".activities.admin.AdminEditarInmobiliariaActivity" />
+        <activity android:name=".activities.admin.AdminRegistrarAsesorActivity" />
+        <activity android:name=".activities.admin.AdminDetallesProyectoActivity" />
+        <activity android:name=".activities.admin.AdminEditarProyectoActivity" />
+        <activity android:name=".activities.admin.AdminAgregarTipologiaActivity" />
+        <activity android:name=".activities.admin.AdminAsignarAsesoresActivity" />
+        <activity android:name=".activities.admin.AdminCrearProyectoActivity" />
+        <activity android:name=".activities.admin.AdminDetallesSeparacionActivity" />
+        <activity android:name=".activities.admin.AdminDetallesDeReporteProyectoActivity" />
+
     </application>
 
 </manifest>
