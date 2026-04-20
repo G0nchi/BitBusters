@@ -15,6 +15,17 @@
     <color name="neutral_mid_1">#DFDFDF</color>
     <color name="neutral_dark">#252B5C</color>
     <color name="text_primary">#292929</color>
+    <color name="text_secondary">#53587A</color>
+    <color name="text_tertiary">#A1A5C1</color>
+    <color name="text_medium">#53587A</color>
+    <color name="success_green">#16A34A</color>
+    <color name="slate_300">#CBD5E1</color>
+    <color name="slate_400">#94A3B8</color>
+    <color name="slate_500">#64748B</color>
+    <color name="text_placeholder">#A1A5C1</color>
+    <color name="text_deep">#3A3F67</color>
+    <color name="brand_blue">#1F4C6B</color>
+    <color name="overlay_dark_transparent">#B03F467C</color>
 
     <color name="overlay_blue_50">#8021628A</color>
     <color name="overlay_fade_end">#FF1F4C6B</color>
@@ -62,4 +73,28 @@
     <!-- Sent message bubble -->
     <color name="bubble_sent">#234F68</color>
     <color name="bubble_received">#FFFFFF</color>
+
+    <!-- Agregado para el admin -->
+    <color name="primary_green">#4CAF50</color>
+    <color name="primary_green_dark">#388E3C</color>
+    <color name="primary_green_light">#A5D6A7</color>
+
+    <color name="secondary_blue">#2F3E5C</color>
+
+    <color name="background_main">#FFFFFF</color>
+    <color name="surface_card">#FFFFFF</color>
+
+    <!-- <color name="text_secondary">#6B7280</color> -->
+    <color name="neutral_medium">#6B7280</color>
+
+    <color name="border_light">#E5E7EB</color>
+    <color name="status_error">#DC2626</color>
+    <color name="status_success">#16A34A</color>
+    <color name="status_warning">#FF9800</color>
+
+    <!-- Avatar colors -->
+    <color name="brand_green">#4CAF50</color>
+    <color name="orange">#FF9800</color>
+    <color name="purple">#9C27B0</color>
+    <color name="coral">#FF6F61</color>
 </resources>
