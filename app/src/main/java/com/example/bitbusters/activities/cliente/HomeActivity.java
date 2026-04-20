@@ -10,6 +10,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.bitbusters.R;
 import com.example.bitbusters.utils.ImageUrls;
 import com.bumptech.glide.Glide;
+
 public class HomeActivity extends AppCompatActivity {
 
     private static final String EXTRA_PROYECTO = "proyecto";
@@ -47,13 +48,17 @@ public class HomeActivity extends AppCompatActivity {
         cargarImagenProyecto(R.id.imgCondominioLomas, ImageUrls.PROYECTO_CONDOMINIO_LOMAS);
         cargarImagenProyecto(R.id.imgCatalinaSky, ImageUrls.PROYECTO_CATALINA_SKY);
 
-        // Cargar avatar de perfil
+        // Cargar avatar de perfil y configurar click
         ImageView imgPerfil = findViewById(R.id.imgPerfil);
         if (imgPerfil != null) {
             Glide.with(this)
                     .load(ImageUrls.AVATAR_JONATHAN)
                     .centerCrop()
                     .into(imgPerfil);
+            
+            imgPerfil.setOnClickListener(v -> {
+                startActivity(new Intent(this, ProfileActivity.class));
+            });
         }
 
         btnTodos = findViewById(R.id.btnTodos);
@@ -83,11 +88,6 @@ public class HomeActivity extends AppCompatActivity {
         findViewById(R.id.cardCondominioLomas).setOnClickListener(v -> abrirDetalle("Condominio Las Lomas"));
         findViewById(R.id.cardCatalinaSky).setOnClickListener(v -> abrirDetalle("Catalina Sky"));
 
-        // Ver todos
-        findViewById(R.id.tvVerTodos).setOnClickListener(v -> {
-            // TODO: ir a lista completa de proyectos
-        });
-
         // Notificaciones
         findViewById(R.id.btnNotificaciones).setOnClickListener(v ->
                 startActivity(new Intent(this, NotificationsActivity.class))
@@ -107,7 +107,7 @@ public class HomeActivity extends AppCompatActivity {
                 // TODO: ir a favoritos
                 return true;
             } else if (id == R.id.nav_perfil) {
-                // TODO: ir a perfil
+                startActivity(new Intent(this, ProfileActivity.class));
                 return true;
             }
             return false;

@@ -61,19 +61,13 @@
             android:name=".activities.cliente.NotificationsActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.cliente.NotificationsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.cliente.MessagesActivity"
-            android:exported="false" />
-        <activity
             android:name=".activities.cliente.MessagesActivity"
             android:exported="false" />
         <activity
             android:name=".activities.cliente.ChatDetailActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.cliente.ChatDetailActivity"
+            android:name=".activities.cliente.ProfileActivity"
             android:exported="false" />
     </application>
 
