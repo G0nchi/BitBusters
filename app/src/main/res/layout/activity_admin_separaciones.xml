@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="@color/neutral_canvas">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/brand_deep_blue">
+        android:background="@color/brand_deep_blue"
+        app:elevation="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -32,6 +34,7 @@
                     android:textSize="14sp" />
 
                 <ImageButton
+                    android:id="@+id/btnNotifications"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_marginEnd="12dp"
@@ -65,53 +68,62 @@
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:paddingBottom="72dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingBottom="0dp"
         android:clipToPadding="false">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:paddingBottom="72dp">
 
-            <!-- Tabs de filtro -->
-            <HorizontalScrollView
+            <!-- Tab Buttons: Pendientes, Aprobadas, Rechazadas -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:scrollbars="none"
+                android:orientation="horizontal"
+                android:gravity="center"
                 android:layout_marginBottom="16dp">
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                <Button
+                    android:id="@+id/btnPendientes"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="Pendientes (3)"
+                    android:textSize="12sp"
+                    android:textColor="@color/neutral_medium"
+                    android:background="@drawable/button_outline_state_bg"
+                    android:layout_marginEnd="4dp" />
 
-                    <com.google.android.material.chip.Chip
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Pendientes (3)"
-                        android:layout_marginEnd="8dp"
-                        style="@style/Widget.MaterialComponents.Chip.Filter" />
+                <Button
+                    android:id="@+id/btnAprobadas"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="Aprobadas (12)"
+                    android:textSize="12sp"
+                    android:textColor="@android:color/white"
+                    android:background="@color/brand_deep_blue"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginStart="4dp" />
 
-                    <com.google.android.material.chip.Chip
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Aprobadas (12)"
-                        android:layout_marginEnd="8dp"
-                        style="@style/Widget.MaterialComponents.Chip.Filter"
-                        android:checked="true" />
+                <Button
+                    android:id="@+id/btnRechazadas"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="Rechazadas"
+                    android:textSize="12sp"
+                    android:textColor="@color/neutral_medium"
+                    android:background="@drawable/button_outline_state_bg"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
 
-                    <com.google.android.material.chip.Chip
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Rechazadas"
-                        style="@style/Widget.MaterialComponents.Chip.Filter" />
-                </LinearLayout>
-            </HorizontalScrollView>
-
-            <!-- Filtros adicionales -->
+            <!-- Filtros -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -122,33 +134,39 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-                    <com.google.android.material.textfield.TextInputEditText
+                    <AutoCompleteTextView
+                        android:id="@+id/actvProyectoFilter"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Todos los proyectos"
-                        android:textSize="12sp" />
+                        android:text="Todos los proyectos"
+                        android:inputType="none"
+                        android:textSize="12sp"
+                        android:textColor="@color/neutral_dark" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    android:layout_marginStart="8dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-                    <com.google.android.material.textfield.TextInputEditText
+                    <AutoCompleteTextView
+                        android:id="@+id/actvFechaFilter"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Este mes"
-                        android:textSize="12sp" />
+                        android:text="Este mes"
+                        android:inputType="none"
+                        android:textSize="12sp"
+                        android:textColor="@color/neutral_dark" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-            <!-- Separación 1 -->
+            <!-- Card 1: Edificio Los Álamos -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/separationCard1"
+                android:id="@+id/cardSeparacion1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
@@ -168,7 +186,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp">
+                        android:layout_marginBottom="8dp">
 
                         <TextView
                             android:layout_width="0dp"
@@ -193,12 +211,12 @@
                         android:layout_height="wrap_content"
                         android:text="María García • Dpto. 502"
                         android:textColor="@color/neutral_dark"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:layout_marginBottom="8dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
                         android:text="Asesor"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
@@ -209,14 +227,14 @@
                         android:text="Carlos Ruiz"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:layout_marginBottom="12dp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginTop="12dp">
+                        android:gravity="center_vertical">
 
                         <TextView
                             android:layout_width="0dp"
@@ -237,9 +255,9 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Separación 2 -->
+            <!-- Card 2: Mirador de Surco -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/separationCard2"
+                android:id="@+id/cardSeparacion2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
@@ -259,7 +277,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp">
+                        android:layout_marginBottom="8dp">
 
                         <TextView
                             android:layout_width="0dp"
@@ -284,12 +302,12 @@
                         android:layout_height="wrap_content"
                         android:text="Pedro Huanca • Dpto. 301"
                         android:textColor="@color/neutral_dark"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:layout_marginBottom="8dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
                         android:text="Asesor"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
@@ -300,14 +318,14 @@
                         android:text="Ana Torres"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:layout_marginBottom="12dp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginTop="12dp">
+                        android:gravity="center_vertical">
 
                         <TextView
                             android:layout_width="0dp"
@@ -328,9 +346,9 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Separación 3 -->
+            <!-- Card 3: Alto San Felipe -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/separationCard3"
+                android:id="@+id/cardSeparacion3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
@@ -350,7 +368,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp">
+                        android:layout_marginBottom="8dp">
 
                         <TextView
                             android:layout_width="0dp"
@@ -375,12 +393,12 @@
                         android:layout_height="wrap_content"
                         android:text="Rosa Díaz • Dpto. 201"
                         android:textColor="@color/neutral_dark"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:layout_marginBottom="8dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
                         android:text="Asesor"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
@@ -391,14 +409,14 @@
                         android:text="Mario Pérez"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:layout_marginBottom="12dp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginTop="12dp">
+                        android:gravity="center_vertical">
 
                         <TextView
                             android:layout_width="0dp"
@@ -419,6 +437,96 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Card 4: Residencial Verde (para scroll) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSeparacion4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Residencial Verde"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp" />
+
+                        <com.google.android.material.chip.Chip
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Aprobada"
+                            android:textSize="11sp"
+                            app:chipBackgroundColor="@color/brand_lime"
+                            android:textColor="@android:color/white" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Jorge Mendez • Dpto. 401"
+                        android:textColor="@color/neutral_dark"
+                        android:textSize="13sp"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Asesor"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lucia Vargas"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:layout_marginBottom="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="S/ 7,100"
+                            android:textStyle="bold"
+                            android:textColor="@color/brand_deep_blue"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="20/abr/2026"
+                            android:textColor="@color/neutral_dark"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
@@ -426,10 +534,9 @@
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
         android:background="@android:color/white"
         app:itemIconTint="@color/neutral_dark"
         app:itemTextColor="@color/neutral_dark"
         app:menu="@menu/menu_bottom_nav_admin" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</LinearLayout>

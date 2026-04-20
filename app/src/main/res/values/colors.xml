@@ -42,6 +42,8 @@
 
     <color name="border_light">#E5E7EB</color>
     <color name="status_error">#DC2626</color>
+    <color name="status_success">#16A34A</color>
+    <color name="status_warning">#FF9800</color>
 
     <!-- Avatar colors -->
     <color name="brand_green">#4CAF50</color>
