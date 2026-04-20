@@ -15,6 +15,8 @@
     <color name="neutral_mid_1">#DFDFDF</color>
     <color name="neutral_dark">#252B5C</color>
     <color name="text_primary">#292929</color>
+    <color name="text_secondary">#53587A</color>
+    <color name="text_tertiary">#A1A5C1</color>
 
     <color name="overlay_blue_50">#8021628A</color>
     <color name="overlay_fade_end">#FF1F4C6B</color>

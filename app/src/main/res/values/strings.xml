@@ -15,4 +15,22 @@
     <string name="onboarding_chip_type_2">Tipo 2</string>
     <string name="onboarding_chip_type_3">Tipo 3</string>
     <string name="onboarding_next">Siguiente</string>
+
+    <!-- Notifications & Messages screens -->
+    <string name="tab_notifications">Notificaciones</string>
+    <string name="tab_messages">Mensajes</string>
+    <string name="section_today">Hoy</string>
+    <string name="section_old_notifications">Notificaciones antiguas</string>
+    <string name="content_desc_back">Regresar</string>
+    <string name="content_desc_delete_all">Eliminar todo</string>
+    <string name="content_desc_avatar">Foto de perfil</string>
+    <string name="content_desc_property">Imagen del inmueble</string>
+    <string name="content_desc_send">Enviar mensaje</string>
+    <string name="content_desc_more_options">Más opciones</string>
+    <string name="hint_message">Escribe un mensaje…</string>
+    <string name="label_online">En línea</string>
+    <string name="delete_confirmation_title">¿Eliminar conversación?</string>
+    <string name="delete_confirmation_body">Esta acción no se puede deshacer.</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_delete">Eliminar</string>
 </resources>

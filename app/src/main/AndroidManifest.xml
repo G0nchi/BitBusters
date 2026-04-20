@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <!-- Permisos -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -12,6 +16,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BitBusters">
         <activity
+            android:name=".activities.cliente.ViewOnMapActivity"
+            android:exported="false" />
+        <!-- API Key de Google Maps — DEBE ir dentro de <application> -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="TU_API_KEY_AQUI" /> <!-- Pantalla de inicio -->
+        <activity
             android:name=".activities.access.MainActivity"
             android:exported="true">
             <intent-filter>
@@ -19,9 +30,36 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity> <!-- Onboarding -->
         <activity
             android:name=".activities.access.OnboardingTourActivity"
+            android:exported="false" /> <!-- Cliente -->
+        <activity
+            android:name=".activities.cliente.HomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.cliente.ProjectDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.cliente.AddCommentActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.cliente.NotificationsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.cliente.NotificationsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.cliente.MessagesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.cliente.MessagesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.cliente.ChatDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.cliente.ChatDetailActivity"
             android:exported="false" />
     </application>
 
