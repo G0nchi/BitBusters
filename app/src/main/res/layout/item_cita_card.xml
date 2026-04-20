@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="14dp"
+    app:cardBackgroundColor="@color/neutral_surface"
+    app:strokeWidth="0dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <!-- Top row: avatar + name + badge -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cv_avatar"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                app:cardCornerRadius="22dp"
+                app:cardBackgroundColor="@color/avatar_teal"
+                app:strokeWidth="0dp">
+                <TextView
+                    android:id="@+id/tv_initials"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="CM"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/lato_bold"
+                    android:gravity="center"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginLeft="10dp">
+                <TextView
+                    android:id="@+id/tv_nombre"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Carlos Mendoza"
+                    android:textColor="@color/neutral_dark"
+                    android:textSize="15sp"
+                    android:fontFamily="@font/lato_bold"/>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <ImageView android:layout_width="12dp" android:layout_height="12dp"
+                        android:src="@drawable/ic_location_pin" android:contentDescription="@null"/>
+                    <TextView
+                        android:id="@+id/tv_proyecto"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Torres del Sol · Dpto 302"
+                        android:textColor="@color/nav_inactive"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/lato_regular"
+                        android:layout_marginLeft="3dp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pendiente"
+                android:textColor="@color/badge_pendiente_text"
+                android:textSize="11sp"
+                android:fontFamily="@font/lato_bold"
+                android:background="@drawable/badge_pendiente"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"/>
+        </LinearLayout>
+
+        <!-- Separación info (conditionally visible) -->
+        <LinearLayout
+            android:id="@+id/ll_separacion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#F0FAF0"
+            android:padding="8dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone">
+            <ImageView android:layout_width="14dp" android:layout_height="14dp"
+                android:src="@drawable/ic_star_filled" android:contentDescription="@null"/>
+            <TextView
+                android:id="@+id/tv_separacion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Separación registrada · S/ 320,000"
+                android:textColor="@color/badge_confirmada_text"
+                android:textSize="12sp"
+                android:fontFamily="@font/lato_bold"
+                android:layout_marginLeft="6dp"/>
+        </LinearLayout>
+
+        <!-- Date + time row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="10dp">
+            <ImageView android:layout_width="14dp" android:layout_height="14dp"
+                android:src="@drawable/ic_nav_calendar" android:contentDescription="@null"/>
+            <TextView
+                android:id="@+id/tv_fecha"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lun 7 Abr, 2025"
+                android:textColor="@color/nav_inactive"
+                android:textSize="12sp"
+                android:fontFamily="@font/lato_regular"
+                android:layout_marginLeft="4dp"/>
+            <View android:layout_width="4dp" android:layout_height="4dp"
+                android:background="@color/nav_inactive"
+                android:layout_marginLeft="8dp" android:layout_marginRight="8dp"/>
+            <TextView
+                android:id="@+id/tv_hora"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10:30 AM"
+                android:textColor="@color/nav_inactive"
+                android:textSize="12sp"
+                android:fontFamily="@font/lato_regular"/>
+        </LinearLayout>
+
+        <!-- Rating row (for Pasadas with Valorada status) -->
+        <LinearLayout
+            android:id="@+id/ll_rating"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="10dp"
+            android:visibility="gone">
+            <ImageView android:layout_width="14dp" android:layout_height="14dp"
+                android:src="@drawable/ic_star_filled" android:contentDescription="@null"/>
+            <ImageView android:layout_width="14dp" android:layout_height="14dp"
+                android:src="@drawable/ic_star_filled" android:contentDescription="@null"/>
+            <ImageView android:layout_width="14dp" android:layout_height="14dp"
+                android:src="@drawable/ic_star_filled" android:contentDescription="@null"/>
+            <ImageView android:layout_width="14dp" android:layout_height="14dp"
+                android:src="@drawable/ic_star_filled" android:contentDescription="@null"/>
+            <ImageView android:layout_width="14dp" android:layout_height="14dp"
+                android:src="@drawable/ic_star_filled" android:contentDescription="@null"
+                android:alpha="0.3"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="4/5 · Muy bueno" android:textColor="@color/nav_inactive"
+                android:textSize="12sp" android:fontFamily="@font/lato_regular" android:layout_marginLeft="6dp"/>
+        </LinearLayout>
+
+        <!-- Action buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_left"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:text="@string/cita_btn_reagendar"
+                android:textSize="13sp"
+                android:fontFamily="@font/lato_bold"
+                android:layout_marginRight="6dp"
+                app:cornerRadius="8dp"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                app:strokeColor="@color/neutral_mid_1"
+                android:textColor="@color/neutral_dark"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_right"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:text="@string/cita_btn_confirmar"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:fontFamily="@font/lato_bold"
+                app:backgroundTint="@color/brand_lime"
+                app:cornerRadius="8dp"
+                style="@style/Widget.Material3.Button"/>
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

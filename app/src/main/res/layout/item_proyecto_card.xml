@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/neutral_surface">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Área de imagen con badges -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="160dp">
+
+            <!-- Placeholder de color (se setea desde el Adapter) -->
+            <View
+                android:id="@+id/v_placeholder"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+            <!-- Badge rating (esquina superior derecha) -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="10dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/neutral_surface">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="8dp"
+                    android:paddingRight="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+                    <ImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:src="@drawable/ic_star_filled"
+                        android:tint="@color/star_yellow"
+                        android:layout_marginRight="3dp"
+                        android:contentDescription="@null"/>
+                    <TextView
+                        android:id="@+id/tv_rating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:fontFamily="@font/lato_family"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Badge estado (esquina inferior izquierda) -->
+            <TextView
+                android:id="@+id/tv_estado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="10dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/lato_family"/>
+        </FrameLayout>
+
+        <!-- Contenido inferior -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="14dp">
+
+            <TextView
+                android:id="@+id/tv_nombre"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/TextAppearance.BitBusters.PropertyTitle"/>
+
+            <!-- Fila ubicación -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="4dp">
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/ic_location_pin"
+                    android:tint="@color/neutral_mid_1"
+                    android:layout_marginRight="4dp"
+                    android:contentDescription="@null"/>
+                <TextView
+                    android:id="@+id/tv_ubicacion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textColor="#9E9E9E"
+                    android:fontFamily="@font/lato_family"/>
+            </LinearLayout>
+
+            <!-- Fila precio + botón -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="10dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/tv_precio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/neutral_dark"
+                        android:fontFamily="@font/lato_family"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/precio_base"
+                        android:textSize="10sp"
+                        android:textColor="#9E9E9E"
+                        android:fontFamily="@font/lato_family"/>
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_ver_mas"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    style="@style/Widget.BitBusters.PrimaryButton"
+                    android:text="@string/ver_mas"
+                    android:textSize="13sp"
+                    android:paddingLeft="20dp"
+                    android:paddingRight="20dp"
+                    android:textAllCaps="false"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

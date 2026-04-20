@@ -3,6 +3,7 @@ package com.example.bitbusters.activities.access;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import com.example.bitbusters.activities.asesor.AsesorHomeActivity;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -27,6 +28,9 @@ public class OnboardingTourActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ImmersiveMode.apply(this);
         setContentView(R.layout.activity_onboarding_tour);
+
+        findViewById(R.id.nextButton).setOnClickListener(v ->
+            startActivity(new Intent(this, AsesorHomeActivity.class)));
 
         TextView titleLine2 = findViewById(R.id.titleLine2);
         String line2 = getString(R.string.onboarding_title_line_2_a) + getString(R.string.onboarding_title_line_2_b);
