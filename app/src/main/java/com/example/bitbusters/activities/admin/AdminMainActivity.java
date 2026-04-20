@@ -2,9 +2,13 @@ package com.example.bitbusters.activities.admin;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.bitbusters.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.card.MaterialCardView;
 
 public class AdminMainActivity extends AppCompatActivity {
 
@@ -14,6 +18,65 @@ public class AdminMainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin_main);
 
         setupBottomNavigation(R.id.nav_dashboard);
+        setupQuickActionListeners();
+        setupHeaderListeners();
+    }
+
+    private void setupHeaderListeners() {
+        ImageButton btnNotifications = findViewById(R.id.btnNotifications);
+        if (btnNotifications != null) {
+            btnNotifications.setOnClickListener(v -> {
+                startActivity(new Intent(AdminMainActivity.this, AdminNotificacionesActivity.class));
+            });
+        }
+
+        TextView tvAvatar = findViewById(R.id.tvAvatar);
+        if (tvAvatar != null) {
+            tvAvatar.setOnClickListener(v -> {
+                startActivity(new Intent(AdminMainActivity.this, AdminPerfilActivity.class));
+            });
+        }
+
+        TextView tvRealEstateName = findViewById(R.id.tvRealEstateName);
+        if (tvRealEstateName != null) {
+            tvRealEstateName.setOnClickListener(v -> {
+                startActivity(new Intent(AdminMainActivity.this, AdminDetallesInmobiliariaActivity.class));
+            });
+        }
+    }
+
+    private void setupQuickActionListeners() {
+        // Crear proyecto card
+        MaterialCardView cardCreateProject = findViewById(R.id.cardCreateProject);
+        if (cardCreateProject != null) {
+            cardCreateProject.setOnClickListener(v -> {
+                startActivity(new Intent(AdminMainActivity.this, AdminCrearProyectoActivity.class));
+            });
+        }
+
+        // Ver separaciones card
+        MaterialCardView cardViewSeparations = findViewById(R.id.cardViewSeparations);
+        if (cardViewSeparations != null) {
+            cardViewSeparations.setOnClickListener(v -> {
+                startActivity(new Intent(AdminMainActivity.this, AdminSeparacionesActivity.class));
+            });
+        }
+
+        // Ver reportes card
+        MaterialCardView cardViewReports = findViewById(R.id.cardViewReports);
+        if (cardViewReports != null) {
+            cardViewReports.setOnClickListener(v -> {
+                startActivity(new Intent(AdminMainActivity.this, AdminReportesActivity.class));
+            });
+        }
+
+        // Asignar asesor card - goes to projects list
+        MaterialCardView cardAssignAdvisor = findViewById(R.id.cardAssignAdvisor);
+        if (cardAssignAdvisor != null) {
+            cardAssignAdvisor.setOnClickListener(v -> {
+                startActivity(new Intent(AdminMainActivity.this, AdminProyectosActivity.class));
+            });
+        }
     }
 
     protected void setupBottomNavigation(int selectedItemId) {

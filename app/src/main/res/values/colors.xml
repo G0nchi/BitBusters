@@ -40,5 +40,6 @@
     <color name="text_secondary">#6B7280</color>
 
     <color name="border_light">#E5E7EB</color>
+    <color name="status_error">#DC2626</color>
 
 </resources>
