@@ -39,8 +39,8 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:background="@color/neutral_surface"
-                android:paddingLeft="24dp"
-                android:paddingRight="24dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
                 android:paddingTop="44dp"
                 android:paddingBottom="20dp">
 
@@ -58,7 +58,7 @@
                         android:layout_height="wrap_content"
                         app:cardCornerRadius="100dp"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="@color/neutral_dark">
+                        app:cardBackgroundColor="@color/neutral_soft_1">
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -79,7 +79,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/asesor_location"
-                                android:textColor="@color/white"
+                                android:textColor="@color/text_primary"
                                 android:textSize="12sp"
                                 android:fontFamily="@font/lato_family"/>
                         </LinearLayout>
@@ -96,13 +96,17 @@
                         android:layout_height="24dp"
                         android:src="@drawable/ic_bell"
                         android:tint="@color/neutral_dark"
-                        android:layout_marginRight="12dp"
+                        android:layout_marginRight="16dp"
                         android:contentDescription="@null"/>
 
-                    <!-- Avatar JG -->
+                    <!-- Avatar JG (Dropdown Anchor) -->
                     <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/imgPerfilAsesor"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
                         app:cardCornerRadius="20dp"
                         app:cardElevation="0dp"
                         app:cardBackgroundColor="@color/brand_lime">
@@ -337,54 +341,34 @@
                             style="@style/Widget.BitBusters.ChipInactive"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/filter_departamentos"
-                            android:textAppearance="@style/TextAppearance.BitBusters.ChipInactive"
+                            android:text="Departamentos"
                             android:layout_marginRight="8dp"/>
                         <com.google.android.material.button.MaterialButton
                             style="@style/Widget.BitBusters.ChipInactive"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/filter_casas"
-                            android:textAppearance="@style/TextAppearance.BitBusters.ChipInactive"
-                            android:layout_marginRight="8dp"/>
-                        <com.google.android.material.button.MaterialButton
-                            style="@style/Widget.BitBusters.ChipInactive"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/filter_oficinas"
-                            android:textAppearance="@style/TextAppearance.BitBusters.ChipInactive"/>
+                            android:text="Villas"/>
                     </LinearLayout>
                 </HorizontalScrollView>
 
-                <!-- Encabezado de sección -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginTop="20dp">
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/section_proyectos"
-                        style="@style/TextAppearance.BitBusters.SectionTitle"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/ver_todos"
-                        android:textSize="13sp"
-                        android:textColor="@color/brand_lime"
-                        android:fontFamily="@font/lato_family"/>
-                </LinearLayout>
-
                 <!-- Lista de proyectos -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Proyectos asignados"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/lato_family"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="12dp" />
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rv_proyectos"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false"
-                    android:layout_marginTop="12dp"/>
+                    android:nestedScrollingEnabled="false" />
+
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

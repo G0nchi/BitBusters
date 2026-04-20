@@ -104,8 +104,7 @@
                     <EditText
                         android:id="@+id/emailInput"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
+                        android:layout_height="match_parent"
                         android:layout_marginStart="16dp"
                         android:layout_marginEnd="48dp"
                         android:background="@null"
@@ -113,7 +112,9 @@
                         android:inputType="textEmailAddress"
                         android:textColor="@color/neutral_dark"
                         android:textColorHint="@color/text_placeholder"
-                        android:textSize="12sp" />
+                        android:textSize="14sp"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="12dp" />
 
                     <ImageView
                         android:layout_width="20dp"
@@ -133,8 +134,7 @@
                         <EditText
                             android:id="@+id/passwordInput"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
+                            android:layout_height="match_parent"
                             android:layout_marginStart="16dp"
                             android:layout_marginEnd="48dp"
                             android:background="@null"
@@ -142,7 +142,9 @@
                             android:inputType="textPassword"
                             android:textColor="@color/neutral_dark"
                             android:textColorHint="@color/text_placeholder"
-                            android:textSize="12sp" />
+                            android:textSize="14sp"
+                            android:paddingTop="12dp"
+                            android:paddingBottom="12dp" />
 
                         <ImageView
                             android:layout_width="20dp"
