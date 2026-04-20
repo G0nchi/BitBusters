@@ -23,6 +23,12 @@
         <activity
             android:name=".activities.access.OnboardingTourActivity"
             android:exported="false" />
+        <activity
+            android:name=".activities.asesor.AsesorHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.asesor.ProyectoDetalleActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

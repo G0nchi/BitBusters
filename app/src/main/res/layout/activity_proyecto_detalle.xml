@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/neutral_soft_1">
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_nav"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bottom_nav_bg"
+        android:elevation="8dp"
+        app:itemIconTint="@color/nav_icon_color"
+        app:itemTextColor="@color/nav_text_color"
+        app:menu="@menu/bottom_nav_menu"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_nav"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Área imagen placeholder -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="220dp">
+
+                <View
+                    android:id="@+id/v_placeholder"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+
+                <!-- Botón volver -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btn_back"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="top|start"
+                    android:layout_margin="16dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="4dp"
+                    app:cardBackgroundColor="@color/neutral_surface">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_arrow_back"
+                        android:tint="@color/text_primary"
+                        android:contentDescription="@null"/>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Badge rating -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="16dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="4dp"
+                    app:cardBackgroundColor="@color/neutral_surface">
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="8dp"
+                        android:paddingRight="10dp"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp">
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_star_filled"
+                            android:tint="@color/star_yellow"
+                            android:layout_marginRight="4dp"
+                            android:contentDescription="@null"/>
+                        <TextView
+                            android:id="@+id/tv_rating"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:fontFamily="@font/lato_family"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
+
+            <!-- Contenido principal -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/neutral_surface"
+                android:paddingLeft="24dp"
+                android:paddingRight="24dp"
+                android:paddingTop="20dp"
+                android:paddingBottom="32dp">
+
+                <!-- Badge estado -->
+                <TextView
+                    android:id="@+id/tv_estado"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="14dp"
+                    android:paddingRight="14dp"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="5dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/lato_family"
+                    android:layout_marginBottom="10dp"/>
+
+                <!-- Tipo de propiedad -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/detail_tipo"
+                    android:textSize="12sp"
+                    android:textColor="#9E9E9E"
+                    android:fontFamily="@font/lato_family"
+                    android:layout_marginBottom="4dp"/>
+
+                <!-- Nombre del proyecto -->
+                <TextView
+                    android:id="@+id/tv_nombre"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/neutral_dark"
+                    android:fontFamily="@font/lato_family"
+                    android:layout_marginBottom="8dp"/>
+
+                <!-- Fila ubicación -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_location_pin"
+                        android:tint="@color/brand_lime"
+                        android:layout_marginRight="5dp"
+                        android:contentDescription="@null"/>
+                    <TextView
+                        android:id="@+id/tv_ciudad"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_primary"
+                        android:fontFamily="@font/lato_family"/>
+                </LinearLayout>
+
+                <!-- Precio -->
+                <TextView
+                    android:id="@+id/tv_precio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/TextAppearance.BitBusters.PriceText"
+                    android:layout_marginBottom="2dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/precio_base"
+                    android:textSize="11sp"
+                    android:textColor="#9E9E9E"
+                    android:fontFamily="@font/lato_family"
+                    android:layout_marginBottom="20dp"/>
+
+                <!-- Botones de acción -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="24dp">
+                    <com.google.android.material.button.MaterialButton
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        style="@style/Widget.BitBusters.PrimaryButton"
+                        android:text="@string/btn_registrar"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:layout_marginRight="8dp"/>
+                    <com.google.android.material.button.MaterialButton
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        style="@style/Widget.BitBusters.SecondaryButton"
+                        android:text="@string/btn_contactar"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+
+                <!-- Tarjeta de contacto -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/neutral_soft_1"
+                    android:layout_marginBottom="24dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="16dp"
+                        android:paddingRight="16dp"
+                        android:paddingTop="14dp"
+                        android:paddingBottom="14dp">
+
+                        <!-- Avatar MR -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            app:cardCornerRadius="22dp"
+                            app:cardElevation="0dp"
+                            app:cardBackgroundColor="@color/avatar_brown">
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:text="MR"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:gravity="center"
+                                android:fontFamily="@font/lato_family"/>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Info contacto -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginLeft="12dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/contact_name"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"
+                                android:fontFamily="@font/lato_family"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/contact_role"
+                                android:textSize="12sp"
+                                android:textColor="#9E9E9E"
+                                android:fontFamily="@font/lato_family"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/contact_badge"
+                                android:background="@drawable/badge_contact"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/badge_contact_text"
+                                android:fontFamily="@font/lato_family"
+                                android:paddingLeft="8dp"
+                                android:paddingRight="8dp"
+                                android:paddingTop="2dp"
+                                android:paddingBottom="2dp"
+                                android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+
+                        <!-- Botón llamar -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            app:cardCornerRadius="20dp"
+                            app:cardElevation="0dp"
+                            app:cardBackgroundColor="@color/brand_lime">
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_phone_call"
+                                android:tint="@color/white"
+                                android:contentDescription="@null"/>
+                        </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Sección Características -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_caracteristicas"
+                    style="@style/TextAppearance.BitBusters.SectionTitle"
+                    android:layout_marginBottom="12dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="24dp">
+
+                    <!-- Camas -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="90dp"
+                        android:layout_weight="1"
+                        android:layout_marginRight="8dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="@color/neutral_soft_1">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@drawable/ic_bed"
+                                android:tint="@color/brand_deep_blue"
+                                android:contentDescription="@null"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="3"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/neutral_dark"
+                                android:fontFamily="@font/lato_family"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/caract_camas"
+                                android:textSize="11sp"
+                                android:textColor="#9E9E9E"
+                                android:fontFamily="@font/lato_family"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Baños -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="90dp"
+                        android:layout_weight="1"
+                        android:layout_marginLeft="4dp"
+                        android:layout_marginRight="4dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="@color/neutral_soft_1">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@drawable/ic_bath"
+                                android:tint="@color/brand_deep_blue"
+                                android:contentDescription="@null"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="3"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/neutral_dark"
+                                android:fontFamily="@font/lato_family"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/caract_banios"
+                                android:textSize="11sp"
+                                android:textColor="#9E9E9E"
+                                android:fontFamily="@font/lato_family"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Dormitorios -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="90dp"
+                        android:layout_weight="1"
+                        android:layout_marginLeft="8dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="@color/neutral_soft_1">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@drawable/ic_room"
+                                android:tint="@color/brand_deep_blue"
+                                android:contentDescription="@null"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="3"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/neutral_dark"
+                                android:fontFamily="@font/lato_family"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/caract_dormitorios"
+                                android:textSize="11sp"
+                                android:textColor="#9E9E9E"
+                                android:fontFamily="@font/lato_family"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+
+                <!-- Sección Descripción -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_descripcion"
+                    style="@style/TextAppearance.BitBusters.SectionTitle"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/detail_descripcion"
+                    style="@style/TextAppearance.BitBusters.Body"
+                    android:layout_marginBottom="24dp"/>
+
+                <!-- Sección Ubicación -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_ubicacion"
+                    style="@style/TextAppearance.BitBusters.SectionTitle"
+                    android:layout_marginBottom="12dp"/>
+
+                <!-- Mapa placeholder -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="140dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/neutral_canvas">
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_location_pin"
+                            android:tint="@color/brand_deep_blue"
+                            android:contentDescription="@null"/>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom"
+                            android:orientation="vertical"
+                            android:background="@color/neutral_surface"
+                            android:paddingLeft="16dp"
+                            android:paddingRight="16dp"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/ubicacion_ciudad"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"
+                                android:fontFamily="@font/lato_family"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/ubicacion_distancia"
+                                android:textSize="11sp"
+                                android:textColor="#9E9E9E"
+                                android:fontFamily="@font/lato_family"/>
+                        </LinearLayout>
+                    </FrameLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

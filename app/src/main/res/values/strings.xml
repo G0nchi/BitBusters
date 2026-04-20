@@ -15,4 +15,42 @@
     <string name="onboarding_chip_type_2">Tipo 2</string>
     <string name="onboarding_chip_type_3">Tipo 3</string>
     <string name="onboarding_next">Siguiente</string>
+
+    <!-- Asesor Home -->
+    <string name="asesor_location">Lima, Perú</string>
+    <string name="asesor_greeting">¡Hola, Juan García!</string>
+    <string name="asesor_role">Panel de Asesor</string>
+    <string name="search_hint">Buscar proyecto, distrito…</string>
+    <string name="quick_mapa">Mapa</string>
+    <string name="quick_mis_citas">Mis Citas</string>
+    <string name="quick_ofertas">Ofertas</string>
+    <string name="filter_todos">Todos</string>
+    <string name="filter_departamentos">Departamentos</string>
+    <string name="filter_casas">Casas</string>
+    <string name="filter_oficinas">Oficinas</string>
+    <string name="section_proyectos">Proyectos Destacados</string>
+    <string name="ver_todos">ver todos</string>
+    <string name="ver_mas">Ver más</string>
+    <string name="precio_base">precio base</string>
+    <string name="nav_inicio">Inicio</string>
+    <string name="nav_citas">Citas</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_perfil">Perfil</string>
+
+    <!-- Proyecto Detalle -->
+    <string name="detail_tipo">Apartamento</string>
+    <string name="btn_registrar">Registrar separación</string>
+    <string name="btn_contactar">Contactar cliente</string>
+    <string name="contact_name">María Ríos</string>
+    <string name="contact_role">Supervisora de ventas</string>
+    <string name="contact_badge">Contacto inmobiliaria</string>
+    <string name="section_caracteristicas">Características</string>
+    <string name="caract_camas">Camas</string>
+    <string name="caract_banios">Baños</string>
+    <string name="caract_dormitorios">Dormitorios</string>
+    <string name="section_descripcion">Descripción</string>
+    <string name="detail_descripcion">Moderno proyecto residencial ubicado en una zona estratégica con acceso a centros comerciales, colegios y principales vías de comunicación. Incluye áreas comunes, piscina, gimnasio y seguridad 24/7.</string>
+    <string name="section_ubicacion">Ubicación</string>
+    <string name="ubicacion_ciudad">Lima, Callao</string>
+    <string name="ubicacion_distancia">2.9 km del centro</string>
 </resources>
