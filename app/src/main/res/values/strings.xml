@@ -16,12 +16,150 @@
     <string name="onboarding_chip_type_3">Tipo 3</string>
     <string name="onboarding_next">Siguiente</string>
 
+    <!-- Asesor Home -->
+    <string name="asesor_location">Lima, Perú</string>
+    <string name="asesor_greeting">¡Hola, Juan García!</string>
+    <string name="asesor_role">Panel de Asesor</string>
+    <string name="search_hint">Buscar proyecto, distrito…</string>
+    <string name="quick_mapa">Mapa</string>
+    <string name="quick_mis_citas">Mis Citas</string>
+    <string name="quick_ofertas">Ofertas</string>
+    <string name="filter_todos">Todos</string>
+    <string name="filter_departamentos">Departamentos</string>
+    <string name="filter_casas">Casas</string>
+    <string name="filter_oficinas">Oficinas</string>
+    <string name="section_proyectos">Proyectos Destacados</string>
+    <string name="ver_todos">ver todos</string>
+    <string name="ver_mas">Ver más</string>
+    <string name="precio_base">precio base</string>
+    <string name="nav_inicio">Inicio</string>
+    <string name="nav_citas">Citas</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_perfil">Perfil</string>
+
+    <!-- Proyecto Detalle -->
+    <string name="detail_tipo">Apartamento</string>
+    <string name="btn_registrar">Registrar separación</string>
+    <string name="btn_contactar">Contactar cliente</string>
+    <string name="contact_name">María Ríos</string>
+    <string name="contact_role">Supervisora de ventas</string>
+    <string name="contact_badge">Contacto inmobiliaria</string>
+    <string name="section_caracteristicas">Características</string>
+    <string name="caract_camas">Camas</string>
+    <string name="caract_banios">Baños</string>
+    <string name="caract_dormitorios">Dormitorios</string>
+    <string name="section_descripcion">Descripción</string>
+    <string name="detail_descripcion">Moderno proyecto residencial ubicado en una zona estratégica con acceso a centros comerciales, colegios y principales vías de comunicación. Incluye áreas comunes, piscina, gimnasio y seguridad 24/7.</string>
+    <string name="section_ubicacion">Ubicación</string>
+    <string name="ubicacion_ciudad">Lima, Callao</string>
+    <string name="ubicacion_distancia">2.9 km del centro</string>
+
+    <!-- Separación flow -->
+    <string name="sep_title">Registrar Separación</string>
+    <string name="sep_step_datos">Datos</string>
+    <string name="sep_step_pago">Pago</string>
+    <string name="sep_step_confirmacion">Confirmación</string>
+    <string name="sep_banner">La separación reserva la unidad para el cliente durante 48 horas.</string>
+    <string name="sep_label_proyecto">Proyecto</string>
+    <string name="sep_label_unidad">Unidad / Departamento</string>
+    <string name="sep_label_cliente">Cliente</string>
+    <string name="sep_hint_cliente">Buscar por nombre o DNI…</string>
+    <string name="sep_label_valor">Valor propuesto</string>
+    <string name="sep_hint_valor">S/  0.00</string>
+    <string name="sep_label_fecha">Fecha de visita</string>
+    <string name="sep_hint_fecha">dd/mm/aaaa</string>
+    <string name="sep_label_hora">Hora</string>
+    <string name="sep_hint_hora">hh:mm</string>
+    <string name="sep_label_notas">Notas adicionales</string>
+    <string name="sep_hint_notas">Observaciones, condiciones pactadas…</string>
+    <string name="sep_btn_continuar">Continuar al pago</string>
+    <string name="sep_footer">Paso 1 de 3 · El pago se registrará en el siguiente paso.</string>
+    <string name="pago_title">Registrar pago recibido</string>
+    <string name="pago_banner">Registra el método y monto con el que el cliente realizó el pago de la separación.</string>
+    <string name="pago_resumen_title">Resumen de separación</string>
+    <string name="pago_label_proyecto">Proyecto</string>
+    <string name="pago_label_unidad">Unidad</string>
+    <string name="pago_label_cliente">Cliente</string>
+    <string name="pago_label_valor_inmueble">Valor del inmueble</string>
+    <string name="pago_label_monto_sep">Monto de separación</string>
+    <string name="pago_method_tarjeta">Tarjeta de crédito / débito</string>
+    <string name="pago_method_tarjeta_sub">Visa, Mastercard, Amex</string>
+    <string name="pago_method_transferencia">Transferencia bancaria</string>
+    <string name="pago_method_transferencia_sub">BCP, Interbank, BBVA</string>
+    <string name="pago_method_yape">Yape / Plin</string>
+    <string name="pago_method_yape_sub">Pago inmediato con QR</string>
+    <string name="pago_label_monto_recibido">Monto recibido</string>
+    <string name="pago_hint_monto">S/  0.00</string>
+    <string name="pago_label_operacion">Número de operación / referencia</string>
+    <string name="pago_hint_operacion">Ej. 00123456789</string>
+    <string name="pago_btn_confirmar">Confirmar registro de pago</string>
+    <string name="confirm_title">¡Separación registrada!</string>
+    <string name="confirm_subtitle">La separación quedó registrada en el sistema.\nLa unidad está reservada por 48 horas.</string>
+    <string name="confirm_ref">N° SEP-2025-0047</string>
+    <string name="confirm_que_sigue">¿Qué sigue ahora?</string>
+    <string name="confirm_paso1">El cliente recibirá un correo de confirmación con el resumen de la separación.</string>
+    <string name="confirm_paso2">Tienes 48 horas para coordinar con el cliente la firma del contrato de compraventa.</string>
+    <string name="confirm_paso3">Puedes hacer seguimiento desde el historial de separaciones.</string>
+    <string name="confirm_btn_volver">Volver al inicio</string>
+
+    <!-- Contactar BottomSheet -->
+    <string name="contactar_title">Asesor de ventas</string>
+    <string name="contactar_proyecto">Vista Marina Residencial</string>
+    <string name="contactar_llamar">Llamar</string>
+    <string name="contactar_llamar_sub">+51 987 654 321</string>
+    <string name="contactar_whatsapp">WhatsApp</string>
+    <string name="contactar_whatsapp_sub">Enviar mensaje directo</string>
+    <string name="contactar_correo">Correo electrónico</string>
+    <string name="contactar_correo_sub">fabri@inmoilaria.com</string>
+    <string name="agent_name">Fabri</string>
+    <string name="agent_rating">4.9</string>
+
+    <!-- Citas flow -->
+    <string name="citas_title">Citas Agendadas</string>
+    <string name="citas_subtitle">Proyecto asignado: Torres del Sol</string>
+    <string name="citas_tab_pendientes">Pendientes</string>
+    <string name="citas_tab_confirmadas">Confirmadas</string>
+    <string name="citas_tab_pasadas">Pasadas</string>
+    <string name="cita_btn_confirmar">Confirmar</string>
+    <string name="cita_btn_reagendar">Reagendar</string>
+    <string name="cita_btn_valorar">Valorar</string>
+    <string name="cita_btn_ver_detalle">Ver detalle</string>
+    <string name="cita_btn_cancelar">Cancelar</string>
+    <string name="cita_btn_separar">Separar</string>
+    <string name="cita_dialog_title">¡Cita Confirmada!</string>
+    <string name="cita_dialog_msg">La cita ha sido confirmada exitosamente. El cliente recibirá una notificación.</string>
+    <string name="cita_dialog_ok">Entendido</string>
+    <string name="valorar_title">Valorar visita</string>
+    <string name="valorar_subtitle">Cuéntanos tu experiencia</string>
+    <string name="valorar_label_calificacion">¿Cómo calificarías la visita?</string>
+    <string name="valorar_hint_calificacion">Tu opinión nos ayuda a mejorar el servicio</string>
+    <string name="valorar_label_tags">¿Qué aspectos destacarías?</string>
+    <string name="valorar_tag1">Atención del asesor</string>
+    <string name="valorar_tag2">Puntual</string>
+    <string name="valorar_tag3">Información del proyecto</string>
+    <string name="valorar_tag4">Instalaciones</string>
+    <string name="valorar_tag5">Precio competitivo</string>
+    <string name="valorar_tag6">Ubicación</string>
+    <string name="valorar_tag7">Acabados</string>
+    <string name="valorar_label_comentario">Observaciones adicionales</string>
+    <string name="valorar_hint_comentario">El asesor fue muy amable y nos explicó todo con detalle…</string>
+    <string name="valorar_anonimo">Publicar de forma anónima</string>
+    <string name="valorar_anonimo_sub">Tu nombre no será visible en la reseña</string>
+    <string name="valorar_btn_guardar">Guardar valoración</string>
+
+    <!-- Chat flow -->
+    <string name="mensajes_title">Mensajes</string>
+    <string name="mensajes_recientes">RECIENTES</string>
+    <string name="mensajes_anteriores">CERRADOS</string>
+    <string name="mensajes_hint_buscar">Buscar conversación…</string>
+    <string name="chat_hint">Escribe un mensaje…</string>
+    <string name="en_linea">En línea</string>
+
     <!-- Admin Navigation Menu -->
     <string name="nav_dashboard">Inicio</string>
     <string name="nav_proyectos">Proyectos</string>
     <string name="nav_separaciones">Separaciones</string>
     <string name="nav_reportes">Reportes</string>
-    <string name="nav_perfil">Perfil</string>
     <!-- Notifications & Messages screens -->
     <string name="tab_notifications">Notificaciones</string>
     <string name="tab_messages">Mensajes</string>

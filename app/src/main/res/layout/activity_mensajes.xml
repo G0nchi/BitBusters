@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/neutral_surface">
+
+    <!-- Dark Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/brand_deep_blue"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="14dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/mensajes_title"
+                android:textColor="@color/white"
+                android:textSize="24sp"
+                android:fontFamily="@font/lato_bold"/>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btn_new_chat"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                app:cardCornerRadius="20dp"
+                app:cardBackgroundColor="@color/brand_lime"
+                app:strokeWidth="0dp">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_add"
+                    android:padding="8dp"
+                    android:contentDescription="@null"/>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Search bar -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="24dp"
+            app:cardBackgroundColor="@color/neutral_surface"
+            app:strokeWidth="0dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_search" android:contentDescription="@null"
+                    android:alpha="0.5"/>
+                <EditText
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="@string/mensajes_hint_buscar"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/lato_regular"
+                    android:background="@null"
+                    android:layout_marginLeft="10dp"
+                    android:inputType="text"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+
+    <!-- Conversation list -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- RECIENTES label -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/mensajes_recientes"
+                android:textColor="@color/nav_inactive"
+                android:textSize="12sp"
+                android:fontFamily="@font/lato_bold"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="8dp"
+                android:letterSpacing="0.08"/>
+
+            <!-- Conversation: Carlos Mendoza -->
+            <LinearLayout android:id="@+id/conv_carlos" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="horizontal"
+                android:gravity="center_vertical" android:padding="16dp"
+                android:clickable="true" android:focusable="true">
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="50dp" android:layout_height="50dp"
+                    app:cardCornerRadius="25dp" app:cardBackgroundColor="@color/avatar_teal" app:strokeWidth="0dp">
+                    <TextView android:layout_width="match_parent" android:layout_height="match_parent"
+                        android:text="CM" android:textColor="@color/white" android:textSize="16sp"
+                        android:fontFamily="@font/lato_bold" android:gravity="center"/>
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:layout_marginLeft="12dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Carlos Mendoza" android:textColor="@color/neutral_dark"
+                        android:textSize="15sp" android:fontFamily="@font/lato_bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="¿Podemos confirmar la cita del lunes?" android:textColor="@color/nav_inactive"
+                        android:textSize="13sp" android:fontFamily="@font/lato_regular" android:maxLines="1"
+                        android:ellipsize="end"/>
+                </LinearLayout>
+                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:gravity="end|center_vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="10:32" android:textColor="@color/nav_inactive" android:textSize="12sp"
+                        android:fontFamily="@font/lato_regular" android:layout_marginBottom="4dp"/>
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="22dp" android:layout_height="22dp"
+                        app:cardCornerRadius="11dp" app:cardBackgroundColor="@color/brand_lime" app:strokeWidth="0dp">
+                        <TextView android:layout_width="match_parent" android:layout_height="match_parent"
+                            android:text="2" android:textColor="@color/white" android:textSize="11sp"
+                            android:fontFamily="@font/lato_bold" android:gravity="center"/>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/neutral_soft_1" android:layout_marginLeft="78dp"/>
+
+            <!-- Conversation: Rosa Torres -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="16dp"
+                android:clickable="true" android:focusable="true">
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="50dp" android:layout_height="50dp"
+                    app:cardCornerRadius="25dp" app:cardBackgroundColor="@color/avatar_pink" app:strokeWidth="0dp">
+                    <TextView android:layout_width="match_parent" android:layout_height="match_parent"
+                        android:text="RT" android:textColor="@color/white" android:textSize="16sp"
+                        android:fontFamily="@font/lato_bold" android:gravity="center"/>
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:layout_marginLeft="12dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Rosa Torres" android:textColor="@color/neutral_dark"
+                        android:textSize="15sp" android:fontFamily="@font/lato_bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Muchas gracias por la atención 🙏" android:textColor="@color/nav_inactive"
+                        android:textSize="13sp" android:fontFamily="@font/lato_regular" android:maxLines="1"
+                        android:ellipsize="end"/>
+                </LinearLayout>
+                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:gravity="end|center_vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="9:15" android:textColor="@color/nav_inactive" android:textSize="12sp"
+                        android:fontFamily="@font/lato_regular" android:layout_marginBottom="4dp"/>
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="22dp" android:layout_height="22dp"
+                        app:cardCornerRadius="11dp" app:cardBackgroundColor="@color/brand_lime" app:strokeWidth="0dp">
+                        <TextView android:layout_width="match_parent" android:layout_height="match_parent"
+                            android:text="1" android:textColor="@color/white" android:textSize="11sp"
+                            android:fontFamily="@font/lato_bold" android:gravity="center"/>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/neutral_soft_1" android:layout_marginLeft="78dp"/>
+
+            <!-- Conversation: Ana López -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="16dp"
+                android:clickable="true" android:focusable="true">
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="50dp" android:layout_height="50dp"
+                    app:cardCornerRadius="25dp" app:cardBackgroundColor="@color/avatar_orange" app:strokeWidth="0dp">
+                    <TextView android:layout_width="match_parent" android:layout_height="match_parent"
+                        android:text="AL" android:textColor="@color/white" android:textSize="16sp"
+                        android:fontFamily="@font/lato_bold" android:gravity="center"/>
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:layout_marginLeft="12dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Ana López" android:textColor="@color/neutral_dark"
+                        android:textSize="15sp" android:fontFamily="@font/lato_bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Perfecto, quedamos el martes entonces"
+                        android:textColor="@color/nav_inactive" android:textSize="13sp"
+                        android:fontFamily="@font/lato_regular" android:maxLines="1" android:ellipsize="end"/>
+                </LinearLayout>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Ayer" android:textColor="@color/nav_inactive" android:textSize="12sp"
+                    android:fontFamily="@font/lato_regular"/>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/neutral_soft_1" android:layout_marginLeft="78dp"/>
+
+            <!-- Conversation: Marco Paredes -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="16dp"
+                android:clickable="true" android:focusable="true">
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="50dp" android:layout_height="50dp"
+                    app:cardCornerRadius="25dp" app:cardBackgroundColor="@color/avatar_purple" app:strokeWidth="0dp">
+                    <TextView android:layout_width="match_parent" android:layout_height="match_parent"
+                        android:text="MP" android:textColor="@color/white" android:textSize="16sp"
+                        android:fontFamily="@font/lato_bold" android:gravity="center"/>
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:layout_marginLeft="12dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Marco Paredes" android:textColor="@color/neutral_dark"
+                        android:textSize="15sp" android:fontFamily="@font/lato_bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="¿El departamento tiene estacionamiento?"
+                        android:textColor="@color/nav_inactive" android:textSize="13sp"
+                        android:fontFamily="@font/lato_regular" android:maxLines="1" android:ellipsize="end"/>
+                </LinearLayout>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Ayer" android:textColor="@color/nav_inactive" android:textSize="12sp"
+                    android:fontFamily="@font/lato_regular"/>
+            </LinearLayout>
+
+            <!-- ANTERIORES label -->
+            <View android:layout_width="match_parent" android:layout_height="8dp"
+                android:background="@color/neutral_soft_1"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/mensajes_anteriores" android:textColor="@color/nav_inactive"
+                android:textSize="12sp" android:fontFamily="@font/lato_bold"
+                android:paddingLeft="20dp" android:paddingRight="20dp"
+                android:paddingTop="12dp" android:paddingBottom="8dp" android:letterSpacing="0.08"/>
+
+            <!-- Jorge Castro -->
+            <LinearLayout android:id="@+id/conv_jorge" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="horizontal"
+                android:gravity="center_vertical" android:padding="16dp"
+                android:clickable="true" android:focusable="true">
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="50dp" android:layout_height="50dp"
+                    app:cardCornerRadius="25dp" app:cardBackgroundColor="@color/nav_inactive" app:strokeWidth="0dp">
+                    <TextView android:layout_width="match_parent" android:layout_height="match_parent"
+                        android:text="JC" android:textColor="@color/white" android:textSize="16sp"
+                        android:fontFamily="@font/lato_bold" android:gravity="center"/>
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:layout_marginLeft="12dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Jorge Castro" android:textColor="@color/neutral_dark"
+                        android:textSize="15sp" android:fontFamily="@font/lato_bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Gracias, lo voy a pensar con mi familia"
+                        android:textColor="@color/nav_inactive" android:textSize="13sp"
+                        android:fontFamily="@font/lato_regular" android:maxLines="1" android:ellipsize="end"/>
+                </LinearLayout>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Lun" android:textColor="@color/nav_inactive" android:textSize="12sp"
+                    android:fontFamily="@font/lato_regular"/>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/neutral_soft_1" android:layout_marginLeft="78dp"/>
+
+            <!-- Sandra Vega -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="16dp"
+                android:clickable="true" android:focusable="true">
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="50dp" android:layout_height="50dp"
+                    app:cardCornerRadius="25dp" app:cardBackgroundColor="@color/nav_inactive" app:strokeWidth="0dp">
+                    <TextView android:layout_width="match_parent" android:layout_height="match_parent"
+                        android:text="SV" android:textColor="@color/white" android:textSize="16sp"
+                        android:fontFamily="@font/lato_bold" android:gravity="center"/>
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:layout_marginLeft="12dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Sandra Vega" android:textColor="@color/neutral_dark"
+                        android:textSize="15sp" android:fontFamily="@font/lato_bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="¿Pueden enviarme los planos del dpto 4…"
+                        android:textColor="@color/nav_inactive" android:textSize="13sp"
+                        android:fontFamily="@font/lato_regular" android:maxLines="1" android:ellipsize="end"/>
+                </LinearLayout>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Dom" android:textColor="@color/nav_inactive" android:textSize="12sp"
+                    android:fontFamily="@font/lato_regular"/>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/neutral_soft_1" android:layout_marginLeft="78dp"/>
+
+            <!-- Luis Vargas -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="16dp"
+                android:clickable="true" android:focusable="true">
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="50dp" android:layout_height="50dp"
+                    app:cardCornerRadius="25dp" app:cardBackgroundColor="@color/nav_inactive" app:strokeWidth="0dp">
+                    <TextView android:layout_width="match_parent" android:layout_height="match_parent"
+                        android:text="LV" android:textColor="@color/white" android:textSize="16sp"
+                        android:fontFamily="@font/lato_bold" android:gravity="center"/>
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:layout_marginLeft="12dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Luis Vargas" android:textColor="@color/neutral_dark"
+                        android:textSize="15sp" android:fontFamily="@font/lato_bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Ok, reagendamos para la próxima semana"
+                        android:textColor="@color/nav_inactive" android:textSize="13sp"
+                        android:fontFamily="@font/lato_regular" android:maxLines="1" android:ellipsize="end"/>
+                </LinearLayout>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Sáb" android:textColor="@color/nav_inactive" android:textSize="12sp"
+                    android:fontFamily="@font/lato_regular"/>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="40dp"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Bottom Nav -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_nav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bottom_nav_bg"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@color/nav_icon_color"
+        app:itemTextColor="@color/nav_text_color"
+        app:labelVisibilityMode="labeled"/>
+</LinearLayout>
