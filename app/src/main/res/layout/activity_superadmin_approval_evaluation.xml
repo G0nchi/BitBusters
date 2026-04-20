@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/neutral_canvas"
+    tools:context=".activities.superadmin.SuperadminApprovalEvaluationActivity">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:background="@drawable/sa_top_header_bg"
+            android:orientation="vertical"
+            android:paddingStart="24dp"
+            android:paddingTop="24dp"
+            android:paddingEnd="24dp">
+
+            <ImageView
+                android:id="@+id/backButton"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/back_button_content_description"
+                android:src="@drawable/ic_chevron_left"
+                android:tint="@color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/sa_evaluation_title"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="126dp"
+            android:paddingStart="16dp"
+            android:paddingTop="0dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="90dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/sa_card_bg"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:background="@drawable/sa_avatar_bg"
+                        android:gravity="center"
+                        android:text="JP"
+                        android:textColor="@color/white"
+                        android:textSize="24sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Juan Pérez"
+                        android:textColor="@color/brand_deep_blue"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/sa_status_pending_bg"
+                        android:paddingStart="10dp"
+                        android:paddingTop="4dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="4dp"
+                        android:text="@string/sa_pending_approval"
+                        android:textColor="#D97706"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/sa_card_bg"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sa_personal_info"
+                        android:textColor="@color/brand_deep_blue"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:gravity="center_vertical" android:orientation="horizontal"><FrameLayout android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/sa_info_icon_bg"><ImageView android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:src="@drawable/ic_email_20" android:tint="@color/brand_deep_blue" /></FrameLayout><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Correo Electrónico" android:textColor="@color/text_medium" android:textSize="12sp" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="juan@inmomiraflores.pe" android:textColor="@color/brand_deep_blue" android:textSize="16sp" /></LinearLayout></LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="center_vertical" android:orientation="horizontal"><FrameLayout android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/sa_info_icon_bg"><ImageView android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:src="@drawable/ic_phone_20" android:tint="@color/brand_deep_blue" /></FrameLayout><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Teléfono" android:textColor="@color/text_medium" android:textSize="12sp" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+51 987 654 321" android:textColor="@color/brand_deep_blue" android:textSize="16sp" /></LinearLayout></LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="center_vertical" android:orientation="horizontal"><FrameLayout android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/sa_info_icon_bg"><ImageView android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:src="@drawable/ic_location_20" android:tint="@color/brand_deep_blue" /></FrameLayout><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Domicilio" android:textColor="@color/text_medium" android:textSize="12sp" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Av. Arequipa 2450, Lince, Lima" android:textColor="@color/brand_deep_blue" android:textSize="16sp" /></LinearLayout></LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="center_vertical" android:orientation="horizontal"><FrameLayout android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/sa_info_icon_bg"><ImageView android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:src="@drawable/ic_badge_20" android:tint="@color/brand_deep_blue" /></FrameLayout><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Empresa" android:textColor="@color/text_medium" android:textSize="12sp" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Inmobiliaria Miraflores" android:textColor="@color/brand_deep_blue" android:textSize="16sp" /></LinearLayout></LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="center_vertical" android:orientation="horizontal"><FrameLayout android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/sa_info_icon_bg"><ImageView android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:src="@drawable/ic_calendar_20" android:tint="@color/brand_deep_blue" /></FrameLayout><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fecha de Solicitud" android:textColor="@color/text_medium" android:textSize="12sp" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2026-04-03" android:textColor="@color/brand_deep_blue" android:textSize="16sp" /></LinearLayout></LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/sa_card_bg"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sa_professional_info"
+                        android:textColor="@color/brand_deep_blue"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:gravity="center_vertical" android:orientation="horizontal"><FrameLayout android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/sa_info_icon_bg"><ImageView android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:src="@drawable/ic_badge_20" android:tint="@color/brand_deep_blue" /></FrameLayout><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sa_experience" android:textColor="@color/text_medium" android:textSize="12sp" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5 años en ventas inmobiliarias" android:textColor="@color/brand_deep_blue" android:textSize="16sp" /></LinearLayout></LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="center_vertical" android:orientation="horizontal"><FrameLayout android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/sa_info_icon_bg"><ImageView android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:src="@drawable/ic_badge_20" android:tint="@color/brand_deep_blue" /></FrameLayout><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sa_education" android:textColor="@color/text_medium" android:textSize="12sp" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Administración de Empresas - Universidad Nacional" android:textColor="@color/brand_deep_blue" android:textSize="16sp" /></LinearLayout></LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_gravity="bottom"
+            android:background="@color/white"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <Button
+                android:id="@+id/rejectButton"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:background="@drawable/sa_reject_button_bg"
+                android:drawableStart="@drawable/ic_close_circle_16"
+                android:drawablePadding="8dp"
+                android:gravity="center"
+                android:text="@string/sa_reject"
+                android:textAllCaps="false"
+                android:textColor="#EF4444" />
+
+            <Button
+                android:id="@+id/approveButton"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/sa_approve_button_bg"
+                android:drawableStart="@drawable/ic_check_circle_16"
+                android:drawablePadding="8dp"
+                android:gravity="center"
+                android:text="@string/sa_approve"
+                android:textAllCaps="false"
+                android:textColor="@color/white" />
+        </LinearLayout>
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
