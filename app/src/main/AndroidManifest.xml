@@ -29,6 +29,27 @@
         <activity
             android:name=".activities.asesor.ProyectoDetalleActivity"
             android:exported="false" />
+        <activity
+            android:name=".activities.asesor.NuevaSeparacionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.asesor.PagoSeparacionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.asesor.ConfirmacionSeparacionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.asesor.CitasAgendadasActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.asesor.ValorarVisitaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.asesor.MensajesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.asesor.ConversacionActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -41,4 +41,25 @@
     <color name="quick_icon_map_bg">#EAF0F4</color>
     <color name="quick_icon_calendar_bg">#EAF5EC</color>
     <color name="avatar_brown">#C8956C</color>
+    <!-- Citas badge colors -->
+    <color name="badge_pendiente_bg">#FFF3DC</color>
+    <color name="badge_pendiente_text">#9A5700</color>
+    <color name="badge_confirmada_bg">#DFFBEC</color>
+    <color name="badge_confirmada_text">#186A3B</color>
+    <color name="badge_pasada_bg">#F0F0F0</color>
+    <color name="badge_pasada_text">#666666</color>
+    <color name="badge_cancelada_bg">#FFE8E8</color>
+    <color name="badge_cancelada_text">#CC2222</color>
+    <color name="badge_valorada_bg">#E8F4FF</color>
+    <color name="badge_valorada_text">#1A5799</color>
+    <!-- Chat avatars -->
+    <color name="avatar_teal">#4ECDC4</color>
+    <color name="avatar_pink">#FF6B9D</color>
+    <color name="avatar_orange">#FF8C42</color>
+    <color name="avatar_purple">#9B59B6</color>
+    <color name="avatar_green">#27AE60</color>
+    <color name="avatar_blue_light">#3498DB</color>
+    <!-- Sent message bubble -->
+    <color name="bubble_sent">#234F68</color>
+    <color name="bubble_received">#FFFFFF</color>
 </resources>

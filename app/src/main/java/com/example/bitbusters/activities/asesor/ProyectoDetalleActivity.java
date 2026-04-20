@@ -1,5 +1,6 @@
 package com.example.bitbusters.activities.asesor;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -44,7 +45,15 @@ public class ProyectoDetalleActivity extends AppCompatActivity {
         int index = getIntent().getIntExtra(EXTRA_PROYECTO_INDEX, 0);
         bindData(index);
         setupBackButton();
+        setupActionButtons();
         setupBottomNav();
+    }
+
+    private void setupActionButtons() {
+        findViewById(R.id.btn_registrar).setOnClickListener(v ->
+            startActivity(new Intent(this, NuevaSeparacionActivity.class)));
+        findViewById(R.id.btn_contactar).setOnClickListener(v ->
+            new ContactarClienteBottomSheet().show(getSupportFragmentManager(), "contactar"));
     }
 
     private void bindData(int index) {
@@ -81,5 +90,17 @@ public class ProyectoDetalleActivity extends AppCompatActivity {
     private void setupBottomNav() {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
         bottomNav.setSelectedItemId(R.id.nav_inicio);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_citas) {
+                startActivity(new Intent(this, CitasAgendadasActivity.class));
+            } else if (id == R.id.nav_chat) {
+                startActivity(new Intent(this, MensajesActivity.class));
+            } else if (id == R.id.nav_inicio) {
+                startActivity(new Intent(this, AsesorHomeActivity.class));
+                finish();
+            }
+            return true;
+        });
     }
 }

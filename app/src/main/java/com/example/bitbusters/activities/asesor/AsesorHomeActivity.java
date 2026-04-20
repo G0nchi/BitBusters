@@ -35,5 +35,14 @@ public class AsesorHomeActivity extends AppCompatActivity {
     private void setupBottomNav() {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
         bottomNav.setSelectedItemId(R.id.nav_inicio);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_citas) {
+                startActivity(new Intent(this, CitasAgendadasActivity.class));
+            } else if (id == R.id.nav_chat) {
+                startActivity(new Intent(this, MensajesActivity.class));
+            }
+            return true;
+        });
     }
 }

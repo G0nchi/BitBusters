@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/neutral_soft_1">
+
+    <!-- Dark Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/brand_deep_blue"
+        android:orientation="vertical"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <ImageView
+                android:id="@+id/btn_back"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_arrow_back"
+                android:padding="8dp"
+                android:contentDescription="@null"/>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginLeft="8dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Separación registrada"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/lato_bold"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Torres del Sol — Dpto 302"
+                    android:textColor="#AACDE0"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/lato_regular"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Step indicator all done -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="16dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical">
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="26dp" android:layout_height="26dp"
+                    app:cardCornerRadius="13dp" app:cardBackgroundColor="@color/brand_lime" app:strokeWidth="0dp">
+                    <ImageView android:layout_width="match_parent" android:layout_height="match_parent"
+                        android:src="@drawable/ic_check_circle" android:padding="4dp" android:contentDescription="@null"/>
+                </com.google.android.material.card.MaterialCardView>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/sep_step_datos" android:textColor="#AACDE0"
+                    android:textSize="13sp" android:layout_marginLeft="6dp" android:fontFamily="@font/lato_regular"/>
+            </LinearLayout>
+            <View android:layout_width="0dp" android:layout_height="1dp"
+                android:layout_weight="0.5" android:background="@color/brand_lime"/>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical">
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="26dp" android:layout_height="26dp"
+                    app:cardCornerRadius="13dp" app:cardBackgroundColor="@color/brand_lime" app:strokeWidth="0dp">
+                    <ImageView android:layout_width="match_parent" android:layout_height="match_parent"
+                        android:src="@drawable/ic_check_circle" android:padding="4dp" android:contentDescription="@null"/>
+                </com.google.android.material.card.MaterialCardView>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/sep_step_pago" android:textColor="#AACDE0"
+                    android:textSize="13sp" android:layout_marginLeft="6dp" android:fontFamily="@font/lato_regular"/>
+            </LinearLayout>
+            <View android:layout_width="0dp" android:layout_height="1dp"
+                android:layout_weight="0.5" android:background="@color/brand_lime"/>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical">
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="26dp" android:layout_height="26dp"
+                    app:cardCornerRadius="13dp" app:cardBackgroundColor="@color/brand_lime" app:strokeWidth="0dp">
+                    <TextView android:layout_width="match_parent" android:layout_height="match_parent"
+                        android:text="3" android:textColor="@color/white" android:textSize="12sp"
+                        android:fontFamily="@font/lato_bold" android:gravity="center"/>
+                </com.google.android.material.card.MaterialCardView>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/sep_step_confirmacion" android:textColor="@color/white"
+                    android:textSize="12sp" android:layout_marginLeft="6dp" android:fontFamily="@font/lato_bold"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center_horizontal">
+
+            <!-- Green checkmark -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                app:cardCornerRadius="40dp"
+                app:cardBackgroundColor="#DFFBEC"
+                app:strokeWidth="0dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="20dp">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_check_circle"
+                    android:padding="16dp"
+                    android:contentDescription="@null"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/confirm_title"
+                android:textColor="@color/neutral_dark"
+                android:textSize="22sp"
+                android:fontFamily="@font/lato_bold"
+                android:gravity="center"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/confirm_subtitle"
+                android:textColor="@color/nav_inactive"
+                android:textSize="14sp"
+                android:fontFamily="@font/lato_regular"
+                android:gravity="center"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/confirm_ref"
+                android:textColor="@color/brand_lime"
+                android:textSize="16sp"
+                android:fontFamily="@font/lato_bold"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- Dark summary card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="#1C3D52"
+                app:strokeWidth="0dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Resumen de separación" android:textColor="@color/white"
+                        android:textSize="14sp" android:fontFamily="@font/lato_bold" android:layout_marginBottom="10dp"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:layout_marginBottom="6dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="Proyecto" android:textColor="#AACDE0"
+                            android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Torres del Sol" android:textColor="@color/white"
+                            android:textSize="13sp" android:fontFamily="@font/lato_bold"/>
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:layout_marginBottom="6dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="Unidad" android:textColor="#AACDE0"
+                            android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Dpto 302 - Piso 3 · 78 m²" android:textColor="@color/white"
+                            android:textSize="13sp" android:fontFamily="@font/lato_bold"/>
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:layout_marginBottom="6dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="Cliente" android:textColor="#AACDE0"
+                            android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Carlos Mendoza" android:textColor="@color/white"
+                            android:textSize="13sp" android:fontFamily="@font/lato_bold"/>
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:layout_marginBottom="6dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="Método de pago" android:textColor="#AACDE0"
+                            android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Transferencia bancaria" android:textColor="@color/white"
+                            android:textSize="13sp" android:fontFamily="@font/lato_bold"/>
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:layout_marginBottom="6dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="N° operación" android:textColor="#AACDE0"
+                            android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="00123456789" android:textColor="@color/white"
+                            android:textSize="13sp" android:fontFamily="@font/lato_bold"/>
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:layout_marginBottom="6dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="Válida hasta" android:textColor="#AACDE0"
+                            android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="09 Abr, 2025 · 10:47 AM" android:textColor="@color/brand_lime"
+                            android:textSize="13sp" android:fontFamily="@font/lato_bold"/>
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="Monto registrado" android:textColor="#AACDE0"
+                            android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="S/ 3,200" android:textColor="@color/brand_lime"
+                            android:textSize="14sp" android:fontFamily="@font/lato_bold"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Que sigue section -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="@color/neutral_surface"
+                app:strokeWidth="0dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/confirm_que_sigue" android:textColor="@color/neutral_dark"
+                        android:textSize="15sp" android:fontFamily="@font/lato_bold" android:layout_marginBottom="12dp"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:layout_marginBottom="10dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="24dp" android:layout_height="24dp"
+                            app:cardCornerRadius="12dp" app:cardBackgroundColor="@color/brand_deep_blue" app:strokeWidth="0dp">
+                            <TextView android:layout_width="match_parent" android:layout_height="match_parent"
+                                android:text="1" android:textColor="@color/white" android:textSize="11sp"
+                                android:fontFamily="@font/lato_bold" android:gravity="center"/>
+                        </com.google.android.material.card.MaterialCardView>
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="@string/confirm_paso1"
+                            android:textColor="@color/text_primary" android:textSize="13sp"
+                            android:fontFamily="@font/lato_regular" android:layout_marginLeft="10dp"/>
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:layout_marginBottom="10dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="24dp" android:layout_height="24dp"
+                            app:cardCornerRadius="12dp" app:cardBackgroundColor="@color/brand_deep_blue" app:strokeWidth="0dp">
+                            <TextView android:layout_width="match_parent" android:layout_height="match_parent"
+                                android:text="2" android:textColor="@color/white" android:textSize="11sp"
+                                android:fontFamily="@font/lato_bold" android:gravity="center"/>
+                        </com.google.android.material.card.MaterialCardView>
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="@string/confirm_paso2"
+                            android:textColor="@color/text_primary" android:textSize="13sp"
+                            android:fontFamily="@font/lato_regular" android:layout_marginLeft="10dp"/>
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="24dp" android:layout_height="24dp"
+                            app:cardCornerRadius="12dp" app:cardBackgroundColor="@color/brand_deep_blue" app:strokeWidth="0dp">
+                            <TextView android:layout_width="match_parent" android:layout_height="match_parent"
+                                android:text="3" android:textColor="@color/white" android:textSize="11sp"
+                                android:fontFamily="@font/lato_bold" android:gravity="center"/>
+                        </com.google.android.material.card.MaterialCardView>
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="@string/confirm_paso3"
+                            android:textColor="@color/text_primary" android:textSize="13sp"
+                            android:fontFamily="@font/lato_regular" android:layout_marginLeft="10dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_volver"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="@string/confirm_btn_volver"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:fontFamily="@font/lato_bold"
+                app:backgroundTint="@color/neutral_dark"
+                app:cornerRadius="12dp"
+                android:layout_marginBottom="16dp"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>
