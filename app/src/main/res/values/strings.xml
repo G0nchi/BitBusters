@@ -150,7 +150,7 @@
     <!-- Chat flow -->
     <string name="mensajes_title">Mensajes</string>
     <string name="mensajes_recientes">RECIENTES</string>
-    <string name="mensajes_anteriores">ANTERIORES</string>
+    <string name="mensajes_anteriores">CERRADOS</string>
     <string name="mensajes_hint_buscar">Buscar conversación…</string>
     <string name="chat_hint">Escribe un mensaje…</string>
     <string name="en_linea">En línea</string>
