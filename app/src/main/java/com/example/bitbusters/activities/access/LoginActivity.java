@@ -15,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bitbusters.R;
 import com.example.bitbusters.activities.admin.AdminMainActivity;
+import com.example.bitbusters.activities.asesor.AsesorHomeActivity;
 import com.example.bitbusters.activities.cliente.HomeActivity;
 import com.example.bitbusters.activities.superadmin.SuperadminControlCenterActivity;
 import com.google.android.material.button.MaterialButton;
@@ -27,6 +28,8 @@ public class LoginActivity extends AppCompatActivity {
     private static final String CLIENT_PASSWORD = "cliente";
     private static final String ADMIN_USER = "administrador";
     private static final String ADMIN_PASSWORD = "administrador";
+    private static final String ASESOR_USER = "asesor";
+    private static final String ASESOR_PASSWORD = "asesor";
     private boolean passwordVisible = false;
 
     @Override
@@ -109,6 +112,12 @@ public class LoginActivity extends AppCompatActivity {
 
         if (ADMIN_USER.equals(user) && ADMIN_PASSWORD.equals(password)) {
             startActivity(new Intent(this, AdminMainActivity.class));
+            finish();
+            return;
+        }
+
+        if (ASESOR_USER.equals(user) && ASESOR_PASSWORD.equals(password)) {
+            startActivity(new Intent(this, AsesorHomeActivity.class));
             finish();
             return;
         }
