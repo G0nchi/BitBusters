@@ -23,7 +23,9 @@ import com.google.android.gms.maps.model.PolylineOptions;
 public class ViewOnMapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int PERMISO_UBICACION = 100;
+        private static final String EXTRA_PROYECTO = "proyecto";
     private GoogleMap mMap;
+        private String nombreProyecto;
 
     // Coordenadas del proyecto (La Perla, Callao)
     private final LatLng coordProyecto = new LatLng(-12.0600, -77.1200);
@@ -32,6 +34,11 @@ public class ViewOnMapActivity extends AppCompatActivity implements OnMapReadyCa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_on_map);
+
+                nombreProyecto = getIntent().getStringExtra(EXTRA_PROYECTO);
+                if (nombreProyecto != null && !nombreProyecto.isEmpty()) {
+                        ((TextView) findViewById(R.id.tvUbicacionActual)).setText(nombreProyecto);
+                }
 
         // Inicializar mapa
         SupportMapFragment mapFragment = (SupportMapFragment)
@@ -73,7 +80,7 @@ public class ViewOnMapActivity extends AppCompatActivity implements OnMapReadyCa
         // Marcador del proyecto principal
         mMap.addMarker(new MarkerOptions()
                 .position(coordProyecto)
-                .title("Torres Unidas")
+                .title(nombreProyecto != null ? nombreProyecto : "Torres Unidas")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
 
         // Círculo de radio alrededor del proyecto
@@ -138,10 +145,8 @@ public class ViewOnMapActivity extends AppCompatActivity implements OnMapReadyCa
         if (requestCode == PERMISO_UBICACION &&
                 grantResults.length > 0 &&
                 grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                mMap.setMyLocationEnabled(true);
-            }
+                        mMap.setMyLocationEnabled(ActivityCompat.checkSelfPermission(this,
+                                        Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED);
         }
     }
 }

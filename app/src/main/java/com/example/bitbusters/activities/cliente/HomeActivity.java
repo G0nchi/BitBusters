@@ -9,8 +9,12 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.bitbusters.R;
 public class HomeActivity extends AppCompatActivity {
 
-    private TextView btnTodos, btnTipo1, btnTipo2, btnTipo3;
-    private BottomNavigationView bottomNav;
+    private static final String EXTRA_PROYECTO = "proyecto";
+
+    private TextView btnTodos;
+    private TextView btnTipo1;
+    private TextView btnTipo2;
+    private TextView btnTipo3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +25,7 @@ public class HomeActivity extends AppCompatActivity {
         btnTipo1 = findViewById(R.id.btnTipo1);
         btnTipo2 = findViewById(R.id.btnTipo2);
         btnTipo3 = findViewById(R.id.btnTipo3);
-        bottomNav = findViewById(R.id.bottomNav);
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
 
         // Filtros de tipo
         View.OnClickListener filtroListener = v -> {
@@ -53,9 +57,7 @@ public class HomeActivity extends AppCompatActivity {
         findViewById(R.id.btnNotificaciones).setOnClickListener(v ->
                 startActivity(new Intent(this, NotificationsActivity.class))
         );
-        findViewById(R.id.etBuscar).setOnClickListener(v -> {
-            startActivity(new Intent(this, SearchActivity.class));
-        });
+        findViewById(R.id.etBuscar).setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
 
         // Bottom Navigation
         bottomNav.setSelectedItemId(R.id.nav_home);
@@ -90,9 +92,8 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void abrirDetalle(String nombreProyecto) {
-        // TODO: navegar al detalle del proyecto
-        // Intent intent = new Intent(this, ProjectDetailActivity.class);
-        // intent.putExtra("proyecto", nombreProyecto);
-        // startActivity(intent);
+        Intent intent = new Intent(this, ProjectDetailActivity.class);
+        intent.putExtra(EXTRA_PROYECTO, nombreProyecto);
+        startActivity(intent);
     }
 }

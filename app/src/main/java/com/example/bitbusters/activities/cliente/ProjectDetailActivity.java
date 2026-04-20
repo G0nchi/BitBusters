@@ -7,13 +7,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.bitbusters.R;
 public class ProjectDetailActivity extends AppCompatActivity {
 
+    private static final String EXTRA_PROYECTO = "proyecto";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_project_detail);
 
         // Recibir datos del proyecto desde HomeActivity
-        String nombreProyecto = getIntent().getStringExtra("proyecto");
+        String nombreProyecto = getIntent().getStringExtra(EXTRA_PROYECTO);
         if (nombreProyecto != null) {
             ((TextView) findViewById(R.id.tvNombreProyecto)).setText(nombreProyecto);
         }
@@ -55,7 +57,9 @@ public class ProjectDetailActivity extends AppCompatActivity {
 
         // Ver mapa completo
         findViewById(R.id.cardMapa).setOnClickListener(v -> {
-            // TODO: abrir MapActivity con ubicación del proyecto
+            Intent intent = new Intent(this, ViewOnMapActivity.class);
+            intent.putExtra(EXTRA_PROYECTO, nombreProyecto);
+            startActivity(intent);
         });
 
         // Ver costos variadas
@@ -65,7 +69,9 @@ public class ProjectDetailActivity extends AppCompatActivity {
 
         // Agregar comentario
         findViewById(R.id.btnAgregarComentario).setOnClickListener(v -> {
-            startActivity(new Intent(this, AddCommentActivity.class));
+            Intent intent = new Intent(this, AddCommentActivity.class);
+            intent.putExtra(EXTRA_PROYECTO, nombreProyecto);
+            startActivity(intent);
         });
 
         // Botón Separar Inmueble (bottom bar)
@@ -76,7 +82,7 @@ public class ProjectDetailActivity extends AppCompatActivity {
         });
         findViewById(R.id.tvVerTodos).setOnClickListener(v -> {
             Intent intent = new Intent(this, ReviewsActivity.class);
-            intent.putExtra("proyecto", nombreProyecto);
+            intent.putExtra(EXTRA_PROYECTO, nombreProyecto);
             startActivity(intent);
         });
     }

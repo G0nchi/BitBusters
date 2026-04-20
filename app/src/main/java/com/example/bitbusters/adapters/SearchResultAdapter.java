@@ -15,6 +15,8 @@ import java.util.List;
 
 public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapter.ViewHolder> {
 
+    private static final String EXTRA_PROYECTO = "proyecto";
+
     private final Context context;
     private List<Proyecto> lista;
 
@@ -46,7 +48,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, ProjectDetailActivity.class);
-            intent.putExtra("proyecto", p.nombre);
+            intent.putExtra(EXTRA_PROYECTO, p.nombre);
             context.startActivity(intent);
         });
 
@@ -61,7 +63,10 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvNombre, tvPrecio, tvRating, tvUbicacion;
+        TextView tvNombre;
+        TextView tvPrecio;
+        TextView tvRating;
+        TextView tvUbicacion;
         android.widget.ImageButton btnFavorito;
 
         public ViewHolder(@NonNull View itemView) {
