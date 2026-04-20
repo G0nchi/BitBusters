@@ -15,6 +15,15 @@
     <color name="neutral_mid_1">#DFDFDF</color>
     <color name="neutral_dark">#252B5C</color>
     <color name="text_primary">#292929</color>
+    <color name="text_medium">#53587A</color>
+    <color name="success_green">#16A34A</color>
+    <color name="slate_300">#CBD5E1</color>
+    <color name="slate_400">#94A3B8</color>
+    <color name="slate_500">#64748B</color>
+    <color name="text_placeholder">#A1A5C1</color>
+    <color name="text_deep">#3A3F67</color>
+    <color name="brand_blue">#1F4C6B</color>
+    <color name="overlay_dark_transparent">#B03F467C</color>
 
     <color name="overlay_blue_50">#8021628A</color>
     <color name="overlay_fade_end">#FF1F4C6B</color>

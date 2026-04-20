@@ -13,6 +13,15 @@
         android:theme="@style/Theme.BitBusters">
         <activity
             android:name=".activities.access.MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.access.OnboardingTourActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.access.ProjectTypeSelectionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.access.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,7 +30,43 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.access.OnboardingTourActivity"
+            android:name=".activities.access.ForgotPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.access.ForgotPasswordCodeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.access.ResetPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.access.RegisterAccountActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.access.RegisterOtpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.access.RegisterPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.superadmin.SuperadminControlCenterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.superadmin.SuperadminUsersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.superadmin.SuperadminUserDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.superadmin.SuperadminApprovalsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.superadmin.SuperadminApprovalEvaluationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.superadmin.SuperadminReportsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.superadmin.SuperadminLogsActivity"
             android:exported="false" />
     </application>
 
