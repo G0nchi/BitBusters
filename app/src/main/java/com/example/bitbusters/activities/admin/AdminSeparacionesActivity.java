@@ -23,7 +23,7 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_separaciones);
-        
+        setupHeaderListeners();
         setupBottomNavigation(R.id.nav_separaciones);
         setupNotificationsButton();
         initializeViews();

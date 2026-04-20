@@ -18,6 +18,7 @@ public class AdminReportesActivity extends AdminMainActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_reportes);
+        setupHeaderListeners();
         setupBottomNavigation(R.id.nav_reportes);
         setupListeners();
     }

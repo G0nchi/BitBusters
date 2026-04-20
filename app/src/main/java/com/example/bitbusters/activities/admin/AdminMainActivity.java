@@ -22,7 +22,7 @@ public class AdminMainActivity extends AppCompatActivity {
         setupHeaderListeners();
     }
 
-    private void setupHeaderListeners() {
+    protected void setupHeaderListeners() {
         ImageButton btnNotifications = findViewById(R.id.btnNotifications);
         if (btnNotifications != null) {
             btnNotifications.setOnClickListener(v -> {
@@ -97,9 +97,6 @@ public class AdminMainActivity extends AppCompatActivity {
                 finish();
             } else if (id == R.id.nav_reportes) {
                 startActivity(new Intent(this, AdminReportesActivity.class));
-                finish();
-            } else if (id == R.id.nav_perfil) {
-                startActivity(new Intent(this, AdminPerfilActivity.class));
                 finish();
             }
             return true;

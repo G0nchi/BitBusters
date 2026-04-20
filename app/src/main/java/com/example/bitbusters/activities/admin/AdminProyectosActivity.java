@@ -13,6 +13,7 @@ public class AdminProyectosActivity extends AdminMainActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_proyectos);
+        setupHeaderListeners();
         setupBottomNavigation(R.id.nav_proyectos);
         setupProjectCardListeners();
         setupCreateProjectButton();
