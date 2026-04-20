@@ -16,9 +16,23 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BitBusters">
         <activity
-            android:name=".activities.cliente.ViewOnMapActivity"
+            android:name=".activities.cliente.SearchActivity"
             android:exported="false" />
-        <!-- API Key de Google Maps — DEBE ir dentro de <application> -->
+        <activity
+            android:name=".activities.cliente.PaymentMethodActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.cliente.AgendaCitaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.cliente.MisCitasActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.cliente.ReviewsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.cliente.ViewOnMapActivity"
+            android:exported="false" /> <!-- API Key de Google Maps — DEBE ir dentro de <application> -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="TU_API_KEY_AQUI" /> <!-- Pantalla de inicio -->

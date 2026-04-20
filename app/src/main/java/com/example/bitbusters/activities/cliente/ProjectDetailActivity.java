@@ -70,8 +70,14 @@ public class ProjectDetailActivity extends AppCompatActivity {
 
         // Botón Separar Inmueble (bottom bar)
         findViewById(R.id.btnSeparar).setOnClickListener(v -> {
-            // TODO: validar tarjeta registrada → flujo de separación
-            // Recibe notificación de aprobación con timer de 10 minutos
+            // TODO: verificar si tiene tarjeta en Firebase
+            // Si no tiene → ir a agregar método de pago
+            startActivity(new Intent(this, PaymentMethodActivity.class));
+        });
+        findViewById(R.id.tvVerTodos).setOnClickListener(v -> {
+            Intent intent = new Intent(this, ReviewsActivity.class);
+            intent.putExtra("proyecto", nombreProyecto);
+            startActivity(intent);
         });
     }
 }

@@ -53,6 +53,9 @@ public class HomeActivity extends AppCompatActivity {
         findViewById(R.id.btnNotificaciones).setOnClickListener(v ->
                 startActivity(new Intent(this, NotificationsActivity.class))
         );
+        findViewById(R.id.etBuscar).setOnClickListener(v -> {
+            startActivity(new Intent(this, SearchActivity.class));
+        });
 
         // Bottom Navigation
         bottomNav.setSelectedItemId(R.id.nav_home);
@@ -61,7 +64,7 @@ public class HomeActivity extends AppCompatActivity {
             if (id == R.id.nav_home) {
                 return true;
             } else if (id == R.id.nav_search) {
-                // TODO: ir a pantalla de búsqueda
+                startActivity(new Intent(this, SearchActivity.class));
                 return true;
             } else if (id == R.id.nav_favoritos) {
                 // TODO: ir a favoritos
