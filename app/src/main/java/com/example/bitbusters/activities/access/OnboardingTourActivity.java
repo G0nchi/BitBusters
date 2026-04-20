@@ -2,6 +2,7 @@ package com.example.bitbusters.activities.access;
 
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -17,6 +18,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bitbusters.R;
+import com.example.bitbusters.activities.cliente.HomeActivity;
 import com.google.android.material.button.MaterialButton;
 
 public class OnboardingTourActivity extends AppCompatActivity {
@@ -48,6 +50,10 @@ public class OnboardingTourActivity extends AppCompatActivity {
         }
         titleLine2.setText(styledLine2);
 
+        findViewById(R.id.skipButton).setOnClickListener(v -> {
+            Intent intent = new Intent(OnboardingTourActivity.this, HomeActivity.class);
+            startActivity(intent);
+            finish();
         MaterialButton nextButton = findViewById(R.id.nextButton);
         MaterialButton skipButton = findViewById(R.id.skipButton);
 
