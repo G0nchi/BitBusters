@@ -1,6 +1,8 @@
 package com.example.bitbusters.activities.access;
 
+import android.content.Intent;
 import android.graphics.Typeface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -8,7 +10,7 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.widget.TextView;
 
-import androidx.activity.EdgeToEdge;
+import com.example.bitbusters.utils.ImmersiveMode;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -16,13 +18,15 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bitbusters.R;
+import com.example.bitbusters.activities.cliente.HomeActivity;
+import com.google.android.material.button.MaterialButton;
 
 public class OnboardingTourActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+        ImmersiveMode.apply(this);
         setContentView(R.layout.activity_onboarding_tour);
 
         TextView titleLine2 = findViewById(R.id.titleLine2);
@@ -45,6 +49,23 @@ public class OnboardingTourActivity extends AppCompatActivity {
             );
         }
         titleLine2.setText(styledLine2);
+
+        findViewById(R.id.skipButton).setOnClickListener(v -> {
+            Intent intent = new Intent(OnboardingTourActivity.this, HomeActivity.class);
+            startActivity(intent);
+            finish();
+        MaterialButton nextButton = findViewById(R.id.nextButton);
+        MaterialButton skipButton = findViewById(R.id.skipButton);
+
+        nextButton.setOnClickListener(v -> {
+            Intent intent = new Intent(OnboardingTourActivity.this, ProjectTypeSelectionActivity.class);
+            startActivity(intent);
+        });
+
+        skipButton.setOnClickListener(v -> {
+            Intent intent = new Intent(OnboardingTourActivity.this, ProjectTypeSelectionActivity.class);
+            startActivity(intent);
+        });
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());

@@ -3,7 +3,7 @@ package com.example.bitbusters.activities.access;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.activity.EdgeToEdge;
+import com.example.bitbusters.utils.ImmersiveMode;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import androidx.core.graphics.Insets;
@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+        ImmersiveMode.apply(this);
         setContentView(R.layout.activity_main);
 
         MaterialButton getStartedButton = findViewById(R.id.getStartedButton);

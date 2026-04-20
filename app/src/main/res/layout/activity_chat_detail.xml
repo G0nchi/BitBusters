@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F7">
+
+    <!-- Top Bar -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:background="#FFFFFF"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true"
+            android:src="@android:drawable/ic_menu_revert"
+            android:background="@android:drawable/btn_default"
+            android:contentDescription="Volver" />
+
+        <!-- Avatar con punto verde -->
+        <FrameLayout
+            android:id="@+id/frameAvatar"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/btnBack"
+            android:layout_marginStart="8dp">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/imgAvatar"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@android:drawable/ic_menu_myplaces" />
+
+            <View
+                android:layout_width="11dp"
+                android:layout_height="11dp"
+                android:layout_gravity="bottom|end"
+                android:background="@drawable/bg_online_dot" />
+        </FrameLayout>
+
+        <!-- Nombre y estado -->
+        <LinearLayout
+            android:id="@+id/layoutNombre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/frameAvatar"
+            android:layout_marginStart="10dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvNombre"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Milano"
+                android:textSize="15sp"
+                android:textColor="#1A1A2E"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:id="@+id/tvEstado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="En línea"
+                android:textSize="12sp"
+                android:textColor="#4CAF50" />
+        </LinearLayout>
+
+        <!-- Botón llamada -->
+        <ImageButton
+            android:id="@+id/btnCall"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"
+            android:src="@android:drawable/ic_menu_call"
+            android:background="@android:drawable/btn_default"
+            android:contentDescription="Llamar" />
+    </RelativeLayout>
+
+    <!-- Área de mensajes -->
+    <ScrollView
+        android:id="@+id/scrollMensajes"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <LinearLayout
+            android:id="@+id/layoutMensajes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
+
+            <!-- Fecha separador -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
+                android:text="Diciembre 12, 2026"
+                android:textSize="12sp"
+                android:textColor="#FFFFFF"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:background="@drawable/bg_date_pill" />
+
+            <!-- Card de propiedad compartida -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardPropiedad"
+                android:layout_width="280dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="10dp">
+
+                    <!-- Imagen propiedad -->
+                    <FrameLayout
+                        android:layout_width="90dp"
+                        android:layout_height="80dp">
+
+                        <ImageView
+                            android:layout_width="90dp"
+                            android:layout_height="80dp"
+                            android:src="@android:drawable/ic_menu_gallery"
+                            android:scaleType="centerCrop"
+                            android:background="@drawable/bg_rounded_8" />
+
+                        <!-- Badge "Apartamento" -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom|start"
+                            android:layout_margin="4dp"
+                            android:text="Apartamento"
+                            android:textSize="9sp"
+                            android:textColor="#FFFFFF"
+                            android:paddingStart="5dp"
+                            android:paddingEnd="5dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"
+                            android:background="@drawable/bg_badge_dark" />
+                    </FrameLayout>
+
+                    <!-- Info propiedad -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingStart="10dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Lista de Servia Apartamento"
+                            android:textSize="13sp"
+                            android:textColor="#1A1A2E"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <!-- Rating -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="4dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="★"
+                                android:textSize="13sp"
+                                android:textColor="#FFC107" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="4.9"
+                                android:textSize="12sp"
+                                android:textColor="#1A1A2E"
+                                android:layout_marginStart="4dp" />
+                        </LinearLayout>
+
+                        <!-- Ubicación -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="4dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="📍"
+                                android:textSize="11sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="La peral, Callao"
+                                android:textSize="11sp"
+                                android:textColor="#9E9E9E"
+                                android:layout_marginStart="3dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Mensaje enviado por el usuario (burbuja derecha) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:id="@+id/tvMensajeUsuario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:text="Se puede tener perritos en este departamento? Es petfriendly?"
+                    android:textSize="13sp"
+                    android:textColor="#1A1A2E"
+                    android:background="@drawable/bg_bubble_sent"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:maxWidth="260dp" />
+
+                <!-- Hora + doble check -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="2dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="✓✓"
+                        android:textSize="11sp"
+                        android:textColor="#4CAF50"
+                        android:layout_marginEnd="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="10:45"
+                        android:textSize="11sp"
+                        android:textColor="#BDBDBD" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Mensaje recibido (burbuja izquierda) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:id="@+id/tvMensajeRecibido"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:text="Hola Verónica, muchas gracias por escribir. Actualmente no se permite mascotas en el departamento, pero proximamente si."
+                    android:textSize="13sp"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/bg_bubble_received"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:maxWidth="260dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:text="10:46"
+                    android:textSize="11sp"
+                    android:textColor="#BDBDBD"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Input bar inferior -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:orientation="horizontal"
+        android:background="#FFFFFF"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:gravity="center_vertical">
+
+        <ImageButton
+            android:id="@+id/btnCamera"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_menu_camera"
+            android:background="@android:color/transparent"
+            android:contentDescription="Cámara" />
+
+        <EditText
+            android:id="@+id/etMensaje"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:hint="Di algo"
+            android:textSize="14sp"
+            android:textColorHint="#BDBDBD"
+            android:background="@android:color/transparent"
+            android:inputType="textMultiLine"
+            android:maxLines="3" />
+
+        <ImageButton
+            android:id="@+id/btnSend"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@android:drawable/ic_menu_send"
+            android:background="@drawable/bg_btn_send"
+            android:contentDescription="Enviar" />
+    </LinearLayout>
+
+</LinearLayout>
