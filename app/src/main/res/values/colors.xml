@@ -48,7 +48,7 @@
     <color name="background_main">#FFFFFF</color>
     <color name="surface_card">#FFFFFF</color>
 
-    <color name="text_secondary">#6B7280</color>
+    <!-- <color name="text_secondary">#6B7280</color> -->
     <color name="neutral_medium">#6B7280</color>
 
     <color name="border_light">#E5E7EB</color>

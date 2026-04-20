@@ -4,8 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.bitbusters.R;
+import com.example.bitbusters.activities.access.LoginActivity;
 
 public class AdminPerfilActivity extends AppCompatActivity {
 
@@ -24,6 +26,17 @@ public class AdminPerfilActivity extends AppCompatActivity {
         Button btnChangeFoto = findViewById(R.id.btnChangeFoto);
         if (btnChangeFoto != null) {
             btnChangeFoto.setOnClickListener(v -> openGallery());
+        }
+
+        // Botón Cerrar Sesión
+        TextView btnLogout = findViewById(R.id.btnLogout);
+        if (btnLogout != null) {
+            btnLogout.setOnClickListener(v -> {
+                Intent intent = new Intent(AdminPerfilActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            });
         }
     }
 
