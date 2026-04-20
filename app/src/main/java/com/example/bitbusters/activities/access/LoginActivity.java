@@ -14,6 +14,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bitbusters.R;
+import com.example.bitbusters.activities.admin.AdminMainActivity;
+import com.example.bitbusters.activities.cliente.HomeActivity;
 import com.example.bitbusters.activities.superadmin.SuperadminControlCenterActivity;
 import com.google.android.material.button.MaterialButton;
 
@@ -23,10 +25,8 @@ public class LoginActivity extends AppCompatActivity {
     private static final String SUPERADMIN_PASSWORD = "superadmin";
     private static final String CLIENT_USER = "cliente";
     private static final String CLIENT_PASSWORD = "cliente";
-    private static final String ADVISOR_USER = "asesor";
-    private static final String ADVISOR_PASSWORD = "asesor";
-    private static final String ADMIN_USER = "admin";
-    private static final String ADMIN_PASSWORD = "admin";
+    private static final String ADMIN_USER = "administrador";
+    private static final String ADMIN_PASSWORD = "administrador";
     private boolean passwordVisible = false;
 
     @Override
@@ -97,21 +97,19 @@ public class LoginActivity extends AppCompatActivity {
 
         if (SUPERADMIN_USER.equals(user) && SUPERADMIN_PASSWORD.equals(password)) {
             startActivity(new Intent(this, SuperadminControlCenterActivity.class));
+            finish();
             return;
         }
 
         if (CLIENT_USER.equals(user) && CLIENT_PASSWORD.equals(password)) {
-            openIfAvailable(MainActivity.class);
-            return;
-        }
-
-        if (ADVISOR_USER.equals(user) && ADVISOR_PASSWORD.equals(password)) {
-            openIfAvailable(MainActivity.class);
+            startActivity(new Intent(this, HomeActivity.class));
+            finish();
             return;
         }
 
         if (ADMIN_USER.equals(user) && ADMIN_PASSWORD.equals(password)) {
-            openIfAvailable(MainActivity.class);
+            startActivity(new Intent(this, AdminMainActivity.class));
+            finish();
             return;
         }
 

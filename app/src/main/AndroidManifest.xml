@@ -15,109 +15,56 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.BitBusters">
-        <activity
-            android:name=".activities.cliente.SearchActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.cliente.PaymentMethodActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.cliente.AgendaCitaActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.cliente.MisCitasActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.cliente.ReviewsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.cliente.ViewOnMapActivity"
-            android:exported="false" /> <!-- API Key de Google Maps — DEBE ir dentro de <application> -->
+
+        <!-- API Key de Google Maps -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="TU_API_KEY_AQUI" /> <!-- Pantalla de inicio -->
-        <activity
-            android:name=".activities.access.MainActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.access.OnboardingTourActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.access.ProjectTypeSelectionActivity"
-            android:exported="false" />
+            android:value="TU_API_KEY_AQUI" />
+
+        <!-- Login / Launcher -->
         <activity
             android:name=".activities.access.LoginActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name=".activities.access.LoginActivity" />
-
+                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- Onboarding -->
-        <activity
-            android:name=".activities.access.MainActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.access.OnboardingTourActivity"
-            android:exported="false" /> <!-- Cliente -->
-        <activity
-            android:name=".activities.cliente.HomeActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.cliente.ProjectDetailActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.cliente.AddCommentActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.cliente.NotificationsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.cliente.MessagesActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.cliente.ChatDetailActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.cliente.ProfileActivity"
-            android:name=".activities.access.ForgotPasswordActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.access.ForgotPasswordCodeActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.access.ResetPasswordActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.access.RegisterAccountActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.access.RegisterOtpActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.access.RegisterPasswordActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.superadmin.SuperadminControlCenterActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.superadmin.SuperadminUsersActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.superadmin.SuperadminUserDetailActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.superadmin.SuperadminApprovalsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.superadmin.SuperadminApprovalEvaluationActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.superadmin.SuperadminReportsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.superadmin.SuperadminLogsActivity"
-            android:exported="false" />
+        </activity>
+
+        <!-- Access / Auth -->
+        <activity android:name=".activities.access.MainActivity" android:exported="false" />
+        <activity android:name=".activities.access.OnboardingTourActivity" android:exported="false" />
+        <activity android:name=".activities.access.ProjectTypeSelectionActivity" android:exported="false" />
+        <activity android:name=".activities.access.ForgotPasswordActivity" android:exported="false" />
+        <activity android:name=".activities.access.ForgotPasswordCodeActivity" android:exported="false" />
+        <activity android:name=".activities.access.ResetPasswordActivity" android:exported="false" />
+        <activity android:name=".activities.access.RegisterAccountActivity" android:exported="false" />
+        <activity android:name=".activities.access.RegisterOtpActivity" android:exported="false" />
+        <activity android:name=".activities.access.RegisterPasswordActivity" android:exported="false" />
+
+        <!-- Cliente Activities -->
+        <activity android:name=".activities.cliente.HomeActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.SearchActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.ProjectDetailActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.AgendaCitaActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.MisCitasActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.PaymentMethodActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.NotificationsActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.MessagesActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.ChatDetailActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.ProfileActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.ReviewsActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.ViewOnMapActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.AddCommentActivity" android:exported="false" />
+
+        <!-- Superadmin Activities -->
+        <activity android:name=".activities.superadmin.SuperadminControlCenterActivity" android:exported="false" />
+        <activity android:name=".activities.superadmin.SuperadminUsersActivity" android:exported="false" />
+        <activity android:name=".activities.superadmin.SuperadminUserDetailActivity" android:exported="false" />
+        <activity android:name=".activities.superadmin.SuperadminApprovalsActivity" android:exported="false" />
+        <activity android:name=".activities.superadmin.SuperadminApprovalEvaluationActivity" android:exported="false" />
+        <activity android:name=".activities.superadmin.SuperadminReportsActivity" android:exported="false" />
+        <activity android:name=".activities.superadmin.SuperadminLogsActivity" android:exported="false" />
 
         <!-- Admin Activities -->
         <activity android:name=".activities.admin.AdminMainActivity" />
