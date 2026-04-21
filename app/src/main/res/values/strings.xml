@@ -246,6 +246,23 @@
     <string name="generic_navigation_error">No se pudo abrir la siguiente pantalla.</string>
     <string name="back_button_content_description">Regresar</string>
 
+    <!-- Validations -->
+    <string name="validation_required">Este campo es obligatorio</string>
+    <string name="validation_invalid_email">Ingresa un correo válido</string>
+    <string name="validation_invalid_phone">Ingresa un teléfono de 9 dígitos</string>
+    <string name="validation_invalid_doc">Número de documento inválido</string>
+    <string name="validation_invalid_otp">Código incompleto</string>
+    <string name="validation_password_short">Mínimo 6 caracteres</string>
+    <string name="validation_password_mismatch">Las contraseñas no coinciden</string>
+
+    <!-- Doc Types -->
+    <string name="doc_type_dni">DNI</string>
+    <string name="doc_type_ce">Carné de extranjería</string>
+    <string-array name="doc_types">
+        <item>@string/doc_type_dni</item>
+        <item>@string/doc_type_ce</item>
+    </string-array>
+
     <string name="sa_title_dashboard">Centro de Control</string>
     <string name="sa_subtitle_dashboard">Superadmin Global</string>
     <string name="sa_metric_real_estates">Empresas Activas</string>

@@ -2,6 +2,7 @@ package com.example.bitbusters.activities.access;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.bitbusters.utils.ImmersiveMode;
@@ -15,6 +16,8 @@ import com.google.android.material.button.MaterialButton;
 
 public class RegisterOtpActivity extends AppCompatActivity {
 
+    private EditText otpDigit1, otpDigit2, otpDigit3, otpDigit4;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,6 +30,11 @@ public class RegisterOtpActivity extends AppCompatActivity {
             return;
         }
 
+        otpDigit1 = findViewById(R.id.otpDigit1);
+        otpDigit2 = findViewById(R.id.otpDigit2);
+        otpDigit3 = findViewById(R.id.otpDigit3);
+        otpDigit4 = findViewById(R.id.otpDigit4);
+
         MaterialButton backButton = findViewById(R.id.backButton);
         MaterialButton verifyButton = findViewById(R.id.verifyButton);
 
@@ -34,7 +42,11 @@ public class RegisterOtpActivity extends AppCompatActivity {
             backButton.setOnClickListener(v -> finish());
         }
         if (verifyButton != null) {
-            verifyButton.setOnClickListener(v -> openIfAvailable(RegisterPasswordActivity.class));
+            verifyButton.setOnClickListener(v -> {
+                if (validateOtp()) {
+                    openIfAvailable(RegisterPasswordActivity.class);
+                }
+            });
         }
 
         if (findViewById(R.id.main) != null) {
@@ -44,6 +56,17 @@ public class RegisterOtpActivity extends AppCompatActivity {
                 return insets;
             });
         }
+    }
+
+    private boolean validateOtp() {
+        if (otpDigit1.getText().toString().isEmpty() ||
+            otpDigit2.getText().toString().isEmpty() ||
+            otpDigit3.getText().toString().isEmpty() ||
+            otpDigit4.getText().toString().isEmpty()) {
+            Toast.makeText(this, R.string.validation_invalid_otp, Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
     }
 
     private void openIfAvailable(Class<?> destination) {

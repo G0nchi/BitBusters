@@ -104,7 +104,7 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(new Intent(this, SearchActivity.class));
                 return true;
             } else if (id == R.id.nav_favoritos) {
-                // TODO: ir a favoritos
+                startActivity(new Intent(this, MisCitasActivity.class));
                 return true;
             } else if (id == R.id.nav_perfil) {
                 startActivity(new Intent(this, ProfileActivity.class));

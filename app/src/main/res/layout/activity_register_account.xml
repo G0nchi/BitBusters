@@ -114,6 +114,7 @@
                         android:src="@drawable/ic_person_20" />
 
                     <EditText
+                        android:id="@+id/fullNameInput"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
@@ -147,13 +148,17 @@
                             android:contentDescription="@null"
                             android:src="@drawable/ic_badge_20" />
 
-                        <EditText
+                        <AutoCompleteTextView
+                            android:id="@+id/docTypeInput"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:layout_weight="1"
                             android:background="@null"
                             android:hint="@string/register_doc_type_hint"
+                            android:inputType="none"
+                            android:focusable="false"
+                            android:clickable="true"
                             android:textColor="@color/neutral_dark"
                             android:textColorHint="@color/text_placeholder"
                             android:textSize="12sp" />
@@ -177,6 +182,7 @@
                             android:src="@drawable/ic_badge_20" />
 
                         <EditText
+                            android:id="@+id/docNumberInput"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
@@ -207,6 +213,7 @@
                         android:src="@drawable/ic_calendar_20" />
 
                     <EditText
+                        android:id="@+id/birthDateInput"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
@@ -235,6 +242,7 @@
                         android:src="@drawable/ic_email_20" />
 
                     <EditText
+                        android:id="@+id/emailInput"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
@@ -264,6 +272,7 @@
                         android:src="@drawable/ic_phone_20" />
 
                     <EditText
+                        android:id="@+id/phoneInput"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
@@ -293,6 +302,7 @@
                         android:src="@drawable/ic_location_20" />
 
                     <EditText
+                        android:id="@+id/addressInput"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
