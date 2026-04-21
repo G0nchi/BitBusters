@@ -582,14 +582,28 @@
                 </androidx.cardview.widget.CardView>
 
                 <!-- Comentarios -->
-                <TextView
-                    android:layout_width="wrap_content"
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Comentarios"
-                    android:textSize="15sp"
-                    android:textColor="#1A1A2E"
-                    android:fontFamily="sans-serif-medium"
-                    android:layout_marginBottom="10dp" />
+                    android:layout_marginBottom="10dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Comentarios"
+                        android:textSize="15sp"
+                        android:textColor="#1A1A2E"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <TextView
+                        android:id="@+id/tvVerTodosComentarios"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="ver todos"
+                        android:textSize="12sp"
+                        android:textColor="#1A7EBD" />
+                </RelativeLayout>
 
                 <!-- Card rating global -->
                 <androidx.cardview.widget.CardView
