@@ -835,6 +835,32 @@
 
             </GridLayout>
 
+            <!-- Encabezado sección Todos los Proyectos -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="20dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Todos los Proyectos"
+                    android:textSize="16sp"
+                    android:textColor="#1A1A2E"
+                    android:fontFamily="sans-serif-medium" />
+            </RelativeLayout>
+
+            <!-- RecyclerView con listado de proyectos con data estática -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvProyectos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginBottom="16dp" />
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

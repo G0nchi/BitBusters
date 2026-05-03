@@ -22,5 +22,11 @@ public class ImageUrls {
     // Avatares de usuarios/asesores
     public static final int AVATAR_FABRI = R.drawable.avatar_asesor_fabri;
     public static final int AVATAR_JONATHAN = R.drawable.avatar_jonathan;
+    // URLs públicas de Unsplash para proyectos
+    public static final String URL_DEPA_1 = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400";
+    public static final String URL_DEPA_2 = "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400";
+    public static final String URL_CASA_1 = "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400";
+    public static final String URL_CASA_2 = "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400";
+    public static final String URL_TERRENO_1 = "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400";
 }
 

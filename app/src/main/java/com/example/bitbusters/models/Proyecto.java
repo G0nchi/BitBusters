@@ -5,11 +5,17 @@ public class Proyecto {
     public String precio;
     public String rating;
     public String ubicacion;
+    public String tipo;
+    public String imageUrl;
 
-    public Proyecto(String nombre, String precio, String rating, String ubicacion) {
+
+    public Proyecto(String nombre, String precio, String rating, String ubicacion, String tipo, String imageUrl) {
         this.nombre   = nombre;
         this.precio   = precio;
         this.rating   = rating;
         this.ubicacion = ubicacion;
+        this.tipo = tipo;
+        this.imageUrl  = imageUrl;
+
     }
 }
