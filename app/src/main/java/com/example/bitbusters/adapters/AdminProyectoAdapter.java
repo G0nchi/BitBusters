@@ -3,11 +3,13 @@ package com.example.bitbusters.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.bitbusters.R;
 import com.example.bitbusters.models.Proyecto;
 
@@ -41,6 +43,15 @@ public class AdminProyectoAdapter extends RecyclerView.Adapter<AdminProyectoAdap
         holder.tvNombre.setText(proyecto.getNombre());
         holder.tvPrecio.setText(proyecto.getPrecio());
         holder.tvUbicacion.setText(proyecto.getUbicacion());
+        holder.tvRating.setText("★ " + proyecto.getRating());
+
+        // Cargar imagen con Glide
+        if (proyecto.getImageUrl() != null && !proyecto.getImageUrl().isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                    .load(proyecto.getImageUrl())
+                    .centerCrop()
+                    .into(holder.imgPropiedad);
+        }
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
@@ -60,13 +71,16 @@ public class AdminProyectoAdapter extends RecyclerView.Adapter<AdminProyectoAdap
     }
 
     public static class AdminProyectoViewHolder extends RecyclerView.ViewHolder {
-        TextView tvNombre, tvPrecio, tvUbicacion;
+        TextView tvNombre, tvPrecio, tvUbicacion, tvRating;
+        ImageView imgPropiedad;
 
         public AdminProyectoViewHolder(@NonNull View itemView) {
             super(itemView);
             tvNombre = itemView.findViewById(R.id.tvNombre);
             tvPrecio = itemView.findViewById(R.id.tvPrecio);
             tvUbicacion = itemView.findViewById(R.id.tvUbicacion);
+            tvRating = itemView.findViewById(R.id.tvRating);
+            imgPropiedad = itemView.findViewById(R.id.imgPropiedad);
         }
     }
 }

@@ -44,11 +44,12 @@
             android:elevation="4dp" />
     </FrameLayout>
 
-    <!-- Scrollable Content -->
-    <ScrollView
+    <!-- Scrollable Content with NestedScrollView -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -87,11 +88,11 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvAsesores"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:nestedScrollingEnabled="false" />
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="true" />
 
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
     <!-- Action Buttons (Fixed at bottom) -->
     <LinearLayout

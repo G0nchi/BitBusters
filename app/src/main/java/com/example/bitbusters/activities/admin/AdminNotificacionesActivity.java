@@ -46,6 +46,7 @@ public class AdminNotificacionesActivity extends AppCompatActivity {
 
     private List<Notification> getNotificationsList() {
         List<Notification> notifications = new ArrayList<>();
+        // Primeras 15 notificaciones
         notifications.add(new Notification("María García", "Pagó S/ 5,000", "hace 2h"));
         notifications.add(new Notification("Carlos Ruiz", "Nueva separación registrada", "hace 4h"));
         notifications.add(new Notification("Inmobiliaria XYZ", "Reporte mensual disponible", "hace 1d"));
@@ -61,6 +62,29 @@ public class AdminNotificacionesActivity extends AppCompatActivity {
         notifications.add(new Notification("Javier Campos", "Reunión programada", "hace 3w"));
         notifications.add(new Notification("Isabel Herrera", "Documento vencido", "hace 3w"));
         notifications.add(new Notification("Miguel Ángel Soto", "Cambio de contraseña", "hace 1m"));
+        
+        // 20 notificaciones adicionales
+        notifications.add(new Notification("Fernando López", "Documento firmado", "hace 1m"));
+        notifications.add(new Notification("Carmen Rodriguez", "Nuevo mensaje recibido", "hace 1m"));
+        notifications.add(new Notification("Pablo Navarro", "Separación aprobada", "hace 2m"));
+        notifications.add(new Notification("Daniela Flores", "Expediente completado", "hace 2m"));
+        notifications.add(new Notification("Enrique Vargas", "Reunión reprogramada", "hace 2m"));
+        notifications.add(new Notification("Rosario Jimenez", "Pago procesado", "hace 3m"));
+        notifications.add(new Notification("Santiago Medina", "Nuevo proyecto disponible", "hace 3m"));
+        notifications.add(new Notification("Veronica Castro", "Documento vencido próximamente", "hace 3m"));
+        notifications.add(new Notification("Andres Quintero", "Revisión completada", "hace 4m"));
+        notifications.add(new Notification("Mariela Sánchez", "Asesor agregado", "hace 4m"));
+        notifications.add(new Notification("Felipe Ramírez", "Cambios guardados", "hace 4m"));
+        notifications.add(new Notification("Alejandra Ruiz", "Propuesta rechazada", "hace 5m"));
+        notifications.add(new Notification("Cristian Muñoz", "Información requerida", "hace 5m"));
+        notifications.add(new Notification("Lorena Pino", "Cita confirmada", "hace 5m"));
+        notifications.add(new Notification("Hector Reyes", "Evaluación pendiente", "hace 6m"));
+        notifications.add(new Notification("Giannina Moreno", "Reporte disponible", "hace 6m"));
+        notifications.add(new Notification("Leo Contreras", "Proyecto en progreso", "hace 6m"));
+        notifications.add(new Notification("Natalia Vega", "Contacto agregado", "hace 7m"));
+        notifications.add(new Notification("Oscar Valencia", "Transacción completada", "hace 7m"));
+        notifications.add(new Notification("Roxana Fuentes", "Seguimiento enviado", "hace 7m"));
+        
         return notifications;
     }
 }
