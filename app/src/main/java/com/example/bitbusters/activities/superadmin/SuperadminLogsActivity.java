@@ -8,7 +8,10 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.util.Log;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
@@ -20,6 +23,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
 
@@ -46,10 +51,13 @@ public class SuperadminLogsActivity extends AppCompatActivity {
     private static final String STATUS_CONFIRMED = "CONFIRMED";
     private static final String STATUS_SUSPENDED = "SUSPENDED";
     private static final String STATUS_FAILED = "FAILED";
+    private static final int PAGE_SIZE = 4;
+    private static final String TAG = "SA_LOGS";
 
     private EditText searchLogsInput;
     private TextView logsCountText;
-    private LinearLayout logsListContainer;
+    private RecyclerView logsRecyclerView;
+    private LogsAdapter logsAdapter;
 
     private TextView filterAllLogsChip;
     private TextView filterReservationsLogsChip;
@@ -63,7 +71,10 @@ public class SuperadminLogsActivity extends AppCompatActivity {
     private String selectedTagFilter = TAG_ALL;
     private final List<LogItem> allLogs = new ArrayList<>();
     private final List<LogItem> filteredLogs = new ArrayList<>();
+    private final List<LogItem> visibleLogs = new ArrayList<>();
     private int expandedLogId = -1;
+    private int renderedLogsCount = 0;
+    private boolean isLoadingMore = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +86,7 @@ public class SuperadminLogsActivity extends AppCompatActivity {
         bindViews();
         setupClicks();
         setupSearch();
+        setupInfiniteScroll();
 
         seedLogs();
         applyFiltersAndRender("");
@@ -95,7 +107,15 @@ public class SuperadminLogsActivity extends AppCompatActivity {
     private void bindViews() {
         searchLogsInput = findViewById(R.id.searchLogsInput);
         logsCountText = findViewById(R.id.logsCountText);
-        logsListContainer = findViewById(R.id.logsListContainer);
+        if (logsCountText != null) {
+            logsCountText.setVisibility(View.GONE);
+        }
+        logsRecyclerView = findViewById(R.id.logsRecyclerView);
+        if (logsRecyclerView != null) {
+            logsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+            logsAdapter = new LogsAdapter();
+            logsRecyclerView.setAdapter(logsAdapter);
+        }
 
         filterAllLogsChip = findViewById(R.id.filterAllLogsChip);
         filterReservationsLogsChip = findViewById(R.id.filterReservationsLogsChip);
@@ -195,6 +215,33 @@ public class SuperadminLogsActivity extends AppCompatActivity {
         });
     }
 
+    private void setupInfiniteScroll() {
+        if (logsRecyclerView == null) {
+            return;
+        }
+
+        logsRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (dy <= 0 || isLoadingMore || renderedLogsCount >= filteredLogs.size()) {
+                    return;
+                }
+
+                RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+                if (!(manager instanceof LinearLayoutManager)) {
+                    return;
+                }
+
+                int lastVisible = ((LinearLayoutManager) manager).findLastVisibleItemPosition();
+                if (lastVisible >= visibleLogs.size() - 2) {
+                    Log.d(TAG, "onScrolled -> trigger loadMoreLogs, lastVisible=" + lastVisible + ", visible=" + visibleLogs.size() + ", filtered=" + filteredLogs.size());
+                    loadMoreLogs();
+                }
+            }
+        });
+    }
+
     private void seedLogs() {
         allLogs.clear();
         allLogs.addAll(Arrays.asList(
@@ -209,7 +256,25 @@ public class SuperadminLogsActivity extends AppCompatActivity {
                 new LogItem(9, TYPE_APPOINTMENT, STATUS_CONFIRMED, "12:41 hrs", "Asistencia a cita confirmada", "asesor.este@inmo.com", "Accion Especifica", "Check-in exitoso de cliente en sala de ventas", "Recurso Afectado", "Cita #C-9877 - 21/04 12:30", "Proyecto: Torres del Sol | Duracion: 42 min", tags(TAG_STATUS_CONFIRMED, TAG_MODULE_APPOINTMENTS, "empresa:este")),
                 new LogItem(10, TYPE_ENABLEMENT, STATUS_SUSPENDED, "12:30 hrs", "Administrador suspendido temporalmente", "superadmin@inmoapp.com", "Accion Especifica", "Bloqueo temporal de cuenta", "Detalle del Cambio", "Admin ID 33: Activo -> Suspendido", "Empresa: Inmobiliaria Este | Motivo: Auditoria", tags(TAG_STATUS_SUSPENDED, "modulo:habilitaciones", "empresa:este")),
                 new LogItem(11, TYPE_RESERVATION, STATUS_CONFIRMED, "11:45 hrs", "Nueva separacion con valoracion del asesor", "asesor.sur@inmo.com", "Accion Especifica", "Cliente dejo valoracion y observacion", "Recurso Afectado", "Reserva #R-2125 - Valoracion: 4/5", "Comentario: Buena atencion, resolver dudas de entrega", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", TAG_COMPANY_SUR)),
-                new LogItem(12, TYPE_PAYMENT, STATUS_CONFIRMED, "11:20 hrs", "Pago de separacion aprobado", "pasarela-pagos@inmoapp", "Accion Especifica", "Cobro exitoso en checkout", "Recurso Afectado", "Pago #P-8801 - S/ 6,200", "Reserva #R-2119 | Empresa: Inmobiliaria Norte", tags(TAG_STATUS_CONFIRMED, TAG_MODULE_PAYMENTS, TAG_COMPANY_NORTH))
+                new LogItem(12, TYPE_PAYMENT, STATUS_CONFIRMED, "11:20 hrs", "Pago de separacion aprobado", "pasarela-pagos@inmoapp", "Accion Especifica", "Cobro exitoso en checkout", "Recurso Afectado", "Pago #P-8801 - S/ 6,200", "Reserva #R-2119 | Empresa: Inmobiliaria Norte", tags(TAG_STATUS_CONFIRMED, TAG_MODULE_PAYMENTS, TAG_COMPANY_NORTH)),
+                new LogItem(13, TYPE_RESERVATION, STATUS_CONFIRMED, "11:05 hrs", "Reserva preliminar creada", "asesor.centro@inmo.com", "Accion Especifica", "Separacion inicial de unidad en preventa", "Recurso Afectado", "Reserva #R-2114 - S/ 4,500", "Empresa: Inmobiliaria Centro | Proyecto: Torre Pacifico", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", "empresa:centro")),
+                new LogItem(14, TYPE_RESERVATION, STATUS_FAILED, "10:58 hrs", "Reserva rechazada por documento invalido", "sistema@inmoapp", "Accion Especifica", "Validacion documental fallida", "Recurso Afectado", "Reserva #R-2112", "Cliente: DNI no vigente | Empresa: Inmobiliaria Norte", tags(TAG_STATUS_FAILED, "modulo:reservas", TAG_COMPANY_NORTH)),
+                new LogItem(15, TYPE_RESERVATION, STATUS_SUSPENDED, "10:44 hrs", "Reserva pausada por verificacion manual", "superadmin@inmoapp.com", "Accion Especifica", "Caso enviado a revision de compliance", "Detalle del Cambio", "Reserva #R-2109: Activa -> En revision", "Empresa: Inmobiliaria Sur | SLA: 4h", tags(TAG_STATUS_SUSPENDED, "modulo:reservas", TAG_COMPANY_SUR)),
+                new LogItem(16, TYPE_RESERVATION, STATUS_CONFIRMED, "10:30 hrs", "Reserva confirmada con abono parcial", "asesor.este@inmo.com", "Accion Especifica", "Cliente completo el abono inicial", "Recurso Afectado", "Reserva #R-2107 - S/ 7,800", "Empresa: Inmobiliaria Este | Unidad: B-806", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", "empresa:este")),
+                new LogItem(17, TYPE_RESERVATION, STATUS_CONFIRMED, "10:12 hrs", "Reserva reasignada a nuevo asesor", "admin.norte@inmo.com", "Accion Especifica", "Transferencia operativa de seguimiento", "Detalle del Cambio", "Reserva #R-2105: Asesor 77 -> Asesor 81", "Empresa: Inmobiliaria Norte", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", TAG_COMPANY_NORTH)),
+                new LogItem(18, TYPE_RESERVATION, STATUS_FAILED, "09:55 hrs", "Reserva anulada por duplicidad", "sistema@inmoapp", "Accion Especifica", "Se detecto doble separacion del mismo inmueble", "Recurso Afectado", "Reserva #R-2101", "Empresa: Inmobiliaria Centro | Unidad D-402", tags(TAG_STATUS_FAILED, "modulo:reservas", "empresa:centro")),
+                new LogItem(19, TYPE_RESERVATION, STATUS_CONFIRMED, "09:41 hrs", "Reserva migrada desde canal web", "integracion.web@inmoapp", "Accion Especifica", "Sincronizacion completada al CRM", "Recurso Afectado", "Reserva #R-2099 - S/ 5,200", "Canal: Web | Empresa: Inmobiliaria Sur", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", TAG_COMPANY_SUR)),
+                new LogItem(20, TYPE_RESERVATION, STATUS_SUSPENDED, "09:20 hrs", "Reserva retenida por auditoria", "superadmin@inmoapp.com", "Accion Especifica", "Bloqueo temporal por inconsistencia de montos", "Detalle del Cambio", "Reserva #R-2095: Confirmada -> Retenida", "Empresa: Inmobiliaria Norte", tags(TAG_STATUS_SUSPENDED, "modulo:reservas", TAG_COMPANY_NORTH)),
+                new LogItem(21, TYPE_RESERVATION, STATUS_CONFIRMED, "09:03 hrs", "Reserva reactivada tras validacion", "auditoria@inmoapp", "Accion Especifica", "Caso aprobado luego de revision", "Detalle del Cambio", "Reserva #R-2095: Retenida -> Confirmada", "Empresa: Inmobiliaria Norte", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", TAG_COMPANY_NORTH)),
+                new LogItem(22, TYPE_RESERVATION, STATUS_CONFIRMED, "08:47 hrs", "Reserva con firma digital completada", "firma@inmoapp", "Accion Especifica", "Contrato de separacion firmado", "Recurso Afectado", "Reserva #R-2092 - S/ 6,000", "Empresa: Inmobiliaria Sur | Cliente ID 8831", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", TAG_COMPANY_SUR)),
+                new LogItem(23, TYPE_RESERVATION, STATUS_FAILED, "08:30 hrs", "Reserva vencida por tiempo de espera", "sistema@inmoapp", "Accion Especifica", "No se completo pago dentro de ventana", "Recurso Afectado", "Reserva #R-2088", "Empresa: Inmobiliaria Este | Estado final: Expirada", tags(TAG_STATUS_FAILED, "modulo:reservas", "empresa:este")),
+                new LogItem(24, TYPE_RESERVATION, STATUS_CONFIRMED, "08:15 hrs", "Reserva derivada a mesa legal", "asesor.legal@inmo.com", "Accion Especifica", "Validacion contractual completada", "Recurso Afectado", "Reserva #R-2085 - S/ 8,100", "Empresa: Inmobiliaria Centro", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", "empresa:centro")),
+                new LogItem(25, TYPE_RESERVATION, STATUS_CONFIRMED, "07:58 hrs", "Reserva actualizada con nuevo titular", "asesor.oeste@inmo.com", "Accion Especifica", "Cambio de titular a solicitud del cliente", "Detalle del Cambio", "Reserva #R-2081: Titular A -> Titular B", "Empresa: Inmobiliaria Oeste", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", "empresa:oeste")),
+                new LogItem(26, TYPE_RESERVATION, STATUS_SUSPENDED, "07:42 hrs", "Reserva observada por datos incompletos", "control.calidad@inmoapp", "Accion Especifica", "Pendiente completar informacion del cliente", "Recurso Afectado", "Reserva #R-2077", "Empresa: Inmobiliaria Sur", tags(TAG_STATUS_SUSPENDED, "modulo:reservas", TAG_COMPANY_SUR)),
+                new LogItem(27, TYPE_RESERVATION, STATUS_CONFIRMED, "07:26 hrs", "Reserva normalizada por soporte", "soporte@inmoapp", "Accion Especifica", "Correccion de metadatos y reactivacion", "Detalle del Cambio", "Reserva #R-2077: Observada -> Confirmada", "Empresa: Inmobiliaria Sur", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", TAG_COMPANY_SUR)),
+                new LogItem(28, TYPE_RESERVATION, STATUS_FAILED, "07:11 hrs", "Reserva cancelada por solicitud del cliente", "asesor.norte@inmo.com", "Accion Especifica", "Anulacion voluntaria de separacion", "Recurso Afectado", "Reserva #R-2072", "Empresa: Inmobiliaria Norte", tags(TAG_STATUS_FAILED, "modulo:reservas", TAG_COMPANY_NORTH)),
+                new LogItem(29, TYPE_RESERVATION, STATUS_CONFIRMED, "06:55 hrs", "Reserva recuperada desde estado cancelado", "superadmin@inmoapp.com", "Accion Especifica", "Reversion autorizada por auditoria", "Detalle del Cambio", "Reserva #R-2072: Cancelada -> Confirmada", "Empresa: Inmobiliaria Norte", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", TAG_COMPANY_NORTH)),
+                new LogItem(30, TYPE_RESERVATION, STATUS_CONFIRMED, "06:40 hrs", "Reserva creada en lote promocional", "campanas@inmoapp", "Accion Especifica", "Registro desde campaña comercial", "Recurso Afectado", "Reserva #R-2069 - S/ 3,900", "Empresa: Inmobiliaria Capital", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", "empresa:capital"))
         ));
     }
 
@@ -226,23 +291,61 @@ public class SuperadminLogsActivity extends AppCompatActivity {
             }
         }
 
-        if (logsListContainer != null) {
-            logsListContainer.removeAllViews();
-        }
-        for (int i = 0; i < filteredLogs.size(); i++) {
-            logsListContainer.addView(createLogCard(filteredLogs.get(i), i > 0));
+        renderedLogsCount = 0;
+        visibleLogs.clear();
+        loadMoreLogs();
+        fillViewportIfNeeded();
+        Log.d(TAG, "applyFiltersAndRender -> filtered=" + filteredLogs.size() + ", rendered=" + renderedLogsCount);
+
+        if (logsRecyclerView != null) {
+            logsRecyclerView.scrollToPosition(0);
         }
 
         updateCountText();
     }
 
-    private void updateCountText() {
-        if (logsCountText == null) {
+    private void loadMoreLogs() {
+        if (!appendNextPage()) {
             return;
         }
-        int total = filteredLogs.size();
-        int from = total == 0 ? 0 : 1;
-        logsCountText.setText(getString(R.string.sa_logs_count_template, from, total, total));
+
+        if (logsAdapter != null) {
+            logsAdapter.submitList(visibleLogs);
+        }
+    }
+
+    private boolean appendNextPage() {
+        if (renderedLogsCount >= filteredLogs.size()) {
+            return false;
+        }
+
+        isLoadingMore = true;
+        int end = Math.min(renderedLogsCount + PAGE_SIZE, filteredLogs.size());
+        visibleLogs.addAll(filteredLogs.subList(renderedLogsCount, end));
+        renderedLogsCount = end;
+        Log.d(TAG, "loadMoreLogs -> appendedUntil=" + renderedLogsCount + " of " + filteredLogs.size());
+        isLoadingMore = false;
+        return true;
+    }
+
+    private void fillViewportIfNeeded() {
+        if (logsRecyclerView == null || logsAdapter == null) {
+            return;
+        }
+
+        logsRecyclerView.post(() -> {
+            // Mirror users screen behavior: preload only one extra page when first page
+            // does not fill the viewport, while preserving incremental loading.
+            if (!logsRecyclerView.canScrollVertically(1)
+                    && renderedLogsCount < filteredLogs.size()) {
+                appendNextPage();
+            }
+
+            logsAdapter.submitList(visibleLogs);
+        });
+    }
+
+    private void updateCountText() {
         if (logsActiveTagText != null) {
             logsActiveTagText.setText(getString(R.string.sa_logs_active_tag_template, labelForTag(selectedTagFilter)));
         }
@@ -252,12 +355,17 @@ public class SuperadminLogsActivity extends AppCompatActivity {
         LinearLayout card = new LinearLayout(this);
         card.setLayoutParams(cardParams(withTopMargin));
         card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setClipToOutline(true);
         card.setBackgroundResource(R.drawable.sa_card_bg);
 
         View accent = new View(this);
-        LinearLayout.LayoutParams accentParams = new LinearLayout.LayoutParams(dp(3), LinearLayout.LayoutParams.MATCH_PARENT);
+        LinearLayout.LayoutParams accentParams = new LinearLayout.LayoutParams(dp(4), LinearLayout.LayoutParams.MATCH_PARENT);
+        accentParams.topMargin = 0;
+        accentParams.bottomMargin = 0;
+        accentParams.setMarginStart(0);
+        accentParams.setMarginEnd(dp(6));
         accent.setLayoutParams(accentParams);
-        accent.setBackgroundColor(colorForType(item.type));
+        accent.setBackground(makeLeftAccent(colorForType(item.type)));
         card.addView(accent);
 
         LinearLayout content = new LinearLayout(this);
@@ -407,7 +515,9 @@ public class SuperadminLogsActivity extends AppCompatActivity {
             } else {
                 expandedLogId = item.id;
             }
-            applyFiltersAndRender(getSearchText());
+            if (logsAdapter != null) {
+                logsAdapter.notifyDataSetChanged();
+            }
         });
 
         return card;
@@ -464,6 +574,15 @@ public class SuperadminLogsActivity extends AppCompatActivity {
         drawable.setShape(GradientDrawable.RECTANGLE);
         drawable.setCornerRadius(dp(12));
         drawable.setColor((alpha << 24) | (color & 0x00FFFFFF));
+        return drawable;
+    }
+
+    private GradientDrawable makeLeftAccent(int color) {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setShape(GradientDrawable.RECTANGLE);
+        drawable.setColor(color);
+        float radius = dp(18);
+        drawable.setCornerRadii(new float[]{radius, radius, 0f, 0f, 0f, 0f, radius, radius});
         return drawable;
     }
 
@@ -670,6 +789,44 @@ public class SuperadminLogsActivity extends AppCompatActivity {
             this.metaPrimary = metaPrimary;
             this.metaSecondary = metaSecondary;
             this.tags = tags;
+        }
+    }
+
+    private class LogsAdapter extends RecyclerView.Adapter<LogsAdapter.LogViewHolder> {
+        private final List<LogItem> items = new ArrayList<>();
+
+        private void submitList(List<LogItem> logs) {
+            items.clear();
+            items.addAll(logs);
+            notifyDataSetChanged();
+        }
+
+        @Override
+        public LogViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            FrameLayout root = new FrameLayout(parent.getContext());
+            root.setLayoutParams(new RecyclerView.LayoutParams(
+                    RecyclerView.LayoutParams.MATCH_PARENT,
+                    RecyclerView.LayoutParams.WRAP_CONTENT
+            ));
+            return new LogViewHolder(root);
+        }
+
+        @Override
+        public void onBindViewHolder(LogViewHolder holder, int position) {
+            FrameLayout root = (FrameLayout) holder.itemView;
+            root.removeAllViews();
+            root.addView(createLogCard(items.get(position), position > 0));
+        }
+
+        @Override
+        public int getItemCount() {
+            return items.size();
+        }
+
+        class LogViewHolder extends RecyclerView.ViewHolder {
+            LogViewHolder(View itemView) {
+                super(itemView);
+            }
         }
     }
 }

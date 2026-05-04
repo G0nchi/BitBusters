@@ -115,8 +115,7 @@
             </HorizontalScrollView>
         </LinearLayout>
 
-        <ScrollView
-            android:id="@+id/approvalsScrollView"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="177dp"
@@ -124,65 +123,61 @@
             android:paddingTop="12dp"
             android:paddingEnd="16dp"
             android:paddingBottom="90dp"
-            android:scrollbars="none">
+            android:orientation="vertical">
 
             <LinearLayout
-                android:id="@+id/approvalsListContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:background="@drawable/sa_warning_card_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <FrameLayout
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:background="@drawable/sa_warning_icon_bg">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_alert_16" />
+                </FrameLayout>
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/sa_warning_card_bg"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-                    <FrameLayout
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:background="@drawable/sa_warning_icon_bg">
-
-                        <ImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_alert_16" />
-                    </FrameLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:text="@string/sa_review_alert"
+                        android:textColor="#B45309"
+                        android:textSize="16sp" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/sa_review_alert"
-                            android:textColor="#B45309"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="@string/sa_review_alert_sub"
-                            android:textColor="#B45309"
-                            android:textSize="11sp" />
-                    </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/sa_review_alert_sub"
+                        android:textColor="#B45309"
+                        android:textSize="11sp" />
                 </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/approvalCardsContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" />
             </LinearLayout>
-        </ScrollView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/approvalsRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="10dp"
+                android:clipToPadding="false"
+                android:scrollbars="none" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
