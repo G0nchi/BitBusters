@@ -6,10 +6,12 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.util.Log;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.example.bitbusters.utils.ImmersiveMode;
@@ -19,6 +21,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
 
@@ -30,14 +34,15 @@ import java.util.Locale;
 
 public class SuperadminUsersActivity extends AppCompatActivity {
 
+    private static final int PAGE_SIZE = 4;
+    private static final String TAG = "SA_USERS";
+
     private static final String STATUS_ACTIVE = "ACTIVE";
     private static final String STATUS_INACTIVE = "INACTIVE";
 
     private static final String TAB_ADMINS = "ADMINS";
     private static final String TAB_ADVISORS = "ADVISORS";
     private static final String TAB_CLIENTS = "CLIENTS";
-
-    private static final int PAGE_SIZE = 8;
 
     private TextView tabAdminsText;
     private TextView tabAdvisorsText;
@@ -51,14 +56,15 @@ public class SuperadminUsersActivity extends AppCompatActivity {
     private TextView filterInactiveChip;
 
     private EditText searchUsersInput;
-    private ScrollView usersScrollView;
-    private LinearLayout usersListContainer;
+    private RecyclerView usersRecyclerView;
+    private UserAdapter userAdapter;
 
     private String currentTab = TAB_CLIENTS;
     private String currentStatusFilter = "ALL";
     private String currentQuery = "";
 
     private final List<UserItem> filteredUsers = new ArrayList<>();
+    private final List<UserItem> visibleUsers = new ArrayList<>();
     private int renderedUsersCount = 0;
     private boolean isLoadingMore = false;
 
@@ -75,6 +81,33 @@ public class SuperadminUsersActivity extends AppCompatActivity {
         setupInfiniteScroll();
 
         showClients();
+    }
+
+    private void setupInfiniteScroll() {
+        if (usersRecyclerView == null) {
+            return;
+        }
+
+        usersRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (dy <= 0 || isLoadingMore || renderedUsersCount >= filteredUsers.size()) {
+                    return;
+                }
+
+                RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+                if (!(manager instanceof LinearLayoutManager)) {
+                    return;
+                }
+
+                int lastVisible = ((LinearLayoutManager) manager).findLastVisibleItemPosition();
+                if (lastVisible >= visibleUsers.size() - 2) {
+                    Log.d(TAG, "onScrolled -> trigger loadMoreUsers, lastVisible=" + lastVisible + ", visible=" + visibleUsers.size() + ", filtered=" + filteredUsers.size());
+                    loadMoreUsers();
+                }
+            }
+        });
     }
 
     private void bindInsets() {
@@ -102,8 +135,12 @@ public class SuperadminUsersActivity extends AppCompatActivity {
         filterInactiveChip = findViewById(R.id.filterInactiveChip);
 
         searchUsersInput = findViewById(R.id.searchUsersInput);
-        usersScrollView = findViewById(R.id.usersScrollView);
-        usersListContainer = findViewById(R.id.usersListContainer);
+        usersRecyclerView = findViewById(R.id.usersRecyclerView);
+        if (usersRecyclerView != null) {
+            usersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+            userAdapter = new UserAdapter();
+            usersRecyclerView.setAdapter(userAdapter);
+        }
     }
 
     private void setupClicks() {
@@ -185,29 +222,6 @@ public class SuperadminUsersActivity extends AppCompatActivity {
         });
     }
 
-    private void setupInfiniteScroll() {
-        if (usersScrollView == null) {
-            return;
-        }
-
-        usersScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-            if (isLoadingMore || usersListContainer == null) {
-                return;
-            }
-
-            View content = usersScrollView.getChildAt(0);
-            if (content == null) {
-                return;
-            }
-
-            int threshold = dp(48);
-            int distanceToBottom = content.getBottom() - (usersScrollView.getHeight() + scrollY);
-            if (distanceToBottom <= threshold) {
-                loadMoreUsers();
-            }
-        });
-    }
-
     private void showAdmins() {
         currentTab = TAB_ADMINS;
         setTabState(tabAdminsText, tabAdvisorsText, tabClientsText, tabAdminsLine, tabAdvisorsLine, tabClientsLine);
@@ -246,28 +260,55 @@ public class SuperadminUsersActivity extends AppCompatActivity {
         }
 
         renderedUsersCount = 0;
-        if (usersListContainer != null) {
-            usersListContainer.removeAllViews();
-        }
+        visibleUsers.clear();
         loadMoreUsers();
+        fillViewportIfNeeded();
+        Log.d(TAG, "applyFiltersAndRender -> filtered=" + filteredUsers.size() + ", rendered=" + renderedUsersCount);
 
-        if (resetScroll && usersScrollView != null) {
-            usersScrollView.post(() -> usersScrollView.scrollTo(0, 0));
+        if (resetScroll && usersRecyclerView != null) {
+            usersRecyclerView.scrollToPosition(0);
         }
     }
 
     private void loadMoreUsers() {
-        if (usersListContainer == null || renderedUsersCount >= filteredUsers.size()) {
+        if (!appendNextPage()) {
             return;
+        }
+
+        if (userAdapter != null) {
+            userAdapter.submitList(visibleUsers);
+        }
+    }
+
+    private boolean appendNextPage() {
+        if (renderedUsersCount >= filteredUsers.size()) {
+            return false;
         }
 
         isLoadingMore = true;
         int end = Math.min(renderedUsersCount + PAGE_SIZE, filteredUsers.size());
-        for (int i = renderedUsersCount; i < end; i++) {
-            usersListContainer.addView(createUserCard(filteredUsers.get(i), i > 0));
-        }
+        visibleUsers.addAll(filteredUsers.subList(renderedUsersCount, end));
         renderedUsersCount = end;
+        Log.d(TAG, "appendNextPage -> appendedUntil=" + renderedUsersCount + " of " + filteredUsers.size());
         isLoadingMore = false;
+        return true;
+    }
+
+    private void fillViewportIfNeeded() {
+        if (usersRecyclerView == null || userAdapter == null) {
+            return;
+        }
+
+        usersRecyclerView.post(() -> {
+            // Only preload one extra page if the first page does not fill the viewport.
+            // This keeps incremental loading behavior visible while avoiding full eager load.
+            if (!usersRecyclerView.canScrollVertically(1)
+                    && renderedUsersCount < filteredUsers.size()) {
+                appendNextPage();
+            }
+
+            userAdapter.submitList(visibleUsers);
+        });
     }
 
     private View createUserCard(UserItem item, boolean withTopMargin) {
@@ -474,6 +515,44 @@ public class SuperadminUsersActivity extends AppCompatActivity {
             this.name = name;
             this.company = company;
             this.status = status;
+        }
+    }
+
+    private class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
+        private final List<UserItem> items = new ArrayList<>();
+
+        private void submitList(List<UserItem> users) {
+            items.clear();
+            items.addAll(users);
+            notifyDataSetChanged();
+        }
+
+        @Override
+        public UserViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            FrameLayout root = new FrameLayout(parent.getContext());
+            root.setLayoutParams(new RecyclerView.LayoutParams(
+                    RecyclerView.LayoutParams.MATCH_PARENT,
+                    RecyclerView.LayoutParams.WRAP_CONTENT
+            ));
+            return new UserViewHolder(root);
+        }
+
+        @Override
+        public void onBindViewHolder(UserViewHolder holder, int position) {
+            FrameLayout root = (FrameLayout) holder.itemView;
+            root.removeAllViews();
+            root.addView(createUserCard(items.get(position), position > 0));
+        }
+
+        @Override
+        public int getItemCount() {
+            return items.size();
+        }
+
+        class UserViewHolder extends RecyclerView.ViewHolder {
+            UserViewHolder(View itemView) {
+                super(itemView);
+            }
         }
     }
 }

@@ -6,11 +6,13 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.util.Log;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.example.bitbusters.utils.ImmersiveMode;
@@ -19,6 +21,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
 
@@ -34,11 +38,12 @@ import java.util.Locale;
 
 public class SuperadminApprovalsActivity extends AppCompatActivity {
 
-    private static final int PAGE_SIZE = 8;
+    private static final int PAGE_SIZE = 4;
+    private static final String TAG = "SA_APPROVALS";
 
-    private ScrollView approvalsScrollView;
+    private RecyclerView approvalsRecyclerView;
+    private ApprovalsAdapter approvalsAdapter;
     private EditText searchApprovalsInput;
-    private LinearLayout approvalCardsContainer;
 
     private TextView filterDateButton;
     private TextView filterLocationButton;
@@ -46,7 +51,7 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
 
     private final List<ApprovalItem> allApprovals = new ArrayList<>();
     private final List<ApprovalItem> filteredApprovals = new ArrayList<>();
-
+    private final List<ApprovalItem> visibleApprovals = new ArrayList<>();
     private int renderedApprovalsCount = 0;
     private boolean isLoadingMore = false;
 
@@ -73,6 +78,33 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
         applySearchAndRender("", true);
     }
 
+    private void setupInfiniteScroll() {
+        if (approvalsRecyclerView == null) {
+            return;
+        }
+
+        approvalsRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (dy <= 0 || isLoadingMore || renderedApprovalsCount >= filteredApprovals.size()) {
+                    return;
+                }
+
+                RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+                if (!(manager instanceof LinearLayoutManager)) {
+                    return;
+                }
+
+                int lastVisible = ((LinearLayoutManager) manager).findLastVisibleItemPosition();
+                if (lastVisible >= visibleApprovals.size() - 2) {
+                    Log.d(TAG, "onScrolled -> trigger loadMoreApprovals, lastVisible=" + lastVisible + ", visible=" + visibleApprovals.size() + ", filtered=" + filteredApprovals.size());
+                    loadMoreApprovals();
+                }
+            }
+        });
+    }
+
     private void bindInsets() {
         View root = findViewById(R.id.main);
         if (root == null) {
@@ -86,9 +118,13 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
     }
 
     private void bindViews() {
-        approvalsScrollView = findViewById(R.id.approvalsScrollView);
+        approvalsRecyclerView = findViewById(R.id.approvalsRecyclerView);
+        if (approvalsRecyclerView != null) {
+            approvalsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+            approvalsAdapter = new ApprovalsAdapter();
+            approvalsRecyclerView.setAdapter(approvalsAdapter);
+        }
         searchApprovalsInput = findViewById(R.id.searchApprovalsInput);
-        approvalCardsContainer = findViewById(R.id.approvalCardsContainer);
 
         filterDateButton = findViewById(R.id.filterDateButton);
         filterLocationButton = findViewById(R.id.filterLocationButton);
@@ -148,29 +184,6 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
         });
     }
 
-    private void setupInfiniteScroll() {
-        if (approvalsScrollView == null) {
-            return;
-        }
-
-        approvalsScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-            if (isLoadingMore || approvalCardsContainer == null) {
-                return;
-            }
-
-            View content = approvalsScrollView.getChildAt(0);
-            if (content == null) {
-                return;
-            }
-
-            int threshold = dp(48);
-            int distanceToBottom = content.getBottom() - (approvalsScrollView.getHeight() + scrollY);
-            if (distanceToBottom <= threshold) {
-                loadMoreApprovals();
-            }
-        });
-    }
-
     private void seedApprovals() {
         allApprovals.clear();
         allApprovals.addAll(Arrays.asList(
@@ -209,14 +222,30 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
         }
 
         renderedApprovalsCount = 0;
-        if (approvalCardsContainer != null) {
-            approvalCardsContainer.removeAllViews();
-        }
+        visibleApprovals.clear();
         loadMoreApprovals();
+        Log.d(TAG, "applySearchAndRender -> filtered=" + filteredApprovals.size() + ", rendered=" + renderedApprovalsCount);
 
-        if (resetScrollPosition && approvalsScrollView != null) {
-            approvalsScrollView.post(() -> approvalsScrollView.scrollTo(0, 0));
+        if (resetScrollPosition && approvalsRecyclerView != null) {
+            approvalsRecyclerView.scrollToPosition(0);
         }
+    }
+
+    private void loadMoreApprovals() {
+        if (renderedApprovalsCount >= filteredApprovals.size()) {
+            return;
+        }
+
+        isLoadingMore = true;
+        int end = Math.min(renderedApprovalsCount + PAGE_SIZE, filteredApprovals.size());
+        visibleApprovals.addAll(filteredApprovals.subList(renderedApprovalsCount, end));
+        renderedApprovalsCount = end;
+        Log.d(TAG, "loadMoreApprovals -> appendedUntil=" + renderedApprovalsCount + " of " + filteredApprovals.size());
+
+        if (approvalsAdapter != null) {
+            approvalsAdapter.submitList(visibleApprovals);
+        }
+        isLoadingMore = false;
     }
 
     private boolean matchesDateFilter(String itemDate) {
@@ -382,27 +411,13 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
         return searchApprovalsInput.getText().toString();
     }
 
-    private void loadMoreApprovals() {
-        if (approvalCardsContainer == null || renderedApprovalsCount >= filteredApprovals.size()) {
-            return;
-        }
-
-        isLoadingMore = true;
-        int end = Math.min(renderedApprovalsCount + PAGE_SIZE, filteredApprovals.size());
-        for (int i = renderedApprovalsCount; i < end; i++) {
-            approvalCardsContainer.addView(createApprovalCard(filteredApprovals.get(i), i > 0));
-        }
-        renderedApprovalsCount = end;
-        isLoadingMore = false;
-    }
-
     private View createApprovalCard(ApprovalItem item, boolean withTopMargin) {
         LinearLayout card = new LinearLayout(this);
         card.setLayoutParams(cardParams(withTopMargin));
         card.setOrientation(LinearLayout.HORIZONTAL);
         card.setGravity(Gravity.CENTER_VERTICAL);
         card.setPadding(dp(12), 0, dp(12), 0);
-        card.setBackgroundResource(R.drawable.sa_pending_card_bg);
+        card.setBackgroundResource(R.drawable.sa_user_row_bg);
         card.setOnClickListener(v -> open(SuperadminApprovalEvaluationActivity.class));
 
         TextView initials = new TextView(this);
@@ -504,6 +519,44 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
             this.company = company;
             this.location = location;
             this.date = date;
+        }
+    }
+
+    private class ApprovalsAdapter extends RecyclerView.Adapter<ApprovalsAdapter.ApprovalViewHolder> {
+        private final List<ApprovalItem> items = new ArrayList<>();
+
+        private void submitList(List<ApprovalItem> approvals) {
+            items.clear();
+            items.addAll(approvals);
+            notifyDataSetChanged();
+        }
+
+        @Override
+        public ApprovalViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            FrameLayout root = new FrameLayout(parent.getContext());
+            root.setLayoutParams(new RecyclerView.LayoutParams(
+                    RecyclerView.LayoutParams.MATCH_PARENT,
+                    RecyclerView.LayoutParams.WRAP_CONTENT
+            ));
+            return new ApprovalViewHolder(root);
+        }
+
+        @Override
+        public void onBindViewHolder(ApprovalViewHolder holder, int position) {
+            FrameLayout root = (FrameLayout) holder.itemView;
+            root.removeAllViews();
+            root.addView(createApprovalCard(items.get(position), position > 0));
+        }
+
+        @Override
+        public int getItemCount() {
+            return items.size();
+        }
+
+        class ApprovalViewHolder extends RecyclerView.ViewHolder {
+            ApprovalViewHolder(View itemView) {
+                super(itemView);
+            }
         }
     }
 }

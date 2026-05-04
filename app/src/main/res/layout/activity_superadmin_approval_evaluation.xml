@@ -154,12 +154,15 @@
                 android:layout_height="46dp"
                 android:layout_weight="1"
                 android:background="@drawable/sa_reject_button_bg"
+                android:backgroundTint="@null"
                 android:drawableStart="@drawable/ic_close_circle_16"
                 android:drawablePadding="8dp"
+                android:drawableTint="@color/white"
                 android:gravity="center"
                 android:text="@string/sa_reject"
                 android:textAllCaps="false"
-                android:textColor="#EF4444" />
+                android:textColor="@color/white"
+                app:backgroundTint="@null" />
 
             <Button
                 android:id="@+id/approveButton"
@@ -168,12 +171,15 @@
                 android:layout_marginStart="10dp"
                 android:layout_weight="1"
                 android:background="@drawable/sa_approve_button_bg"
+                android:backgroundTint="@null"
                 android:drawableStart="@drawable/ic_check_circle_16"
                 android:drawablePadding="8dp"
+                android:drawableTint="@color/white"
                 android:gravity="center"
                 android:text="@string/sa_approve"
                 android:textAllCaps="false"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                app:backgroundTint="@null" />
         </LinearLayout>
     </FrameLayout>
 
