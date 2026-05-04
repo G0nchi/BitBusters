@@ -19,11 +19,21 @@
             android:layout_width="match_parent"
             android:layout_height="160dp">
 
-            <!-- Placeholder de color (se setea desde el Adapter) -->
-            <View
+            <!-- Imagen referencial del proyecto (gradiente + silueta) -->
+            <ImageView
                 android:id="@+id/v_placeholder"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="@null"/>
+
+            <!-- Ícono silueta de edificio centrado -->
+            <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_building_outline"
+                android:contentDescription="@null"/>
 
             <!-- Badge rating (esquina superior derecha) -->
             <com.google.android.material.card.MaterialCardView

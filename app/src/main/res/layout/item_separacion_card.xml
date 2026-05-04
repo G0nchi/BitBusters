@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="14dp"
+    app:cardBackgroundColor="@color/neutral_surface"
+    app:strokeWidth="0dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="14dp"
+        android:gravity="center_vertical">
+
+        <!-- Placeholder color del proyecto -->
+        <View
+            android:id="@+id/v_placeholder"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:background="#B8C8D4"
+            android:layout_marginEnd="12dp"/>
+
+        <!-- Info del lado derecho -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Proyecto -->
+            <TextView
+                android:id="@+id/tv_proyecto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Vista Marina Residencial"
+                android:textColor="@color/neutral_dark"
+                android:textSize="14sp"
+                android:fontFamily="@font/lato_bold"
+                android:maxLines="1"
+                android:ellipsize="end"/>
+
+            <!-- Cliente -->
+            <TextView
+                android:id="@+id/tv_cliente"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Carlos Mendoza"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:fontFamily="@font/lato_regular"
+                android:layout_marginTop="2dp"/>
+
+            <!-- Monto + Badge estado -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="6dp">
+
+                <TextView
+                    android:id="@+id/tv_monto"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="S/ 320,000"
+                    android:textColor="@color/brand_deep_blue"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/lato_bold"/>
+
+                <TextView
+                    android:id="@+id/tv_estado"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Confirmada"
+                    android:textSize="11sp"
+                    android:fontFamily="@font/lato_bold"
+                    android:paddingLeft="8dp"
+                    android:paddingRight="8dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"/>
+            </LinearLayout>
+
+            <!-- Referencia + Fecha -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="4dp">
+
+                <TextView
+                    android:id="@+id/tv_referencia"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="SEP-2025-0041"
+                    android:textColor="@color/text_tertiary"
+                    android:textSize="11sp"
+                    android:fontFamily="@font/lato_regular"/>
+
+                <TextView
+                    android:id="@+id/tv_fecha"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="28 Mar 2025"
+                    android:textColor="@color/text_tertiary"
+                    android:textSize="11sp"
+                    android:fontFamily="@font/lato_regular"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

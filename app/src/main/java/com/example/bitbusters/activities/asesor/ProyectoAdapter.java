@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -12,10 +13,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bitbusters.R;
 import com.google.android.material.button.MaterialButton;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ProyectoAdapter extends RecyclerView.Adapter<ProyectoAdapter.ViewHolder> {
 
     interface OnItemClickListener {
-        void onItemClick(int position);
+        void onItemClick(int originalIndex);
     }
 
     private static final String[] NOMBRES = {
@@ -35,16 +39,29 @@ public class ProyectoAdapter extends RecyclerView.Adapter<ProyectoAdapter.ViewHo
     };
     private static final String[] ESTADOS = {"En Venta", "Preventa", "En Planos"};
     private static final String[] RATINGS = {"4.9", "4.8", "4.7"};
-    private static final int[] PLACEHOLDER_COLORS = {
-        Color.parseColor("#B8C8D4"),
-        Color.parseColor("#D4B896"),
-        Color.parseColor("#A8C8A0")
+    private static final String[] TIPOS = {"Departamento", "Departamento", "Villa"};
+    private static final int[] IMAGENES = {
+        R.drawable.bg_proyecto_marina,
+        R.drawable.bg_proyecto_torres,
+        R.drawable.bg_proyecto_pinos
     };
 
     private final OnItemClickListener listener;
+    private final List<Integer> displayed = new ArrayList<>();
 
     ProyectoAdapter(OnItemClickListener listener) {
         this.listener = listener;
+        applyFilter("Todos");
+    }
+
+    public void applyFilter(String tipo) {
+        displayed.clear();
+        for (int i = 0; i < NOMBRES.length; i++) {
+            if ("Todos".equals(tipo) || TIPOS[i].equals(tipo)) {
+                displayed.add(i);
+            }
+        }
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -57,14 +74,15 @@ public class ProyectoAdapter extends RecyclerView.Adapter<ProyectoAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.tvNombre.setText(NOMBRES[position]);
-        holder.tvUbicacion.setText(UBICACIONES[position]);
-        holder.tvPrecio.setText(PRECIOS[position]);
-        holder.tvRating.setText(RATINGS[position]);
-        holder.vPlaceholder.setBackgroundColor(PLACEHOLDER_COLORS[position]);
+        int idx = displayed.get(position);
+        holder.tvNombre.setText(NOMBRES[idx]);
+        holder.tvUbicacion.setText(UBICACIONES[idx]);
+        holder.tvPrecio.setText(PRECIOS[idx]);
+        holder.tvRating.setText(RATINGS[idx]);
+        holder.imgPlaceholder.setImageResource(IMAGENES[idx]);
 
-        holder.tvEstado.setText(ESTADOS[position]);
-        switch (ESTADOS[position]) {
+        holder.tvEstado.setText(ESTADOS[idx]);
+        switch (ESTADOS[idx]) {
             case "En Venta":
                 holder.tvEstado.setBackgroundResource(R.drawable.badge_en_venta);
                 holder.tvEstado.setTextColor(Color.parseColor("#186A3B"));
@@ -79,22 +97,22 @@ public class ProyectoAdapter extends RecyclerView.Adapter<ProyectoAdapter.ViewHo
                 break;
         }
 
-        holder.btnVerMas.setOnClickListener(v -> listener.onItemClick(position));
+        holder.btnVerMas.setOnClickListener(v -> listener.onItemClick(idx));
     }
 
     @Override
     public int getItemCount() {
-        return NOMBRES.length;
+        return displayed.size();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        View vPlaceholder;
+        ImageView imgPlaceholder;
         TextView tvNombre, tvUbicacion, tvPrecio, tvEstado, tvRating;
         MaterialButton btnVerMas;
 
         ViewHolder(View itemView) {
             super(itemView);
-            vPlaceholder = itemView.findViewById(R.id.v_placeholder);
+            imgPlaceholder = itemView.findViewById(R.id.v_placeholder);
             tvNombre = itemView.findViewById(R.id.tv_nombre);
             tvUbicacion = itemView.findViewById(R.id.tv_ubicacion);
             tvPrecio = itemView.findViewById(R.id.tv_precio);
