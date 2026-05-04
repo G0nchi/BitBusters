@@ -6,7 +6,12 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.bitbusters.R;
+import com.example.bitbusters.adapters.AdminHistorialSeparacionAdapter;
+import com.example.bitbusters.data.AdminDataRepository;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -53,6 +58,8 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
     private TextView tvResumenMonto, tvResumenSeparaciones, tvResumenAsesores;
     private Button btnDiario, btnMensual, btnAnual;
     private AutoCompleteTextView actvProjecto;
+    private RecyclerView rvHistorial;
+    private AdminHistorialSeparacionAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +69,16 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
         setupDropdown();
         updateButtonStyles();
         updateResumen();
+        setupRecyclerView();
+    }
+
+    private void setupRecyclerView() {
+        rvHistorial = findViewById(R.id.rvHistorialSeparaciones);
+        if (rvHistorial != null) {
+            rvHistorial.setLayoutManager(new LinearLayoutManager(this));
+            adapter = new AdminHistorialSeparacionAdapter(AdminDataRepository.getHistorialSeparaciones());
+            rvHistorial.setAdapter(adapter);
+        }
     }
 
     private void setupListeners() {

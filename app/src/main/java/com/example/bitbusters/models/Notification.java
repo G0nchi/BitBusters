@@ -19,6 +19,17 @@ public class Notification {
         this.isOld = isOld;
     }
 
+    // Convenience constructor for simple test/sample notifications
+    public Notification(String name, String message, String time) {
+        this.id = java.util.UUID.randomUUID().toString();
+        this.name = name;
+        this.message = message;
+        this.time = time;
+        this.avatarResId = 0; // no avatar by default
+        this.propertyResId = 0; // no property image by default
+        this.isOld = false;
+    }
+
     public String getId() { return id; }
     public String getName() { return name; }
     public String getMessage() { return message; }

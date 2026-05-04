@@ -18,4 +18,28 @@ public class Proyecto {
         this.imageUrl  = imageUrl;
 
     }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public String getPrecio() {
+        return precio;
+    }
+
+    public String getRating() {
+        return rating;
+    }
+
+    public String getUbicacion() {
+        return ubicacion;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
 }
