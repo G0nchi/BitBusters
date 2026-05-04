@@ -29,9 +29,9 @@ public class CitasAgendadasActivity extends AppCompatActivity {
         rvCitas = findViewById(R.id.rv_citas);
         rvCitas.setLayoutManager(new LinearLayoutManager(this));
 
-        tabPendientes = findViewById(R.id.tab_pendientes);
+        tabPendientes  = findViewById(R.id.tab_pendientes);
         tabConfirmadas = findViewById(R.id.tab_confirmadas);
-        tabPasadas = findViewById(R.id.tab_pasadas);
+        tabPasadas     = findViewById(R.id.tab_pasadas);
 
         tabPendientes.setOnClickListener(v -> switchTab(0));
         tabConfirmadas.setOnClickListener(v -> switchTab(1));
@@ -43,10 +43,10 @@ public class CitasAgendadasActivity extends AppCompatActivity {
     }
 
     private void switchTab(int tab) {
-        int activeColor = Color.parseColor("#252B5C");
+        int activeColor   = Color.parseColor("#252B5C");
         int inactiveColor = Color.TRANSPARENT;
-        int activeText = Color.WHITE;
-        int inactiveText = Color.parseColor("#AACDE0");
+        int activeText    = Color.WHITE;
+        int inactiveText  = Color.parseColor("#AACDE0");
 
         tabPendientes.setBackgroundTintList(android.content.res.ColorStateList.valueOf(tab == 0 ? activeColor : inactiveColor));
         tabPendientes.setTextColor(tab == 0 ? activeText : inactiveText);
@@ -59,28 +59,83 @@ public class CitasAgendadasActivity extends AppCompatActivity {
             new CitaAdapter.OnCitaActionListener() {
                 @Override
                 public void onLeftClick(int pos, CitaAdapter.Cita c) {
-                    if ("Ver valoración".equals(c.btnLeft)) {
-                        startActivity(new Intent(CitasAgendadasActivity.this, ValorarVisitaActivity.class));
-                    }
+                    handleLeftAction(c);
                 }
                 @Override
                 public void onRightClick(int pos, CitaAdapter.Cita c) {
-                    if ("Confirmar".equals(c.btnRight)) {
-                        showConfirmDialog();
-                    } else if ("Valorar".equals(c.btnRight)) {
-                        startActivity(new Intent(CitasAgendadasActivity.this, ValorarVisitaActivity.class));
-                    }
+                    handleRightAction(c);
                 }
             }));
     }
 
+    // ── Acciones botón izquierdo ──────────────────────────────────────────────
+    private void handleLeftAction(CitaAdapter.Cita c) {
+        switch (c.btnLeft) {
+            case "Reagendar":
+                openReagendar(c);
+                break;
+            case "Ver detalle":
+                openVerDetalle(c);
+                break;
+            case "Ver valoración":
+                // El asesor ve la valoración que le dio el cliente
+                startActivity(new Intent(this, ValorarVisitaActivity.class));
+                break;
+        }
+    }
+
+    // ── Acciones botón derecho ────────────────────────────────────────────────
+    private void handleRightAction(CitaAdapter.Cita c) {
+        switch (c.btnRight) {
+            case "Confirmar":
+                showConfirmDialog();
+                break;
+            case "Separar":
+                startActivity(new Intent(this, NuevaSeparacionActivity.class));
+                break;
+            case "Valorar":
+                // El asesor valora al cliente tras la visita
+                startActivity(new Intent(this, ValorarVisitaActivity.class));
+                break;
+            case "Cancelar":
+                showCancelDialog();
+                break;
+            case "Reagendar":
+                openReagendar(c);
+                break;
+        }
+    }
+
+    private void openReagendar(CitaAdapter.Cita c) {
+        Intent intent = new Intent(this, ReagendarCitaActivity.class);
+        intent.putExtra(ReagendarCitaActivity.EXTRA_NOMBRE, c.nombre);
+        intent.putExtra(ReagendarCitaActivity.EXTRA_PROYECTO, c.proyecto);
+        intent.putExtra(ReagendarCitaActivity.EXTRA_FECHA, c.fecha);
+        intent.putExtra(ReagendarCitaActivity.EXTRA_HORA, c.hora);
+        intent.putExtra(ReagendarCitaActivity.EXTRA_INITIALS, c.initials);
+        intent.putExtra(ReagendarCitaActivity.EXTRA_AVATAR_COLOR, c.avatarColor);
+        startActivity(intent);
+    }
+
+    private void openVerDetalle(CitaAdapter.Cita c) {
+        Intent intent = new Intent(this, VerDetalleCitaActivity.class);
+        intent.putExtra(VerDetalleCitaActivity.EXTRA_NOMBRE, c.nombre);
+        intent.putExtra(VerDetalleCitaActivity.EXTRA_PROYECTO, c.proyecto);
+        intent.putExtra(VerDetalleCitaActivity.EXTRA_FECHA, c.fecha);
+        intent.putExtra(VerDetalleCitaActivity.EXTRA_HORA, c.hora);
+        intent.putExtra(VerDetalleCitaActivity.EXTRA_BADGE, c.badge);
+        intent.putExtra(VerDetalleCitaActivity.EXTRA_INITIALS, c.initials);
+        intent.putExtra(VerDetalleCitaActivity.EXTRA_AVATAR_COLOR, c.avatarColor);
+        startActivity(intent);
+    }
+
     private List<CitaAdapter.Cita> buildCitas(int tab) {
         List<CitaAdapter.Cita> list = new ArrayList<>();
-        int pendText  = Color.parseColor("#9A5700");
-        int confText  = Color.parseColor("#186A3B");
-        int pasadaText = Color.parseColor("#666666");
+        int pendText     = Color.parseColor("#9A5700");
+        int confText     = Color.parseColor("#186A3B");
+        int pasadaText   = Color.parseColor("#666666");
         int valoradaText = Color.parseColor("#1A5799");
-        int canceladaText = Color.parseColor("#CC2222");
+        int cancelText   = Color.parseColor("#CC2222");
 
         if (tab == 0) {
             list.add(new CitaAdapter.Cita("CM", Color.parseColor("#4ECDC4"), "Carlos Mendoza",
@@ -108,7 +163,7 @@ public class CitasAgendadasActivity extends AppCompatActivity {
                 "Realizada", 0, pasadaText, "Ver detalle", "Valorar", true, false));
             list.add(new CitaAdapter.Cita("LV", Color.parseColor("#C8956C"), "Luis Vargas",
                 "Torres del Sol · Dpto 204", "Mar 1 Abr, 2025", "2:00 PM",
-                "Cancelada", 0, canceladaText, "Ver detalle", "Reagendar", false, false));
+                "Cancelada", 0, cancelText, "Ver detalle", "Reagendar", false, false));
             list.add(new CitaAdapter.Cita("JC", Color.parseColor("#27AE60"), "Jorge Castro",
                 "Torres del Sol · Dpto 601", "Lun 28 Mar, 2025", "4:00 PM",
                 "Valorada", 0, valoradaText, "Ver valoración", "Valorar", false, true));
@@ -121,6 +176,15 @@ public class CitasAgendadasActivity extends AppCompatActivity {
             .setTitle(getString(R.string.cita_dialog_title))
             .setMessage(getString(R.string.cita_dialog_msg))
             .setPositiveButton(getString(R.string.cita_dialog_ok), null)
+            .show();
+    }
+
+    private void showCancelDialog() {
+        new AlertDialog.Builder(this)
+            .setTitle("Cancelar cita")
+            .setMessage("¿Seguro que deseas cancelar esta cita? Se notificará al cliente.")
+            .setPositiveButton("Sí, cancelar", (d, w) -> { /* lógica futura */ })
+            .setNegativeButton("No", null)
             .show();
     }
 

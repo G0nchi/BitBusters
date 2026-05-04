@@ -53,6 +53,11 @@
         <activity android:name=".activities.asesor.MensajesActivity" android:exported="false" />
         <activity android:name=".activities.asesor.ConversacionActivity" android:exported="false" />
         <activity android:name=".activities.asesor.AsesorPerfilActivity" android:exported="false" />
+        <activity android:name=".activities.asesor.AsesorMapaActivity" android:exported="false" />
+        <activity android:name=".activities.asesor.AsesorNotificacionesActivity" android:exported="false" />
+        <activity android:name=".activities.asesor.AsesorOfertasActivity" android:exported="false" />
+        <activity android:name=".activities.asesor.ReagendarCitaActivity" android:exported="false" />
+        <activity android:name=".activities.asesor.VerDetalleCitaActivity" android:exported="false" />
 
         <!-- Cliente Activities -->
         <activity android:name=".activities.cliente.HomeActivity" android:exported="false" />

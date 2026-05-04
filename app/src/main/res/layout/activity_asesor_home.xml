@@ -92,11 +92,15 @@
 
                     <!-- Icono campana -->
                     <ImageView
+                        android:id="@+id/img_campana"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_bell"
                         android:tint="@color/neutral_dark"
                         android:layout_marginRight="16dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="@null"/>
 
                     <!-- Avatar JG (Dropdown Anchor) -->
@@ -194,10 +198,13 @@
 
                     <!-- Mapa -->
                     <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_mapa"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginRight="8dp"
+                        android:clickable="true"
+                        android:focusable="true"
                         app:cardCornerRadius="16dp"
                         app:cardElevation="2dp"
                         app:cardBackgroundColor="@color/neutral_surface">
@@ -279,10 +286,13 @@
 
                     <!-- Ofertas -->
                     <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_ofertas"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginLeft="8dp"
+                        android:clickable="true"
+                        android:focusable="true"
                         app:cardCornerRadius="16dp"
                         app:cardElevation="2dp"
                         app:cardBackgroundColor="@color/neutral_surface">
@@ -331,6 +341,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
                         <com.google.android.material.button.MaterialButton
+                            android:id="@+id/chip_todos"
                             style="@style/Widget.BitBusters.ChipActive"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -338,12 +349,14 @@
                             android:textAppearance="@style/TextAppearance.BitBusters.ChipActive"
                             android:layout_marginRight="8dp"/>
                         <com.google.android.material.button.MaterialButton
+                            android:id="@+id/chip_departamentos"
                             style="@style/Widget.BitBusters.ChipInactive"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Departamentos"
                             android:layout_marginRight="8dp"/>
                         <com.google.android.material.button.MaterialButton
+                            android:id="@+id/chip_villas"
                             style="@style/Widget.BitBusters.ChipInactive"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"

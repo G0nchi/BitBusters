@@ -2,7 +2,6 @@ package com.example.bitbusters.activities.asesor;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.widget.PopupMenu;
 import android.view.View;
 
@@ -13,17 +12,22 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bitbusters.R;
 import com.example.bitbusters.activities.access.LoginActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.button.MaterialButton;
 
 public class AsesorHomeActivity extends AppCompatActivity {
+
+    private ProyectoAdapter proyectoAdapter;
+    private MaterialButton chipTodos, chipDepartamentos, chipVillas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_asesor_home);
         setupRecyclerView();
+        setupChips();
+        setupQuickActions();
         setupBottomNav();
 
-        // Configurar dropdown de perfil para cerrar sesión
         View imgPerfil = findViewById(R.id.imgPerfilAsesor);
         if (imgPerfil != null) {
             imgPerfil.setOnClickListener(v -> showProfileMenu(v));
@@ -33,7 +37,6 @@ public class AsesorHomeActivity extends AppCompatActivity {
     private void showProfileMenu(View anchor) {
         PopupMenu popup = new PopupMenu(this, anchor);
         popup.getMenu().add("Cerrar Sesión");
-        
         popup.setOnMenuItemClickListener(item -> {
             if (item.getTitle().equals("Cerrar Sesión")) {
                 logout();
@@ -45,7 +48,7 @@ public class AsesorHomeActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        Intent intent = new Intent(AsesorHomeActivity.this, LoginActivity.class);
+        Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
@@ -56,12 +59,62 @@ public class AsesorHomeActivity extends AppCompatActivity {
         if (recyclerView != null) {
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
             recyclerView.setNestedScrollingEnabled(false);
-            ProyectoAdapter adapter = new ProyectoAdapter(position -> {
+            proyectoAdapter = new ProyectoAdapter(position -> {
                 Intent intent = new Intent(this, ProyectoDetalleActivity.class);
                 intent.putExtra(ProyectoDetalleActivity.EXTRA_PROYECTO_INDEX, position);
                 startActivity(intent);
             });
-            recyclerView.setAdapter(adapter);
+            recyclerView.setAdapter(proyectoAdapter);
+        }
+    }
+
+    private void setupChips() {
+        chipTodos = findViewById(R.id.chip_todos);
+        chipDepartamentos = findViewById(R.id.chip_departamentos);
+        chipVillas = findViewById(R.id.chip_villas);
+        if (chipTodos == null) return;
+        chipTodos.setOnClickListener(v -> activateChip("Todos"));
+        chipDepartamentos.setOnClickListener(v -> activateChip("Departamento"));
+        chipVillas.setOnClickListener(v -> activateChip("Villa"));
+    }
+
+    private void activateChip(String tipo) {
+        int activeColor = getColor(R.color.neutral_dark);
+        int inactiveColor = android.graphics.Color.TRANSPARENT;
+        int activeText = android.graphics.Color.WHITE;
+        int inactiveText = getColor(R.color.text_secondary);
+
+        boolean isTodos = "Todos".equals(tipo);
+        boolean isDept = "Departamento".equals(tipo);
+        boolean isVilla = "Villa".equals(tipo);
+
+        chipTodos.setBackgroundTintList(android.content.res.ColorStateList.valueOf(isTodos ? activeColor : inactiveColor));
+        chipTodos.setTextColor(isTodos ? activeText : inactiveText);
+        chipDepartamentos.setBackgroundTintList(android.content.res.ColorStateList.valueOf(isDept ? activeColor : inactiveColor));
+        chipDepartamentos.setTextColor(isDept ? activeText : inactiveText);
+        chipVillas.setBackgroundTintList(android.content.res.ColorStateList.valueOf(isVilla ? activeColor : inactiveColor));
+        chipVillas.setTextColor(isVilla ? activeText : inactiveText);
+
+        if (proyectoAdapter != null) proyectoAdapter.applyFilter(tipo);
+    }
+
+    private void setupQuickActions() {
+        View cardMapa = findViewById(R.id.card_mapa);
+        if (cardMapa != null) {
+            cardMapa.setOnClickListener(v ->
+                startActivity(new Intent(this, AsesorMapaActivity.class)));
+        }
+
+        View cardOfertas = findViewById(R.id.card_ofertas);
+        if (cardOfertas != null) {
+            cardOfertas.setOnClickListener(v ->
+                startActivity(new Intent(this, AsesorOfertasActivity.class)));
+        }
+
+        View imgCampana = findViewById(R.id.img_campana);
+        if (imgCampana != null) {
+            imgCampana.setOnClickListener(v ->
+                startActivity(new Intent(this, AsesorNotificacionesActivity.class)));
         }
     }
 
