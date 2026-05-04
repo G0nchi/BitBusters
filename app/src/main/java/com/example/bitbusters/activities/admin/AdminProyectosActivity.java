@@ -7,7 +7,17 @@ import android.widget.Button;
 import com.example.bitbusters.R;
 import com.google.android.material.card.MaterialCardView;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.bitbusters.adapters.AdminProyectoAdapter;
+import com.example.bitbusters.models.Proyecto;
+import com.example.bitbusters.data.ProjectSessionData;
+
 public class AdminProyectosActivity extends AdminMainActivity {
+
+    private RecyclerView rvProyectos;
+    private AdminProyectoAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -15,8 +25,8 @@ public class AdminProyectosActivity extends AdminMainActivity {
         setContentView(R.layout.activity_admin_proyectos);
         setupHeaderListeners();
         setupBottomNavigation(R.id.nav_proyectos);
-        setupProjectCardListeners();
         setupCreateProjectButton();
+        setupRecyclerView();
     }
 
     private void setupCreateProjectButton() {
@@ -28,20 +38,18 @@ public class AdminProyectosActivity extends AdminMainActivity {
         }
     }
 
-    private void setupProjectCardListeners() {
-        // Project cards - add click listeners to navigate to project details
-        MaterialCardView projectCard1 = findViewById(R.id.projectCard1);
-        MaterialCardView projectCard2 = findViewById(R.id.projectCard2);
-        MaterialCardView projectCard3 = findViewById(R.id.projectCard3);
-        MaterialCardView projectCard4 = findViewById(R.id.projectCard4);
+    private void setupRecyclerView() {
+        rvProyectos = findViewById(R.id.rvProyectos);
+        if (rvProyectos != null) {
+            rvProyectos.setLayoutManager(new LinearLayoutManager(this));
+            adapter = new AdminProyectoAdapter(getProyectosList(), proyecto -> {
+                startActivity(new Intent(AdminProyectosActivity.this, AdminDetallesProyectoActivity.class));
+            });
+            rvProyectos.setAdapter(adapter);
+        }
+    }
 
-        View.OnClickListener projectDetailsListener = v -> {
-            startActivity(new Intent(AdminProyectosActivity.this, AdminDetallesProyectoActivity.class));
-        };
-
-        if (projectCard1 != null) projectCard1.setOnClickListener(projectDetailsListener);
-        if (projectCard2 != null) projectCard2.setOnClickListener(projectDetailsListener);
-        if (projectCard3 != null) projectCard3.setOnClickListener(projectDetailsListener);
-        if (projectCard4 != null) projectCard4.setOnClickListener(projectDetailsListener);
+    private java.util.List<Proyecto> getProyectosList() {
+        return ProjectSessionData.getProyectos();
     }
 }

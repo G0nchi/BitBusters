@@ -3,8 +3,14 @@ package com.example.bitbusters.activities.cliente;
 
 import android.os.Bundle;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.bitbusters.R;
+import com.example.bitbusters.adapters.ClientReviewsAdapter;
+import com.example.bitbusters.data.ClientDataRepository;
 
 public class ReviewsActivity extends AppCompatActivity {
 
@@ -22,15 +28,10 @@ public class ReviewsActivity extends AppCompatActivity {
         // Botón volver
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Click en cards de review (por si se quiere expandir o dar like)
-        findViewById(R.id.cardReview1).setOnClickListener(v -> { });
-        findViewById(R.id.cardReview2).setOnClickListener(v -> { });
-        findViewById(R.id.cardReview3).setOnClickListener(v -> { });
-        findViewById(R.id.cardReview4).setOnClickListener(v -> { });
-
-        // TODO Lab 6: cargar reviews desde Firebase
-        // DatabaseReference ref = FirebaseDatabase.getInstance()
-        //     .getReference("reviews").child(proyectoId);
-        // ref.addValueEventListener(...);
+        RecyclerView recyclerView = findViewById(R.id.recyclerViewReviews);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        ClientReviewsAdapter adapter = new ClientReviewsAdapter();
+        adapter.submitList(ClientDataRepository.getReviews());
+        recyclerView.setAdapter(adapter);
     }
 }

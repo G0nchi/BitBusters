@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -16,33 +15,30 @@ import com.example.bitbusters.activities.cliente.ProjectDetailActivity;
 import com.example.bitbusters.models.Proyecto;
 import java.util.List;
 
-public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapter.ViewHolder> {
+/** Adapter para mostrar la lista de proyectos inmobiliarios en el RecyclerView de HomeActivity. */
+public class ProyectoAdapter extends RecyclerView.Adapter<ProyectoAdapter.ViewHolder> {
 
     private static final String EXTRA_PROYECTO = "proyecto";
+
     private final Context context;
     private List<Proyecto> lista;
 
-    public SearchResultAdapter(Context context, List<Proyecto> lista) {
+    public ProyectoAdapter(Context context, List<Proyecto> lista) {
         this.context = context;
         this.lista   = lista;
-    }
-
-    public void setData(List<Proyecto> nuevaLista) {
-        this.lista = nuevaLista;
-        notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context)
-                .inflate(R.layout.item_search_result, parent, false);
+                .inflate(R.layout.item_proyecto, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Proyecto p = lista.get(position); // ← primero inicializar p
+        Proyecto p = lista.get(position);
 
         holder.tvNombre.setText(p.nombre);
         holder.tvPrecio.setText(p.precio);
@@ -55,19 +51,14 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
                     .load(p.imageUrl)
                     .centerCrop()
                     .placeholder(R.drawable.bg_rounded_8)
-                    .into(holder.imgProyecto);
+                    .into(holder.imgPropiedad);
         }
 
-        // Navegar al detalle
+        // Navegar al detalle al tocar la card
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, ProjectDetailActivity.class);
             intent.putExtra(EXTRA_PROYECTO, p.nombre);
             context.startActivity(intent);
-        });
-
-        // Favorito
-        holder.btnFavorito.setOnClickListener(v -> {
-            // TODO Lab 6: guardar favorito en Firebase
         });
     }
 
@@ -76,19 +67,25 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
         return lista != null ? lista.size() : 0;
     }
 
+    // Actualizar lista y refrescar RecyclerView
+    public void setData(List<Proyecto> nuevaLista) {
+        this.lista = nuevaLista;
+        notifyDataSetChanged();
+    }
+
+    /** ViewHolder que referencia las vistas definidas en item_proyecto.xml */
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView imgProyecto;
+
+        ImageView imgPropiedad;
         TextView tvNombre, tvPrecio, tvRating, tvUbicacion;
-        ImageButton btnFavorito;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            imgProyecto = itemView.findViewById(R.id.imgProyecto);
-            tvNombre    = itemView.findViewById(R.id.tvNombre);
-            tvPrecio    = itemView.findViewById(R.id.tvPrecio);
-            tvRating    = itemView.findViewById(R.id.tvRating);
-            tvUbicacion = itemView.findViewById(R.id.tvUbicacion);
-            btnFavorito = itemView.findViewById(R.id.btnFavorito);
+            imgPropiedad = itemView.findViewById(R.id.imgPropiedad);
+            tvNombre     = itemView.findViewById(R.id.tvNombre);
+            tvPrecio     = itemView.findViewById(R.id.tvPrecio);
+            tvRating     = itemView.findViewById(R.id.tvRating);
+            tvUbicacion  = itemView.findViewById(R.id.tvUbicacion);
         }
     }
 }

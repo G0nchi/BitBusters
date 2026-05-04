@@ -6,18 +6,28 @@ import android.widget.Button;
 import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
+import com.example.bitbusters.adapters.AdminSeparacionAdapter;
+import com.example.bitbusters.data.AdminDataRepository;
+import com.example.bitbusters.models.AdminSeparacion;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputLayout;
 import android.widget.AutoCompleteTextView;
 import android.widget.ArrayAdapter;
 
+import java.util.List;
+
 public class AdminSeparacionesActivity extends AdminMainActivity {
 
     private Button btnPendientes, btnAprobadas, btnRechazadas;
-    private MaterialCardView cardSeparacion1, cardSeparacion2, cardSeparacion3, cardSeparacion4;
     private AutoCompleteTextView actvProyectoFilter, actvFechaFilter;
+    private RecyclerView rvSeparaciones;
+    private AdminSeparacionAdapter adapter;
+    private List<AdminSeparacion> allSeparaciones;
+    private String currentEstadoFilter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +38,7 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
         setupNotificationsButton();
         initializeViews();
         setupListeners();
+        setupRecyclerView();
     }
 
     private void initializeViews() {
@@ -35,14 +46,11 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
         btnAprobadas = findViewById(R.id.btnAprobadas);
         btnRechazadas = findViewById(R.id.btnRechazadas);
         
-        cardSeparacion1 = findViewById(R.id.cardSeparacion1);
-        cardSeparacion2 = findViewById(R.id.cardSeparacion2);
-        cardSeparacion3 = findViewById(R.id.cardSeparacion3);
-        cardSeparacion4 = findViewById(R.id.cardSeparacion4);
-        
         actvProyectoFilter = findViewById(R.id.actvProyectoFilter);
         actvFechaFilter = findViewById(R.id.actvFechaFilter);
+        rvSeparaciones = findViewById(R.id.rvSeparaciones);
         
+        allSeparaciones = AdminDataRepository.getSeparaciones();
         setupDropdowns();
     }
 
@@ -71,34 +79,47 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
         actvFechaFilter.setOnClickListener(v -> actvFechaFilter.showDropDown());
     }
 
-    private void setupListeners() {
-        // Tab buttons
-        if (btnPendientes != null) {
-            btnPendientes.setOnClickListener(v -> selectTab(btnPendientes));
-        }
-        if (btnAprobadas != null) {
-            btnAprobadas.setOnClickListener(v -> selectTab(btnAprobadas));
-        }
-        if (btnRechazadas != null) {
-            btnRechazadas.setOnClickListener(v -> selectTab(btnRechazadas));
-        }
-
-        // Card click listeners - navigate to AdminDetallesSeparacionActivity
-        if (cardSeparacion1 != null) {
-            cardSeparacion1.setOnClickListener(v -> goToDetalles("Edificio Los Álamos", "S/ 5,000", "01/abr/2026", "Carlos Ruiz"));
-        }
-        if (cardSeparacion2 != null) {
-            cardSeparacion2.setOnClickListener(v -> goToDetalles("Mirador de Surco", "S/ 8,500", "31/mar/2026", "Ana Torres"));
-        }
-        if (cardSeparacion3 != null) {
-            cardSeparacion3.setOnClickListener(v -> goToDetalles("Alto San Felipe", "S/ 6,200", "28/mar/2026", "Mario Pérez"));
-        }
-        if (cardSeparacion4 != null) {
-            cardSeparacion4.setOnClickListener(v -> goToDetalles("Residencial Verde", "S/ 7,100", "20/abr/2026", "Lucia Vargas"));
+    private void setupRecyclerView() {
+        if (rvSeparaciones != null) {
+            rvSeparaciones.setLayoutManager(new LinearLayoutManager(this));
+            adapter = new AdminSeparacionAdapter(allSeparaciones, separacion -> {
+                Intent intent = new Intent(AdminSeparacionesActivity.this, AdminDetallesSeparacionActivity.class);
+                intent.putExtra("nombreProyecto", separacion.getNombreProyecto());
+                intent.putExtra("precio", separacion.getMonto());
+                intent.putExtra("fecha", separacion.getFecha());
+                intent.putExtra("asesor", separacion.getCliente());
+                startActivity(intent);
+            });
+            rvSeparaciones.setAdapter(adapter);
         }
     }
 
-    private void selectTab(Button selectedButton) {
+    private void setupListeners() {
+        // Tab buttons
+        if (btnPendientes != null) {
+            btnPendientes.setOnClickListener(v -> filterBySeparacionEstado("Pendiente"));
+        }
+        if (btnAprobadas != null) {
+            btnAprobadas.setOnClickListener(v -> filterBySeparacionEstado("Aprobada"));
+        }
+        if (btnRechazadas != null) {
+            btnRechazadas.setOnClickListener(v -> filterBySeparacionEstado("Rechazada"));
+        }
+    }
+
+    private void filterBySeparacionEstado(String estado) {
+        currentEstadoFilter = estado;
+        selectTab(estado);
+        List<AdminSeparacion> filtered = new java.util.ArrayList<>();
+        for (AdminSeparacion sep : allSeparaciones) {
+            if (sep.getEstado().equals(estado)) {
+                filtered.add(sep);
+            }
+        }
+        adapter.setData(filtered);
+    }
+
+    private void selectTab(String selectedEstado) {
         // Reset all buttons
         btnPendientes.setBackground(getDrawable(R.drawable.button_outline_state_bg));
         btnAprobadas.setBackground(getDrawable(R.drawable.button_outline_state_bg));
@@ -109,24 +130,25 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
         btnRechazadas.setTextColor(getColor(R.color.neutral_medium));
 
         // Highlight selected button
-        selectedButton.setBackground(getDrawable(R.color.brand_deep_blue));
-        selectedButton.setTextColor(getColor(android.R.color.white));
-    }
+        Button selectedBtn = null;
+        if ("Pendiente".equals(selectedEstado)) {
+            selectedBtn = btnPendientes;
+        } else if ("Aprobada".equals(selectedEstado)) {
+            selectedBtn = btnAprobadas;
+        } else if ("Rechazada".equals(selectedEstado)) {
+            selectedBtn = btnRechazadas;
+        }
 
-    private void goToDetalles(String nombreProyecto, String precio, String fecha, String asesor) {
-        Intent intent = new Intent(AdminSeparacionesActivity.this, AdminDetallesSeparacionActivity.class);
-        intent.putExtra("nombreProyecto", nombreProyecto);
-        intent.putExtra("precio", precio);
-        intent.putExtra("fecha", fecha);
-        intent.putExtra("asesor", asesor);
-        startActivity(intent);
+        if (selectedBtn != null) {
+            selectedBtn.setBackground(getDrawable(R.color.brand_deep_blue));
+            selectedBtn.setTextColor(getColor(android.R.color.white));
+        }
     }
 
     private void setupNotificationsButton() {
         ImageButton btnNotifications = findViewById(R.id.btnNotifications);
         if (btnNotifications != null) {
             btnNotifications.setOnClickListener(v -> {
-                // TODO: Navigate to notifications activity
                 startActivity(new Intent(AdminSeparacionesActivity.this, AdminNotificacionesActivity.class));
             });
         }

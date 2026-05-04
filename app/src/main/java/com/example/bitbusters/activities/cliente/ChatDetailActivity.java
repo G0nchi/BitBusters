@@ -2,19 +2,28 @@ package com.example.bitbusters.activities.cliente;
 
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.bitbusters.R;
+import com.example.bitbusters.adapters.ClientChatMessageAdapter;
+import com.example.bitbusters.data.ClientDataRepository;
+import com.example.bitbusters.models.ClientMessage;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class ChatDetailActivity extends AppCompatActivity {
 
     private EditText etMensaje;
-    private LinearLayout layoutMensajes;
-    private ScrollView scrollMensajes;
-    private String nombreContacto;
+    private RecyclerView rvMensajes;
+    private ClientChatMessageAdapter messageAdapter;
+    private final List<ClientMessage> messages = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,27 +31,34 @@ public class ChatDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_chat_detail);
 
         etMensaje     = findViewById(R.id.etMensaje);
-        layoutMensajes = findViewById(R.id.layoutMensajes);
-        scrollMensajes = findViewById(R.id.scrollMensajes);
+        rvMensajes = findViewById(R.id.rvMensajes);
 
         // Recibir nombre del contacto desde MessagesActivity
-        nombreContacto = getIntent().getStringExtra("contacto");
+        String nombreContacto = getIntent().getStringExtra("contacto");
         if (nombreContacto != null) {
             ((TextView) findViewById(R.id.tvNombre)).setText(nombreContacto);
+        } else {
+            nombreContacto = "Asesor";
         }
+
+        messages.addAll(ClientDataRepository.getConversation(nombreContacto));
+        String initials = getInitials(nombreContacto);
+        messageAdapter = new ClientChatMessageAdapter(messages, initials);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setStackFromEnd(true);
+        rvMensajes.setLayoutManager(layoutManager);
+        rvMensajes.setAdapter(messageAdapter);
 
         // Botón volver
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         // Botón llamar
-        findViewById(R.id.btnCall).setOnClickListener(v -> {
-            // TODO: iniciar llamada
-        });
+        findViewById(R.id.btnCall).setOnClickListener(v ->
+            Toast.makeText(this, "Llamada disponible en proxima integracion", Toast.LENGTH_SHORT).show());
 
         // Botón cámara
-        findViewById(R.id.btnCamera).setOnClickListener(v -> {
-            // TODO: abrir cámara o galería para enviar imagen
-        });
+        findViewById(R.id.btnCamera).setOnClickListener(v ->
+            Toast.makeText(this, "Envio de imagen disponible en proxima integracion", Toast.LENGTH_SHORT).show());
 
         // Botón enviar mensaje
         findViewById(R.id.btnSend).setOnClickListener(v -> enviarMensaje());
@@ -52,36 +68,15 @@ public class ChatDetailActivity extends AppCompatActivity {
         String texto = etMensaje.getText().toString().trim();
         if (TextUtils.isEmpty(texto)) return;
 
-        // Crear burbuja de mensaje enviado dinámicamente
-        TextView burbuja = new TextView(this);
-        burbuja.setText(texto);
-        burbuja.setTextSize(13f);
-        burbuja.setTextColor(getResources().getColor(android.R.color.black, getTheme()));
-        burbuja.setBackground(getResources().getDrawable(R.drawable.bg_bubble_sent, getTheme()));
-        burbuja.setPadding(dpToPx(14), dpToPx(10), dpToPx(14), dpToPx(10));
-        burbuja.setMaxWidth(dpToPx(260));
-
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        params.gravity = android.view.Gravity.END;
-        params.setMargins(0, dpToPx(8), 0, dpToPx(4));
-        burbuja.setLayoutParams(params);
-
-        layoutMensajes.addView(burbuja);
+        messageAdapter.addMessage(new ClientMessage(texto, "Ahora", true));
         etMensaje.setText("");
-
-        // Scroll automático al último mensaje
-        scrollMensajes.post(() -> scrollMensajes.fullScroll(View.FOCUS_DOWN));
-
-        // TODO: en Lab 6 enviar mensaje a Firebase Realtime Database
-        // DatabaseReference ref = FirebaseDatabase.getInstance().getReference("chats").child(chatId);
-        // ref.push().setValue(new Mensaje(texto, userId, System.currentTimeMillis()));
+        rvMensajes.scrollToPosition(messageAdapter.getItemCount() - 1);
     }
 
-    private int dpToPx(int dp) {
-        float density = getResources().getDisplayMetrics().density;
-        return Math.round(dp * density);
+    private String getInitials(String fullName) {
+        String[] parts = fullName.trim().split("\\s+");
+        if (parts.length == 0) return "AS";
+        if (parts.length == 1) return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
+        return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
     }
 }

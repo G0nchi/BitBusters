@@ -3,13 +3,32 @@ package com.example.bitbusters.activities.cliente;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.bitbusters.R;
+import com.example.bitbusters.adapters.ClientAppointmentsAdapter;
+import com.example.bitbusters.data.ClientDataRepository;
+import com.example.bitbusters.models.ClientAppointment;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MisCitasActivity extends AppCompatActivity {
 
-    private TextView tabTodas, tabProximas, tabHistorial;
+    private static final int TAB_TODAS = 0;
+    private static final int TAB_PROXIMAS = 1;
+    private static final int TAB_HISTORIAL = 2;
+
+    private TextView tabTodas;
+    private TextView tabProximas;
+    private TextView tabHistorial;
+    private ClientAppointmentsAdapter appointmentsAdapter;
+    private final List<ClientAppointment> allAppointments = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,28 +39,35 @@ public class MisCitasActivity extends AppCompatActivity {
         tabProximas = findViewById(R.id.tabProximas);
         tabHistorial= findViewById(R.id.tabHistorial);
 
+        allAppointments.addAll(ClientDataRepository.getAppointments());
+
+        RecyclerView recyclerView = findViewById(R.id.recyclerViewCitas);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        appointmentsAdapter = new ClientAppointmentsAdapter(new ClientAppointmentsAdapter.OnAppointmentActionListener() {
+            @Override
+            public void onPrimaryAction(ClientAppointment appointment) {
+                Toast.makeText(MisCitasActivity.this, "Accion ejecutada: " + appointment.getProjectName(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onSecondaryAction(ClientAppointment appointment) {
+                if (ClientAppointment.STATUS_COMPLETED.equals(appointment.getStatus())) {
+                    Intent intent = new Intent(MisCitasActivity.this, AddCommentActivity.class);
+                    intent.putExtra("proyecto", appointment.getProjectName());
+                    startActivity(intent);
+                }
+            }
+        });
+        recyclerView.setAdapter(appointmentsAdapter);
+
         // Botón volver
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         // Tabs
-        tabTodas.setOnClickListener(v -> seleccionarTab(0));
-        tabProximas.setOnClickListener(v -> seleccionarTab(1));
-        tabHistorial.setOnClickListener(v -> seleccionarTab(2));
-
-        // Cita 1 - Confirmada: Reagendar / Cancelar
-        findViewById(R.id.btnReagendar1).setOnClickListener(v -> {
-            // TODO: abrir pantalla para reagendar cita
-        });
-        findViewById(R.id.btnCancelar1).setOnClickListener(v -> {
-            // TODO: confirmar cancelación y actualizar en Firebase Lab 6
-        });
-
-        // Cita 3 - Completada: Valorar atención
-        findViewById(R.id.btnValorar).setOnClickListener(v -> {
-            Intent intent = new Intent(this, AddCommentActivity.class);
-            intent.putExtra("proyecto", "Condominio Los Pinos");
-            startActivity(intent);
-        });
+        tabTodas.setOnClickListener(v -> seleccionarTab(TAB_TODAS));
+        tabProximas.setOnClickListener(v -> seleccionarTab(TAB_PROXIMAS));
+        tabHistorial.setOnClickListener(v -> seleccionarTab(TAB_HISTORIAL));
+        seleccionarTab(TAB_TODAS);
 
         // Bottom Navigation
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
@@ -53,8 +79,7 @@ public class MisCitasActivity extends AppCompatActivity {
                 finish();
                 return true;
             }
-            if (id == R.id.nav_favoritos) return true;
-            return false;
+            return id == R.id.nav_favoritos;
         });
     }
 
@@ -70,6 +95,30 @@ public class MisCitasActivity extends AppCompatActivity {
         tabProximas.setBackgroundResource(pos == 1 ? R.drawable.bg_tab_selected_bottom : 0);
         tabHistorial.setBackgroundResource(pos == 2 ? R.drawable.bg_tab_selected_bottom : 0);
 
-        // TODO Lab 5: filtrar citas según tab seleccionado
+        List<ClientAppointment> filtered = filterByTab(pos);
+        appointmentsAdapter.submitList(filtered);
+    }
+
+    private List<ClientAppointment> filterByTab(int tab) {
+        List<ClientAppointment> filtered = new ArrayList<>();
+        for (ClientAppointment appointment : allAppointments) {
+            if (matchesTab(appointment, tab)) {
+                filtered.add(appointment);
+            }
+        }
+        return filtered;
+    }
+
+    private boolean matchesTab(ClientAppointment appointment, int tab) {
+        if (tab == TAB_TODAS) {
+            return true;
+        }
+        if (tab == TAB_PROXIMAS) {
+            return ClientAppointment.STATUS_PENDING.equals(appointment.getStatus())
+                    || ClientAppointment.STATUS_CONFIRMED.equals(appointment.getStatus());
+        }
+        return ClientAppointment.STATUS_COMPLETED.equals(appointment.getStatus())
+                || ClientAppointment.STATUS_CANCELED.equals(appointment.getStatus())
+                || ClientAppointment.STATUS_REVIEWED.equals(appointment.getStatus());
     }
 }
