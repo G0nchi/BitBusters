@@ -279,6 +279,8 @@
     <string name="sa_metric_advisors_sub">Confirmadas en el sistema</string>
     <string name="sa_metric_reservations">Tasa de Conversión</string>
     <string name="sa_metric_reservations_sub">Reserva a venta del mes</string>
+    <string name="sa_metric_month_reservations">Reservas del mes</string>
+    <string name="sa_metric_month_reservations_sub">Acumuladas a la fecha</string>
     <string name="sa_profile_badge_content_description">Perfil de superadmin</string>
     <string name="sa_logout_title">Cerrar sesión</string>
     <string name="sa_logout_message">¿Deseas cerrar sesión y volver al login?</string>

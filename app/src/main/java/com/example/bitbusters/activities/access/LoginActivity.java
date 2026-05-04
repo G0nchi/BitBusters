@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,7 +45,7 @@ public class LoginActivity extends AppCompatActivity {
         EditText passwordInput = findViewById(R.id.passwordInput);
         TextView forgotPassword = findViewById(R.id.forgotPassword);
         TextView registerLink = findViewById(R.id.registerLink);
-        TextView showPassword = findViewById(R.id.showPassword);
+        ImageView togglePassword = findViewById(R.id.togglePassword);
 
         if (backButton != null) {
             backButton.setOnClickListener(v -> finish());
@@ -56,15 +57,17 @@ public class LoginActivity extends AppCompatActivity {
             registerLink.setOnClickListener(v -> openIfAvailable(RegisterAccountActivity.class));
         }
 
-        if (showPassword != null && passwordInput != null) {
-            showPassword.setOnClickListener(v -> {
+        if (togglePassword != null && passwordInput != null) {
+            togglePassword.setOnClickListener(v -> {
                 passwordVisible = !passwordVisible;
                 if (passwordVisible) {
                     passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-                    showPassword.setText(R.string.login_hide_password);
+                    togglePassword.setImageResource(R.drawable.ic_visibility_off_20);
+                    togglePassword.setContentDescription(getString(R.string.login_hide_password));
                 } else {
                     passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                    showPassword.setText(R.string.login_show_password);
+                    togglePassword.setImageResource(R.drawable.ic_visibility_20);
+                    togglePassword.setContentDescription(getString(R.string.login_show_password));
                 }
                 passwordInput.setSelection(passwordInput.getText() != null ? passwordInput.getText().length() : 0);
             });
