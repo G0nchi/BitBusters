@@ -135,6 +135,9 @@ public class CitasAgendadasActivity extends AppCompatActivity {
             } else if (id == R.id.nav_chat) {
                 startActivity(new Intent(this, MensajesActivity.class));
                 finish();
+            } else if (id == R.id.nav_perfil) {
+                startActivity(new Intent(this, AsesorPerfilActivity.class));
+                finish();
             }
             return true;
         });

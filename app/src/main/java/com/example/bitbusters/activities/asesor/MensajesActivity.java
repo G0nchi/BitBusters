@@ -80,6 +80,9 @@ public class MensajesActivity extends AppCompatActivity {
             } else if (id == R.id.nav_citas) {
                 startActivity(new Intent(this, CitasAgendadasActivity.class));
                 finish();
+            } else if (id == R.id.nav_perfil) {
+                startActivity(new Intent(this, AsesorPerfilActivity.class));
+                finish();
             }
             return true;
         });

@@ -75,6 +75,8 @@ public class AsesorHomeActivity extends AppCompatActivity {
                     startActivity(new Intent(this, CitasAgendadasActivity.class));
                 } else if (id == R.id.nav_chat) {
                     startActivity(new Intent(this, MensajesActivity.class));
+                } else if (id == R.id.nav_perfil) {
+                    startActivity(new Intent(this, AsesorPerfilActivity.class));
                 }
                 return true;
             });

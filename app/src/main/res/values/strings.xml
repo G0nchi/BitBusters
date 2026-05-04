@@ -37,6 +37,14 @@
     <string name="nav_chat">Chat</string>
     <string name="nav_perfil">Perfil</string>
 
+    <!-- Asesor Perfil -->
+    <string name="perfil_title">Mi Perfil</string>
+    <string name="perfil_role">Asesor de Ventas · Torres del Sol</string>
+    <string name="perfil_stat_sep">Separaciones</string>
+    <string name="perfil_stat_citas">Citas</string>
+    <string name="perfil_stat_ventas">Ventas mes</string>
+    <string name="perfil_section_separaciones">Mis Separaciones</string>
+
     <!-- Proyecto Detalle -->
     <string name="detail_tipo">Apartamento</string>
     <string name="btn_registrar">Registrar separación</string>
