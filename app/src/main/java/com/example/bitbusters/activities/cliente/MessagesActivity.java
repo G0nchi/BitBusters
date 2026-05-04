@@ -1,22 +1,39 @@
 package com.example.bitbusters.activities.cliente;
 
-import com.example.bitbusters.R;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.bitbusters.R;
+import com.example.bitbusters.adapters.ChatsAdapter;
+import com.example.bitbusters.data.ClientDataRepository;
+import com.example.bitbusters.models.Chat;
 import com.google.android.material.tabs.TabLayout;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MessagesActivity extends AppCompatActivity {
 
-    private TabLayout tabLayout;
+    private RecyclerView recyclerViewChats;
+    private ChatsAdapter chatsAdapter;
+    private final List<Chat> chats = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messages);
 
-        tabLayout = findViewById(R.id.tabLayout);
+        TabLayout tabLayout = findViewById(R.id.tabLayout);
+        recyclerViewChats = findViewById(R.id.recyclerViewChats);
+        chats.addAll(ClientDataRepository.getChats());
+
+        setupRecyclerView();
+        setupSwipeToDelete();
 
         // Seleccionar el tab Mensajes por defecto (posición 1)
         TabLayout.Tab tabMensajes = tabLayout.getTabAt(1);
@@ -27,7 +44,8 @@ public class MessagesActivity extends AppCompatActivity {
 
         // Botón eliminar todos los chats
         findViewById(R.id.btnDelete).setOnClickListener(v -> {
-            // TODO: lógica para limpiar todos los chats
+            chats.clear();
+            chatsAdapter.notifyDataSetChanged();
         });
 
         // Listener de tabs — al tocar Notificaciones vuelve a esa pantalla
@@ -39,30 +57,39 @@ public class MessagesActivity extends AppCompatActivity {
                     finish();
                 }
             }
-            @Override public void onTabUnselected(TabLayout.Tab tab) {}
-            @Override public void onTabReselected(TabLayout.Tab tab) {}
+            @Override public void onTabUnselected(TabLayout.Tab tab) { /* No-op */ }
+            @Override public void onTabReselected(TabLayout.Tab tab) { /* No-op */ }
         });
+    }
 
-        // Click en cada chat abre el detalle del chat
-        findViewById(R.id.cardMilano).setOnClickListener(v -> abrirChat("Milano"));
-        findViewById(R.id.cardSamuel).setOnClickListener(v -> abrirChat("Samuel Ella"));
-        findViewById(R.id.cardSanta).setOnClickListener(v -> abrirChat("Santa Lcyua"));
-        findViewById(R.id.cardSandra).setOnClickListener(v -> abrirChat("Sandra Sotomayor"));
-        findViewById(R.id.cardValerai).setOnClickListener(v -> abrirChat("Valerai CW"));
+    private void setupRecyclerView() {
+        recyclerViewChats.setLayoutManager(new LinearLayoutManager(this));
+        chatsAdapter = new ChatsAdapter(chats, chat -> abrirChat(chat.getName()));
+        recyclerViewChats.setAdapter(chatsAdapter);
+    }
 
-        // Botón eliminar del chat Santa (swipe state visible)
-        findViewById(R.id.btnDeleteChat).setOnClickListener(v -> eliminarChat("Santa Lcyua"));
+    private void setupSwipeToDelete() {
+        ItemTouchHelper.SimpleCallback callback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                if (position >= 0 && position < chats.size()) {
+                    chats.remove(position);
+                    chatsAdapter.notifyItemRemoved(position);
+                }
+            }
+        };
+        new ItemTouchHelper(callback).attachToRecyclerView(recyclerViewChats);
     }
 
     private void abrirChat(String nombreContacto) {
         Intent intent = new Intent(this, ChatDetailActivity.class);
         intent.putExtra("contacto", nombreContacto);
         startActivity(intent);
-    }
-
-    private void eliminarChat(String nombreContacto) {
-        // TODO: eliminar chat de Firebase en Lab 6
-        // Por ahora ocultar la card visualmente
-        findViewById(R.id.cardSanta).setVisibility(View.GONE);
     }
 }

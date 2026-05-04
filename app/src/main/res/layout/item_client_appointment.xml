@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:id="@+id/tvAppointmentProject"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Vista Marina Residencial"
+                android:textSize="14sp"
+                android:textColor="#1A1A2E"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:id="@+id/tvAppointmentStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:text="Confirmada"
+                android:textSize="11sp"
+                android:textColor="#2E7D32"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:background="@drawable/bg_badge_confirmada" />
+
+            <TextView
+                android:id="@+id/tvAppointmentLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tvAppointmentProject"
+                android:layout_marginTop="4dp"
+                android:text="San Miguel, Lima"
+                android:textSize="12sp"
+                android:textColor="#9E9E9E" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:id="@+id/tvAppointmentDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="14 abr"
+                android:textSize="13sp"
+                android:textColor="#1A1A2E" />
+
+            <TextView
+                android:id="@+id/tvAppointmentTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10:00 AM"
+                android:textSize="13sp"
+                android:textColor="#1A1A2E" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvAppointmentAdvisor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Asesor: Juan Garcia"
+            android:textSize="12sp"
+            android:textColor="#6B6B6B"
+            android:layout_marginBottom="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btnAppointmentLeft"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Reagendar"
+                android:textSize="13sp"
+                android:textColor="#1A1A2E"
+                android:gravity="center"
+                android:background="@drawable/bg_btn_comprar" />
+
+            <TextView
+                android:id="@+id/btnAppointmentRight"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:text="Cancelar"
+                android:textSize="13sp"
+                android:textColor="#E53935"
+                android:gravity="center"
+                android:background="@drawable/bg_badge_cancelar" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
