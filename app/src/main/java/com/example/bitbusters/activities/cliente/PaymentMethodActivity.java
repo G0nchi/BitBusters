@@ -9,7 +9,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.bitbusters.R;
-import android.content.Intent;
+import com.example.bitbusters.utils.NotificationHelper;
 
 public class PaymentMethodActivity extends AppCompatActivity {
 
@@ -20,6 +20,9 @@ public class PaymentMethodActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payment_method);
+
+        // Crear el canal de notificaciones (necesario para lanzar la notificación de pago)
+        NotificationHelper.crearCanal(this);
 
         etNombreTitular   = findViewById(R.id.etNombreTitular);
         etNumeroTarjeta   = findViewById(R.id.etNumeroTarjeta);
@@ -123,6 +126,16 @@ public class PaymentMethodActivity extends AppCompatActivity {
                         " fue agregada correctamente.")
                 .setIcon(android.R.drawable.ic_dialog_info)
                 .setPositiveButton("Aceptar", (dialog, which) -> {
+                    // Lanzar notificación de método de pago guardado
+                    // Al tocarla, abre HomeActivity
+                    Intent intentHome = new Intent(this, HomeActivity.class);
+                    NotificationHelper.lanzarNotificacion(
+                            this,
+                            "Método de pago guardado",
+                            "Tu tarjeta ha sido registrada exitosamente",
+                            NotificationHelper.NOTIF_METODO_PAGO,
+                            intentHome
+                    );
                     startActivity(new Intent(this, HomeActivity.class));
                     finish();
                 })

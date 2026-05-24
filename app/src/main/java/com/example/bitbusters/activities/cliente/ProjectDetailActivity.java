@@ -8,6 +8,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.bitbusters.R;
 import com.example.bitbusters.utils.ImageUrls;
+import com.example.bitbusters.utils.NotificationHelper;
 import com.bumptech.glide.Glide;
 
 public class ProjectDetailActivity extends AppCompatActivity {
@@ -18,6 +19,9 @@ public class ProjectDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_project_detail);
+
+        // Crear el canal de notificaciones (necesario para lanzar la notificación de separación)
+        NotificationHelper.crearCanal(this);
 
         // Recibir datos del proyecto desde HomeActivity
         String nombreProyecto = getIntent().getStringExtra(EXTRA_PROYECTO);
@@ -109,7 +113,17 @@ public class ProjectDetailActivity extends AppCompatActivity {
         });
 
         // Botón Separar Inmueble (bottom bar)
+        // Lanza notificación de separación pendiente antes de abrir PaymentMethodActivity
+        // Al tocar la notificación, abre AgendaCitaActivity
         findViewById(R.id.btnSeparar).setOnClickListener(v -> {
+            Intent intentAgenda = new Intent(this, AgendaCitaActivity.class);
+            NotificationHelper.lanzarNotificacion(
+                    this,
+                    "Separación Pendiente",
+                    "Tienes 10 minutos para completar el pago",
+                    NotificationHelper.NOTIF_SEPARACION,
+                    intentAgenda
+            );
             startActivity(new Intent(this, PaymentMethodActivity.class));
         });
 

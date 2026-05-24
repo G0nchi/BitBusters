@@ -19,7 +19,11 @@ import com.example.bitbusters.activities.admin.AdminMainActivity;
 import com.example.bitbusters.activities.asesor.AsesorHomeActivity;
 import com.example.bitbusters.activities.cliente.HomeActivity;
 import com.example.bitbusters.activities.superadmin.SuperadminControlCenterActivity;
+import com.example.bitbusters.utils.PreferencesManager;
 import com.google.android.material.button.MaterialButton;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -108,6 +112,11 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         if (CLIENT_USER.equals(user) && CLIENT_PASSWORD.equals(password)) {
+            // Guardar nombre y fecha/hora del login en SharedPreferences
+            PreferencesManager.guardarNombre(this, "Jonathan");
+            String fechaHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                    .format(new Date());
+            PreferencesManager.guardarUltimoAcceso(this, fechaHora);
             startActivity(new Intent(this, HomeActivity.class));
             finish();
             return;

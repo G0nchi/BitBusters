@@ -21,8 +21,7 @@ public class MessagesActivity extends AppCompatActivity {
 
     private RecyclerView recyclerViewChats;
     private ChatsAdapter chatsAdapter;
-    private final List<Chat> chats = new ArrayList<>();
-
+    private final List<Object> chats = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,14 +73,10 @@ public class MessagesActivity extends AppCompatActivity {
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
                 return false;
             }
-
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
-                if (position >= 0 && position < chats.size()) {
-                    chats.remove(position);
-                    chatsAdapter.notifyItemRemoved(position);
-                }
+                chatsAdapter.removeItem(position); // usa el método del adapter
             }
         };
         new ItemTouchHelper(callback).attachToRecyclerView(recyclerViewChats);
