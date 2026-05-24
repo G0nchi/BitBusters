@@ -74,4 +74,10 @@ public class ClientAppointment {
     public String getStatus() {
         return status;
     }
+
+    /** Devuelve una copia de este objeto con un estado diferente (patrón inmutable). */
+    public ClientAppointment withStatus(String nuevoEstado) {
+        return new ClientAppointment(id, projectName, location, date, time,
+                advisorName, advisorInitials, advisorColor, nuevoEstado);
+    }
 }

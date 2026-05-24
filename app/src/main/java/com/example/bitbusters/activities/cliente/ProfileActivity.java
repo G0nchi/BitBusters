@@ -3,11 +3,13 @@ package com.example.bitbusters.activities.cliente;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.bitbusters.R;
 import com.example.bitbusters.activities.access.LoginActivity;
 import com.example.bitbusters.utils.ImageUrls;
+import com.example.bitbusters.utils.PreferencesManager;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -23,6 +25,19 @@ public class ProfileActivity extends AppCompatActivity {
                     .load(ImageUrls.AVATAR_JONATHAN)
                     .centerCrop()
                     .into(imgUserAvatar);
+        }
+
+        // Mostrar nombre desde SharedPreferences (guardado al iniciar sesión)
+        TextView tvNombre = findViewById(R.id.tvUserName);
+        if (tvNombre != null) {
+            tvNombre.setText(PreferencesManager.obtenerNombre(this));
+        }
+
+        // Mostrar último acceso si fue registrado al hacer login
+        TextView tvEmail = findViewById(R.id.tvUserEmail);
+        String ultimoAcceso = PreferencesManager.obtenerUltimoAcceso(this);
+        if (tvEmail != null && !ultimoAcceso.isEmpty()) {
+            tvEmail.setText("Último acceso: " + ultimoAcceso);
         }
 
         // Botón volver

@@ -100,10 +100,8 @@ public class ProjectDetailActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Ver costos variadas
-        findViewById(R.id.tvVerCostos).setOnClickListener(v -> {
-            // TODO: expandir costos
-        });
+        // "ver variadas" en Coste de vida → muestra desglose estimado de costos
+        findViewById(R.id.tvVerCostos).setOnClickListener(v -> mostrarDesgloseCostos());
 
         // Agregar comentario
         findViewById(R.id.btnAgregarComentario).setOnClickListener(v -> {
@@ -135,6 +133,133 @@ public class ProjectDetailActivity extends AppCompatActivity {
                 startActivity(intent);
             });
         }
+    }
+
+    /**
+     * Muestra un BottomSheet con el desglose estimado de costos de vida
+     * cercanos al proyecto seleccionado.
+     */
+    private void mostrarDesgloseCostos() {
+        com.google.android.material.bottomsheet.BottomSheetDialog bsd =
+                new com.google.android.material.bottomsheet.BottomSheetDialog(this);
+
+        android.widget.LinearLayout root = new android.widget.LinearLayout(this);
+        root.setOrientation(android.widget.LinearLayout.VERTICAL);
+        root.setBackgroundColor(android.graphics.Color.WHITE);
+        root.setPadding(64, 48, 64, 72);
+
+        // Título
+        android.widget.TextView tvTitulo = new android.widget.TextView(this);
+        tvTitulo.setText("Coste de vida estimado");
+        tvTitulo.setTextSize(18f);
+        tvTitulo.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvTitulo.setTextColor(0xFF1A1A2E);
+        android.widget.LinearLayout.LayoutParams tituloLp = new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
+        tituloLp.bottomMargin = 32;
+        tvTitulo.setLayoutParams(tituloLp);
+        root.addView(tvTitulo);
+
+        // Datos ficticios de costos mensuales
+        String[][] costos = {
+                {"🏠 Alquiler promedio",  "S/ 1,200 / mes"},
+                {"💡 Servicios básicos",  "S/   180 / mes"},
+                {"🛒 Alimentación",       "S/   800 / mes"},
+                {"🚌 Transporte",         "S/   150 / mes"},
+                {"📱 Internet y cable",   "S/   120 / mes"},
+        };
+
+        for (String[] fila : costos) {
+            android.widget.LinearLayout row = new android.widget.LinearLayout(this);
+            row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            android.widget.LinearLayout.LayoutParams rowLp =
+                    new android.widget.LinearLayout.LayoutParams(
+                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
+            rowLp.bottomMargin = 20;
+            row.setLayoutParams(rowLp);
+
+            android.widget.TextView tvConcepto = new android.widget.TextView(this);
+            tvConcepto.setText(fila[0]);
+            tvConcepto.setTextSize(14f);
+            tvConcepto.setTextColor(0xFF424242);
+            tvConcepto.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+                    0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+            android.widget.TextView tvMonto = new android.widget.TextView(this);
+            tvMonto.setText(fila[1]);
+            tvMonto.setTextSize(14f);
+            tvMonto.setTypeface(null, android.graphics.Typeface.BOLD);
+            tvMonto.setTextColor(0xFF1A7EBD);
+            tvMonto.setGravity(android.view.Gravity.END);
+
+            row.addView(tvConcepto);
+            row.addView(tvMonto);
+            root.addView(row);
+        }
+
+        // Divisor
+        android.view.View divisor = new android.view.View(this);
+        divisor.setBackgroundColor(0xFFE0E0E0);
+        android.widget.LinearLayout.LayoutParams divLp =
+                new android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 2);
+        divLp.topMargin = 12;
+        divLp.bottomMargin = 20;
+        divisor.setLayoutParams(divLp);
+        root.addView(divisor);
+
+        // Total
+        android.widget.LinearLayout rowTotal = new android.widget.LinearLayout(this);
+        rowTotal.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+        android.widget.LinearLayout.LayoutParams totalRowLp =
+                new android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
+        totalRowLp.bottomMargin = 40;
+        rowTotal.setLayoutParams(totalRowLp);
+
+        android.widget.TextView tvTotalLabel = new android.widget.TextView(this);
+        tvTotalLabel.setText("💰 Total estimado");
+        tvTotalLabel.setTextSize(15f);
+        tvTotalLabel.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvTotalLabel.setTextColor(0xFF1A1A2E);
+        tvTotalLabel.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+                0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        android.widget.TextView tvTotalMonto = new android.widget.TextView(this);
+        tvTotalMonto.setText("S/ 2,450 / mes");
+        tvTotalMonto.setTextSize(15f);
+        tvTotalMonto.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvTotalMonto.setTextColor(0xFF1A1A2E);
+        tvTotalMonto.setGravity(android.view.Gravity.END);
+
+        rowTotal.addView(tvTotalLabel);
+        rowTotal.addView(tvTotalMonto);
+        root.addView(rowTotal);
+
+        // Botón cerrar
+        android.widget.TextView btnCerrar = new android.widget.TextView(this);
+        android.widget.LinearLayout.LayoutParams cerrarLp =
+                new android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 128);
+        btnCerrar.setLayoutParams(cerrarLp);
+        btnCerrar.setText("Entendido");
+        btnCerrar.setTextSize(15f);
+        btnCerrar.setTypeface(null, android.graphics.Typeface.BOLD);
+        btnCerrar.setTextColor(android.graphics.Color.WHITE);
+        btnCerrar.setGravity(android.view.Gravity.CENTER);
+        android.graphics.drawable.GradientDrawable bgCerrar = new android.graphics.drawable.GradientDrawable();
+        bgCerrar.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        bgCerrar.setCornerRadius(60f);
+        bgCerrar.setColor(0xFF1A7EBD);
+        btnCerrar.setBackground(bgCerrar);
+        btnCerrar.setOnClickListener(v -> bsd.dismiss());
+        root.addView(btnCerrar);
+
+        bsd.setContentView(root);
+        bsd.show();
     }
 
     private int obtenerImagenProyecto(String nombreProyecto) {

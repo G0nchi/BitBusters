@@ -17,6 +17,7 @@ public class PreferencesManager {
     private static final String KEY_NOMBRE             = "nombre";
     private static final String KEY_ULTIMO_ACCESO      = "ultimo_acceso";
     private static final String KEY_TIPOLOGIA_FAVORITA = "tipologia_favorita";
+    private static final String KEY_CITAS_CANCELADAS   = "citas_canceladas";
 
     // Devuelve la instancia de SharedPreferences (modo privado)
     private static SharedPreferences getPrefs(Context context) {
@@ -54,5 +55,20 @@ public class PreferencesManager {
     /** Devuelve la tipología guardada; "Todos" si nunca se seleccionó. */
     public static String obtenerTipologiaFavorita(Context context) {
         return getPrefs(context).getString(KEY_TIPOLOGIA_FAVORITA, "Todos");
+    }
+
+    // ── Citas canceladas por el cliente ────────────────────────────────────
+
+    /** Agrega el ID de una cita al conjunto de canceladas para persistirla. */
+    public static void guardarCitaCancelada(Context context, String citaId) {
+        java.util.Set<String> canceladas = new java.util.HashSet<>(obtenerCitasCanceladas(context));
+        canceladas.add(citaId);
+        getPrefs(context).edit().putStringSet(KEY_CITAS_CANCELADAS, canceladas).apply();
+    }
+
+    /** Devuelve el conjunto de IDs de citas canceladas; vacío si ninguna. */
+    public static java.util.Set<String> obtenerCitasCanceladas(Context context) {
+        java.util.Set<String> guardadas = getPrefs(context).getStringSet(KEY_CITAS_CANCELADAS, null);
+        return guardadas != null ? new java.util.HashSet<>(guardadas) : new java.util.HashSet<>();
     }
 }

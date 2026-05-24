@@ -106,6 +106,16 @@ public class HomeActivity extends AppCompatActivity {
             aplicarFiltro("Terreno");
         });
 
+        // "Ver todos" en la sección Destacados → SearchActivity mostrando todos los proyectos
+        android.view.View tvVerTodos = findViewById(R.id.tvVerTodos);
+        if (tvVerTodos != null) {
+            tvVerTodos.setOnClickListener(v -> {
+                Intent intent = new Intent(this, SearchActivity.class);
+                intent.putExtra("mostrar_todos", true);
+                startActivity(intent);
+            });
+        }
+
         // Cards destacados
         findViewById(R.id.cardDestacado1).setOnClickListener(v -> abrirDetalle("Catalina Ventor"));
         findViewById(R.id.cardDestacado2).setOnClickListener(v -> abrirDetalle("Residencial Park"));
