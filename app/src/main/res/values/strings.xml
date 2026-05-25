@@ -22,7 +22,7 @@
     <string name="asesor_role">Panel de Asesor</string>
     <string name="search_hint">Buscar proyecto, distrito…</string>
     <string name="quick_mapa">Mapa</string>
-    <string name="quick_mis_citas">Mis Citas</string>
+    <string name="quick_mis_citas">Agenda</string>
     <string name="quick_ofertas">Ofertas</string>
     <string name="filter_todos">Todos</string>
     <string name="filter_departamentos">Departamentos</string>

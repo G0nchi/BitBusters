@@ -3,12 +3,11 @@ package com.example.bitbusters.activities.asesor;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bitbusters.R;
-import com.google.android.material.card.MaterialCardView;
+import com.example.bitbusters.databinding.ActivityVerDetalleCitaBinding;
 
 public class VerDetalleCitaActivity extends AppCompatActivity {
 
@@ -20,10 +19,13 @@ public class VerDetalleCitaActivity extends AppCompatActivity {
     public static final String EXTRA_INITIALS      = "extra_initials";
     public static final String EXTRA_AVATAR_COLOR  = "extra_avatar_color";
 
+    private ActivityVerDetalleCitaBinding binding;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_ver_detalle_cita);
+        binding = ActivityVerDetalleCitaBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         String nombre   = getIntent().getStringExtra(EXTRA_NOMBRE);
         String proyecto = getIntent().getStringExtra(EXTRA_PROYECTO);
@@ -34,53 +36,51 @@ public class VerDetalleCitaActivity extends AppCompatActivity {
         int avatarColor = getIntent().getIntExtra(EXTRA_AVATAR_COLOR, Color.parseColor("#4ECDC4"));
 
         if (nombre != null) {
-            ((TextView) findViewById(R.id.tv_nombre)).setText(nombre);
-            // Iniciales del nombre en el proyecto de la cita
+            binding.tvNombre.setText(nombre);
         }
         if (proyecto != null) {
-            ((TextView) findViewById(R.id.tv_proyecto)).setText(proyecto);
+            binding.tvProyecto.setText(proyecto);
             // Separar proyecto y unidad para mostrar en la card de proyecto
             String[] parts = proyecto.split(" · ");
             if (parts.length >= 2) {
-                ((TextView) findViewById(R.id.tv_proyecto_nombre)).setText(parts[0]);
-                ((TextView) findViewById(R.id.tv_unidad)).setText(parts[1]);
+                binding.tvProyectoNombre.setText(parts[0]);
+                binding.tvUnidad.setText(parts[1]);
             } else {
-                ((TextView) findViewById(R.id.tv_proyecto_nombre)).setText(proyecto);
+                binding.tvProyectoNombre.setText(proyecto);
             }
         }
-        if (fecha != null) ((TextView) findViewById(R.id.tv_fecha)).setText(fecha);
-        if (hora  != null) ((TextView) findViewById(R.id.tv_hora)).setText(hora);
-        if (initials != null) ((TextView) findViewById(R.id.tv_initials)).setText(initials);
-        ((MaterialCardView) findViewById(R.id.cv_avatar)).setCardBackgroundColor(avatarColor);
+        if (fecha != null) binding.tvFecha.setText(fecha);
+        if (hora  != null) binding.tvHora.setText(hora);
+        if (initials != null) binding.tvInitials.setText(initials);
+        binding.cvAvatar.setCardBackgroundColor(avatarColor);
 
         // Badge de estado en el header
         if (badge != null) {
-            TextView tvBadge = findViewById(R.id.tv_badge_header);
-            tvBadge.setText(badge);
+            binding.tvBadgeHeader.setText(badge);
             switch (badge) {
                 case "Pendiente":
-                    tvBadge.setBackgroundResource(R.drawable.badge_pendiente);
-                    tvBadge.setTextColor(Color.parseColor("#9A5700"));
+                    binding.tvBadgeHeader.setBackgroundResource(R.drawable.badge_pendiente);
+                    binding.tvBadgeHeader.setTextColor(Color.parseColor("#9A5700"));
                     break;
                 case "Confirmada":
-                    tvBadge.setBackgroundResource(R.drawable.badge_confirmada);
-                    tvBadge.setTextColor(Color.parseColor("#186A3B"));
+                    binding.tvBadgeHeader.setBackgroundResource(R.drawable.badge_confirmada);
+                    binding.tvBadgeHeader.setTextColor(Color.parseColor("#186A3B"));
                     break;
                 case "Cancelada":
-                    tvBadge.setBackgroundResource(R.drawable.badge_cancelada);
-                    tvBadge.setTextColor(Color.parseColor("#CC2222"));
+                    binding.tvBadgeHeader.setBackgroundResource(R.drawable.badge_cancelada);
+                    binding.tvBadgeHeader.setTextColor(Color.parseColor("#CC2222"));
                     break;
                 default:
-                    tvBadge.setBackgroundResource(R.drawable.badge_pasada);
-                    tvBadge.setTextColor(Color.parseColor("#666666"));
+                    binding.tvBadgeHeader.setBackgroundResource(R.drawable.badge_pasada);
+                    binding.tvBadgeHeader.setTextColor(Color.parseColor("#666666"));
                     break;
             }
         }
 
-        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+        binding.btnBack.setOnClickListener(v -> finish());
 
         // Reagendar desde el detalle
-        findViewById(R.id.btn_reagendar).setOnClickListener(v -> {
+        binding.btnReagendar.setOnClickListener(v -> {
             Intent intent = new Intent(this, ReagendarCitaActivity.class);
             intent.putExtra(ReagendarCitaActivity.EXTRA_NOMBRE, nombre);
             intent.putExtra(ReagendarCitaActivity.EXTRA_PROYECTO, proyecto);
@@ -92,7 +92,13 @@ public class VerDetalleCitaActivity extends AppCompatActivity {
         });
 
         // Separar desde el detalle
-        findViewById(R.id.btn_separar).setOnClickListener(v ->
+        binding.btnSeparar.setOnClickListener(v ->
             startActivity(new Intent(this, NuevaSeparacionActivity.class)));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        binding = null;
     }
 }

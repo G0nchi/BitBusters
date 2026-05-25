@@ -203,12 +203,14 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:hint="dd/mm/aaaa"
+                        android:hint="Seleccionar fecha"
                         android:textSize="14sp"
                         android:fontFamily="@font/lato_regular"
                         android:background="@null"
-                        android:inputType="date"
-                        android:focusable="true"/>
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:cursorVisible="false"
+                        android:clickable="true"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -247,12 +249,14 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:hint="hh:mm AM/PM"
+                        android:hint="Seleccionar hora"
                         android:textSize="14sp"
                         android:fontFamily="@font/lato_regular"
                         android:background="@null"
-                        android:inputType="time"
-                        android:focusable="true"/>
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:cursorVisible="false"
+                        android:clickable="true"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

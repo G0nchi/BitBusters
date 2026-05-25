@@ -5,32 +5,32 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.example.bitbusters.databinding.ActivityAsesorPerfilBinding;
 
 public class AsesorPerfilActivity extends AppCompatActivity {
+
+    private ActivityAsesorPerfilBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_asesor_perfil);
+        binding = ActivityAsesorPerfilBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         setupRecyclerView();
         setupBottomNav();
     }
 
     private void setupRecyclerView() {
-        RecyclerView rv = findViewById(R.id.rv_separaciones);
-        rv.setLayoutManager(new LinearLayoutManager(this));
-        rv.setNestedScrollingEnabled(false);
-        rv.setAdapter(new SeparacionAdapter());
+        binding.rvSeparaciones.setLayoutManager(new LinearLayoutManager(this));
+        binding.rvSeparaciones.setNestedScrollingEnabled(false);
+        binding.rvSeparaciones.setAdapter(new SeparacionAdapter());
     }
 
     private void setupBottomNav() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
-        bottomNav.setSelectedItemId(R.id.nav_perfil);
-        bottomNav.setOnItemSelectedListener(item -> {
+        binding.bottomNav.setSelectedItemId(R.id.nav_perfil);
+        binding.bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_inicio) {
                 startActivity(new Intent(this, AsesorHomeActivity.class));
@@ -44,5 +44,11 @@ public class AsesorPerfilActivity extends AppCompatActivity {
             }
             return true;
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        binding = null;
     }
 }

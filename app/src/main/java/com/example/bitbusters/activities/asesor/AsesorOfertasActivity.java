@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
+import com.example.bitbusters.databinding.ActivityAsesorOfertasBinding;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.Arrays;
@@ -21,18 +22,20 @@ import java.util.List;
 
 public class AsesorOfertasActivity extends AppCompatActivity {
 
+    private ActivityAsesorOfertasBinding binding;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_asesor_ofertas);
-        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+        binding = ActivityAsesorOfertasBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        binding.btnBack.setOnClickListener(v -> finish());
         setupRecyclerView();
     }
 
     private void setupRecyclerView() {
-        RecyclerView rv = findViewById(R.id.rv_ofertas);
-        rv.setLayoutManager(new LinearLayoutManager(this));
-        rv.setAdapter(new OfertaAdapter(buildOfertas()));
+        binding.rvOfertas.setLayoutManager(new LinearLayoutManager(this));
+        binding.rvOfertas.setAdapter(new OfertaAdapter(buildOfertas()));
     }
 
     private List<Oferta> buildOfertas() {
@@ -63,6 +66,12 @@ public class AsesorOfertasActivity extends AppCompatActivity {
                 "10 Abr – 10 May 2025", "Próximamente",
                 "#FFF3DC", "#9A5700", "#FF8F00")
         );
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        binding = null;
     }
 
     static class Oferta {

@@ -8,61 +8,77 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
+import com.example.bitbusters.models.ProyectoApi;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Adapter de proyectos inmobiliarios.
+ *
+ * Recibe {@link ProyectoApi} (datos del servidor vía Retrofit) en lugar de
+ * arrays estáticos, y usa DiffUtil para actualizar la lista sin parpadeo.
+ */
 public class ProyectoAdapter extends RecyclerView.Adapter<ProyectoAdapter.ViewHolder> {
 
     interface OnItemClickListener {
         void onItemClick(int originalIndex);
     }
 
-    private static final String[] NOMBRES = {
-        "Vista Marina Residencial",
-        "Torres del Sol",
-        "Condominio Los Pinos"
-    };
-    private static final String[] UBICACIONES = {
-        "San Miguel, Lima",
-        "Miraflores, Lima",
-        "Surco, Lima"
-    };
-    private static final String[] PRECIOS = {
-        "S/ 320,000",
-        "S/ 450,000",
-        "S/ 580,000"
-    };
-    private static final String[] ESTADOS = {"En Venta", "Preventa", "En Planos"};
-    private static final String[] RATINGS = {"4.9", "4.8", "4.7"};
-    private static final String[] TIPOS = {"Departamento", "Departamento", "Villa"};
-    private static final int[] IMAGENES = {
-        R.drawable.bg_proyecto_marina,
-        R.drawable.bg_proyecto_torres,
-        R.drawable.bg_proyecto_pinos
-    };
+    // Mapeo imagen_key → drawable resource
+    private static int imagenResForKey(String key) {
+        if (key == null) return R.drawable.bg_proyecto_torres;
+        switch (key) {
+            case "marina": return R.drawable.bg_proyecto_marina;
+            case "pinos":  return R.drawable.bg_proyecto_pinos;
+            default:       return R.drawable.bg_proyecto_torres;
+        }
+    }
 
     private final OnItemClickListener listener;
-    private final List<Integer> displayed = new ArrayList<>();
+    private List<ProyectoApi> allProyectos  = new ArrayList<>(); // lista completa de la API
+    private List<ProyectoApi> displayed     = new ArrayList<>(); // lista filtrada
+    private String             currentFilter = "Todos";
 
     ProyectoAdapter(OnItemClickListener listener) {
         this.listener = listener;
-        applyFilter("Todos");
     }
 
+    // ── Actualización de datos ────────────────────────────────────────────────
+
+    /**
+     * Reemplaza la lista completa (llamado desde AsesorHomeActivity con datos
+     * de la API) y aplica el filtro activo con DiffUtil.
+     */
+    public void setProyectos(List<ProyectoApi> proyectos) {
+        this.allProyectos = proyectos != null ? proyectos : new ArrayList<>();
+        applyFilter(currentFilter);
+    }
+
+    /** Filtra por tipo de proyecto y actualiza con DiffUtil. */
     public void applyFilter(String tipo) {
-        displayed.clear();
-        for (int i = 0; i < NOMBRES.length; i++) {
-            if ("Todos".equals(tipo) || TIPOS[i].equals(tipo)) {
-                displayed.add(i);
+        currentFilter = tipo;
+
+        List<ProyectoApi> newDisplayed = new ArrayList<>();
+        for (int i = 0; i < allProyectos.size(); i++) {
+            ProyectoApi p = allProyectos.get(i);
+            if ("Todos".equals(tipo) || tipo.equals(p.tipo)) {
+                newDisplayed.add(p);
             }
         }
-        notifyDataSetChanged();
+
+        DiffUtil.DiffResult result =
+                DiffUtil.calculateDiff(new ProyectoDiffCallback(displayed, newDisplayed));
+        displayed = newDisplayed;
+        result.dispatchUpdatesTo(this);
     }
+
+    // ── RecyclerView.Adapter ──────────────────────────────────────────────────
 
     @NonNull
     @Override
@@ -74,15 +90,16 @@ public class ProyectoAdapter extends RecyclerView.Adapter<ProyectoAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        int idx = displayed.get(position);
-        holder.tvNombre.setText(NOMBRES[idx]);
-        holder.tvUbicacion.setText(UBICACIONES[idx]);
-        holder.tvPrecio.setText(PRECIOS[idx]);
-        holder.tvRating.setText(RATINGS[idx]);
-        holder.imgPlaceholder.setImageResource(IMAGENES[idx]);
+        ProyectoApi p = displayed.get(position);
 
-        holder.tvEstado.setText(ESTADOS[idx]);
-        switch (ESTADOS[idx]) {
+        holder.tvNombre.setText(p.nombre);
+        holder.tvUbicacion.setText(p.ubicacion);
+        holder.tvPrecio.setText(p.precio);
+        holder.tvRating.setText(p.rating);
+        holder.imgPlaceholder.setImageResource(imagenResForKey(p.imagenKey));
+
+        holder.tvEstado.setText(p.estado);
+        switch (p.estado != null ? p.estado : "") {
             case "En Venta":
                 holder.tvEstado.setBackgroundResource(R.drawable.badge_en_venta);
                 holder.tvEstado.setTextColor(Color.parseColor("#186A3B"));
@@ -97,13 +114,47 @@ public class ProyectoAdapter extends RecyclerView.Adapter<ProyectoAdapter.ViewHo
                 break;
         }
 
-        holder.btnVerMas.setOnClickListener(v -> listener.onItemClick(idx));
+        // originalIndex = posición en allProyectos (para ProyectoDetalleActivity)
+        int originalIndex = allProyectos.indexOf(p);
+        holder.btnVerMas.setOnClickListener(v ->
+            listener.onItemClick(Math.max(originalIndex, 0)));
     }
 
     @Override
     public int getItemCount() {
         return displayed.size();
     }
+
+    // ── DiffUtil Callback ─────────────────────────────────────────────────────
+
+    private static class ProyectoDiffCallback extends DiffUtil.Callback {
+        private final List<ProyectoApi> oldList;
+        private final List<ProyectoApi> newList;
+
+        ProyectoDiffCallback(List<ProyectoApi> oldList, List<ProyectoApi> newList) {
+            this.oldList = oldList;
+            this.newList = newList;
+        }
+
+        @Override public int getOldListSize() { return oldList.size(); }
+        @Override public int getNewListSize() { return newList.size(); }
+
+        @Override
+        public boolean areItemsTheSame(int oldPos, int newPos) {
+            return oldList.get(oldPos).id == newList.get(newPos).id;
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldPos, int newPos) {
+            ProyectoApi o = oldList.get(oldPos), n = newList.get(newPos);
+            return o.nombre.equals(n.nombre)
+                && o.precio.equals(n.precio)
+                && o.estado.equals(n.estado)
+                && o.rating.equals(n.rating);
+        }
+    }
+
+    // ── ViewHolder ────────────────────────────────────────────────────────────
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgPlaceholder;
@@ -113,12 +164,12 @@ public class ProyectoAdapter extends RecyclerView.Adapter<ProyectoAdapter.ViewHo
         ViewHolder(View itemView) {
             super(itemView);
             imgPlaceholder = itemView.findViewById(R.id.v_placeholder);
-            tvNombre = itemView.findViewById(R.id.tv_nombre);
-            tvUbicacion = itemView.findViewById(R.id.tv_ubicacion);
-            tvPrecio = itemView.findViewById(R.id.tv_precio);
-            tvEstado = itemView.findViewById(R.id.tv_estado);
-            tvRating = itemView.findViewById(R.id.tv_rating);
-            btnVerMas = itemView.findViewById(R.id.btn_ver_mas);
+            tvNombre       = itemView.findViewById(R.id.tv_nombre);
+            tvUbicacion    = itemView.findViewById(R.id.tv_ubicacion);
+            tvPrecio       = itemView.findViewById(R.id.tv_precio);
+            tvEstado       = itemView.findViewById(R.id.tv_estado);
+            tvRating       = itemView.findViewById(R.id.tv_rating);
+            btnVerMas      = itemView.findViewById(R.id.btn_ver_mas);
         }
     }
 }

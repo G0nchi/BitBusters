@@ -3,17 +3,17 @@ package com.example.bitbusters.activities.asesor;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bitbusters.R;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.example.bitbusters.databinding.ActivityProyectoDetalleBinding;
 
 public class ProyectoDetalleActivity extends AppCompatActivity {
 
     public static final String EXTRA_PROYECTO_INDEX = "proyecto_index";
+
+    private ActivityProyectoDetalleBinding binding;
 
     private static final String[] NOMBRES = {
         "Vista Marina Residencial",
@@ -41,7 +41,8 @@ public class ProyectoDetalleActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_proyecto_detalle);
+        binding = ActivityProyectoDetalleBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         int index = getIntent().getIntExtra(EXTRA_PROYECTO_INDEX, 0);
         bindData(index);
         setupBackButton();
@@ -50,47 +51,44 @@ public class ProyectoDetalleActivity extends AppCompatActivity {
     }
 
     private void setupActionButtons() {
-        findViewById(R.id.btn_registrar).setOnClickListener(v ->
+        binding.btnRegistrar.setOnClickListener(v ->
             startActivity(new Intent(this, NuevaSeparacionActivity.class)));
-        findViewById(R.id.btn_contactar).setOnClickListener(v ->
+        binding.btnContactar.setOnClickListener(v ->
             new ContactarClienteBottomSheet().show(getSupportFragmentManager(), "contactar"));
     }
 
     private void bindData(int index) {
-        ((TextView) findViewById(R.id.tv_nombre)).setText(NOMBRES[index]);
-        ((TextView) findViewById(R.id.tv_ciudad)).setText(CIUDADES[index]);
-        ((TextView) findViewById(R.id.tv_precio)).setText(PRECIOS[index]);
-        ((TextView) findViewById(R.id.tv_rating)).setText(RATINGS[index]);
+        binding.tvNombre.setText(NOMBRES[index]);
+        binding.tvCiudad.setText(CIUDADES[index]);
+        binding.tvPrecio.setText(PRECIOS[index]);
+        binding.tvRating.setText(RATINGS[index]);
 
-        View vPlaceholder = findViewById(R.id.v_placeholder);
-        vPlaceholder.setBackgroundColor(PLACEHOLDER_COLORS[index]);
+        binding.vPlaceholder.setBackgroundColor(PLACEHOLDER_COLORS[index]);
 
-        TextView tvEstado = findViewById(R.id.tv_estado);
-        tvEstado.setText(ESTADOS[index]);
+        binding.tvEstado.setText(ESTADOS[index]);
         switch (ESTADOS[index]) {
             case "En Venta":
-                tvEstado.setBackgroundResource(R.drawable.badge_en_venta);
-                tvEstado.setTextColor(Color.parseColor("#186A3B"));
+                binding.tvEstado.setBackgroundResource(R.drawable.badge_en_venta);
+                binding.tvEstado.setTextColor(Color.parseColor("#186A3B"));
                 break;
             case "Preventa":
-                tvEstado.setBackgroundResource(R.drawable.badge_preventa);
-                tvEstado.setTextColor(Color.parseColor("#9A5700"));
+                binding.tvEstado.setBackgroundResource(R.drawable.badge_preventa);
+                binding.tvEstado.setTextColor(Color.parseColor("#9A5700"));
                 break;
             default:
-                tvEstado.setBackgroundResource(R.drawable.badge_en_planos);
-                tvEstado.setTextColor(Color.parseColor("#1A5799"));
+                binding.tvEstado.setBackgroundResource(R.drawable.badge_en_planos);
+                binding.tvEstado.setTextColor(Color.parseColor("#1A5799"));
                 break;
         }
     }
 
     private void setupBackButton() {
-        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+        binding.btnBack.setOnClickListener(v -> finish());
     }
 
     private void setupBottomNav() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
-        bottomNav.setSelectedItemId(R.id.nav_inicio);
-        bottomNav.setOnItemSelectedListener(item -> {
+        binding.bottomNav.setSelectedItemId(R.id.nav_inicio);
+        binding.bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_citas) {
                 startActivity(new Intent(this, CitasAgendadasActivity.class));
@@ -102,5 +100,11 @@ public class ProyectoDetalleActivity extends AppCompatActivity {
             }
             return true;
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        binding = null;
     }
 }
