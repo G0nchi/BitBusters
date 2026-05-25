@@ -90,6 +90,7 @@
         <activity android:name=".activities.superadmin.SuperadminApprovalEvaluationActivity" android:exported="false" />
         <activity android:name=".activities.superadmin.SuperadminReportsActivity" android:exported="false" />
         <activity android:name=".activities.superadmin.SuperadminLogsActivity" android:exported="false" />
+        <activity android:name=".activities.superadmin.SuperadminNotificationsActivity" android:exported="false" />
 
         <!-- Admin Activities -->
         <activity android:name=".activities.admin.AdminMainActivity" />

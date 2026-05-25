@@ -141,4 +141,45 @@ public class PreferencesManager {
     public static String obtenerFiltroEmpresa(Context context) {
         return getPrefs(context).getString(KEY_SA_FILTRO_EMPRESA, "");
     }
+
+    // ── Superadmin: notificaciones descartadas ─────────────────────────────
+
+    private static final String KEY_SA_NOTIF_DESCARTADAS = "sa_notif_descartadas";
+
+    // ── Superadmin: notificaciones leídas ──────────────────────────────────
+
+    private static final String KEY_SA_NOTIF_LEIDAS = "sa_notif_leidas";
+
+    public static void marcarNotificacionLeidaSA(Context context, String notifId) {
+        java.util.Set<String> leidas = new java.util.HashSet<>(obtenerNotificacionesLeidasSA(context));
+        leidas.add(notifId);
+        getPrefs(context).edit().putStringSet(KEY_SA_NOTIF_LEIDAS, leidas).apply();
+    }
+
+    public static java.util.Set<String> obtenerNotificacionesLeidasSA(Context context) {
+        java.util.Set<String> guardadas = getPrefs(context).getStringSet(KEY_SA_NOTIF_LEIDAS, null);
+        return guardadas != null ? new java.util.HashSet<>(guardadas) : new java.util.HashSet<>();
+    }
+
+    /** Mueve todas las leídas a descartadas y las borra de la pantalla. */
+    public static void eliminarTodasLeidasSA(Context context) {
+        java.util.Set<String> leidas = obtenerNotificacionesLeidasSA(context);
+        java.util.Set<String> descartadas = new java.util.HashSet<>(obtenerNotificacionesDescartadasSA(context));
+        descartadas.addAll(leidas);
+        getPrefs(context).edit()
+                .putStringSet(KEY_SA_NOTIF_DESCARTADAS, descartadas)
+                .remove(KEY_SA_NOTIF_LEIDAS)
+                .apply();
+    }
+
+    public static void descartarNotificacionSA(Context context, String notifId) {
+        java.util.Set<String> descartadas = new java.util.HashSet<>(obtenerNotificacionesDescartadasSA(context));
+        descartadas.add(notifId);
+        getPrefs(context).edit().putStringSet(KEY_SA_NOTIF_DESCARTADAS, descartadas).apply();
+    }
+
+    public static java.util.Set<String> obtenerNotificacionesDescartadasSA(Context context) {
+        java.util.Set<String> guardadas = getPrefs(context).getStringSet(KEY_SA_NOTIF_DESCARTADAS, null);
+        return guardadas != null ? new java.util.HashSet<>(guardadas) : new java.util.HashSet<>();
+    }
 }
