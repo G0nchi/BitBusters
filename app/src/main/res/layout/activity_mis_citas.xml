@@ -5,12 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F0F4F8">
+    android:background="@color/neutral_canvas"
+    android:fitsSystemWindows="true">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="#F0F4F8"
+        android:background="@color/neutral_canvas"
         android:paddingStart="16dp"
         android:paddingEnd="16dp">
 
@@ -20,7 +21,7 @@
             android:layout_height="36dp"
             android:layout_centerVertical="true"
             android:layout_alignParentStart="true"
-            android:src="@android:drawable/ic_menu_revert"
+            android:src="@drawable/ic_arrow_back"
             android:background="@drawable/bg_circle_outline"
             android:contentDescription="Volver" />
 
@@ -30,7 +31,7 @@
             android:layout_centerInParent="true"
             android:text="Mis Citas"
             android:textSize="18sp"
-            android:textColor="#1A1A2E"
+            android:textColor="@color/text_primary"
             android:fontFamily="sans-serif-medium" />
     </RelativeLayout>
 
@@ -40,7 +41,7 @@
         android:orientation="horizontal"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:background="#F0F4F8">
+        android:background="@color/neutral_canvas">
 
         <TextView
             android:id="@+id/tabTodas"
@@ -48,7 +49,7 @@
             android:layout_height="match_parent"
             android:text="Todas"
             android:textSize="14sp"
-            android:textColor="#1A7EBD"
+            android:textColor="@color/brand_deep_blue"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:paddingEnd="16dp"
@@ -60,7 +61,7 @@
             android:layout_height="match_parent"
             android:text="Proximas"
             android:textSize="14sp"
-            android:textColor="#9E9E9E"
+            android:textColor="@color/text_medium"
             android:gravity="center"
             android:paddingEnd="16dp" />
 
@@ -70,7 +71,7 @@
             android:layout_height="match_parent"
             android:text="Historial"
             android:textSize="14sp"
-            android:textColor="#9E9E9E"
+            android:textColor="@color/text_medium"
             android:gravity="center" />
     </LinearLayout>
 
@@ -85,14 +86,100 @@
         android:paddingBottom="16dp"
         android:clipToPadding="false" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNav"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:background="#FFFFFF"
-        app:menu="@menu/menu_bottom_nav"
-        app:itemIconTint="@drawable/selector_bottom_nav"
-        app:itemTextColor="@drawable/selector_bottom_nav"
-        app:labelVisibilityMode="unlabeled" />
+        android:layout_height="80dp"
+        android:background="@drawable/sa_bottom_nav_bg"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/navHome"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_nav_home"
+                android:tint="@color/text_medium" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Inicio"
+                android:textColor="@color/text_medium"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navSearch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_search"
+                android:tint="@color/text_medium" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Buscar"
+                android:textColor="@color/text_medium"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navCitas"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_nav_calendar"
+                android:tint="@color/brand_lime" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Citas"
+                android:textColor="@color/brand_lime"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navPerfil"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_nav_person"
+                android:tint="@color/text_medium" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Perfil"
+                android:textColor="@color/text_medium"
+                android:textSize="10sp" />
+        </LinearLayout>
+    </LinearLayout>
 
 </LinearLayout>

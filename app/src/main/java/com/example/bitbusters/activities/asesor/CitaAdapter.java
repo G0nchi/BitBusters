@@ -9,12 +9,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.ViewHolder> {
@@ -58,12 +60,55 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.ViewHolder> {
         void onRightClick(int position, Cita cita);
     }
 
-    private final List<Cita> citas;
+    private List<Cita> citas;
     private final OnCitaActionListener listener;
 
     public CitaAdapter(List<Cita> citas, OnCitaActionListener listener) {
-        this.citas = citas;
+        this.citas = new ArrayList<>(citas);
         this.listener = listener;
+    }
+
+    /** Actualiza la lista con animaciones DiffUtil (sin parpadeo). */
+    public void updateCitas(List<Cita> newCitas) {
+        DiffUtil.DiffResult result =
+                DiffUtil.calculateDiff(new CitaDiffCallback(this.citas, newCitas));
+        this.citas = new ArrayList<>(newCitas);
+        result.dispatchUpdatesTo(this);
+    }
+
+    // ── DiffUtil callback ─────────────────────────────────────────────────────
+
+    private static class CitaDiffCallback extends DiffUtil.Callback {
+        private final List<Cita> oldList;
+        private final List<Cita> newList;
+
+        CitaDiffCallback(List<Cita> oldList, List<Cita> newList) {
+            this.oldList = oldList;
+            this.newList = newList;
+        }
+
+        @Override public int getOldListSize() { return oldList.size(); }
+        @Override public int getNewListSize() { return newList.size(); }
+
+        @Override
+        public boolean areItemsTheSame(int oldPos, int newPos) {
+            Cita o = oldList.get(oldPos), n = newList.get(newPos);
+            // Identidad: mismo cliente + misma fecha + misma hora
+            return o.nombre.equals(n.nombre)
+                && o.fecha.equals(n.fecha)
+                && o.hora.equals(n.hora);
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldPos, int newPos) {
+            Cita o = oldList.get(oldPos), n = newList.get(newPos);
+            return o.badge.equals(n.badge)
+                && o.btnLeft.equals(n.btnLeft)
+                && o.btnRight.equals(n.btnRight)
+                && o.showSeparacion == n.showSeparacion
+                && o.showRating == n.showRating
+                && o.badgeBg == n.badgeBg;
+        }
     }
 
     @NonNull

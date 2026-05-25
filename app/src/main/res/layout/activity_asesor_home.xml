@@ -11,9 +11,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/bottom_nav_bg"
-        android:elevation="8dp"
         app:itemIconTint="@color/nav_icon_color"
         app:itemTextColor="@color/nav_text_color"
+        app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -90,18 +90,39 @@
                         android:layout_height="1dp"
                         android:layout_weight="1"/>
 
-                    <!-- Icono campana -->
-                    <ImageView
-                        android:id="@+id/img_campana"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_bell"
-                        android:tint="@color/neutral_dark"
-                        android:layout_marginRight="16dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@null"/>
+                    <!-- Icono campana + badge de notificaciones -->
+                    <FrameLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="16dp">
+
+                        <ImageView
+                            android:id="@+id/img_campana"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_bell"
+                            android:tint="@color/neutral_dark"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@null"/>
+
+                        <TextView
+                            android:id="@+id/tv_badge_campana"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:layout_gravity="top|end"
+                            android:layout_marginTop="-2dp"
+                            android:layout_marginEnd="-2dp"
+                            android:background="@drawable/badge_notif_red"
+                            android:gravity="center"
+                            android:textColor="@color/white"
+                            android:textSize="8sp"
+                            android:textStyle="bold"
+                            android:visibility="gone"
+                            android:fontFamily="@font/lato_family"/>
+
+                    </FrameLayout>
 
                     <!-- Avatar JG (Dropdown Anchor) -->
                     <com.google.android.material.card.MaterialCardView
@@ -241,13 +262,16 @@
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Mis Citas -->
+                    <!-- Agenda (Mis Citas) -->
                     <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_mis_citas"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginLeft="4dp"
                         android:layout_marginRight="4dp"
+                        android:clickable="true"
+                        android:focusable="true"
                         app:cardCornerRadius="16dp"
                         app:cardElevation="2dp"
                         app:cardBackgroundColor="@color/neutral_surface">
@@ -346,7 +370,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/filter_todos"
-                            android:textAppearance="@style/TextAppearance.BitBusters.ChipActive"
                             android:layout_marginRight="8dp"/>
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/chip_departamentos"

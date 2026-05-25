@@ -14,7 +14,7 @@ import com.example.bitbusters.adapters.ClientAppointmentsAdapter;
 import com.example.bitbusters.data.ClientDataRepository;
 import com.example.bitbusters.models.ClientAppointment;
 import com.example.bitbusters.utils.PreferencesManager;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,17 +98,13 @@ public class MisCitasActivity extends AppCompatActivity {
         tabHistorial.setOnClickListener(v -> seleccionarTab(TAB_HISTORIAL));
 
         // Bottom Navigation
-        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
-        bottomNav.setSelectedItemId(R.id.nav_favoritos);
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_home) {
-                startActivity(new Intent(this, HomeActivity.class));
-                finish();
-                return true;
-            }
-            return id == R.id.nav_favoritos;
-        });
+        LinearLayout navHome   = findViewById(R.id.navHome);
+        LinearLayout navSearch = findViewById(R.id.navSearch);
+        LinearLayout navPerfil = findViewById(R.id.navPerfil);
+
+        navHome.setOnClickListener(v -> { startActivity(new Intent(this, HomeActivity.class)); finish(); });
+        navSearch.setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
+        navPerfil.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
     }
 
     @Override

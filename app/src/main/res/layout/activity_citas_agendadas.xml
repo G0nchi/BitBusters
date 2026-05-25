@@ -6,8 +6,9 @@
     android:orientation="vertical"
     android:background="@color/neutral_soft_1">
 
-    <!-- Dark Header -->
+    <!-- Dark Header — se oculta cuando NavController muestra VerDetalleCitaFragment -->
     <LinearLayout
+        android:id="@+id/layout_header_citas"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/brand_deep_blue"
@@ -71,64 +72,21 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
-        <!-- Tabs -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="#4DFFFFFF"
-            android:layout_marginTop="8dp"
-            android:padding="4dp">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/tab_pendientes"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_weight="1"
-                android:text="@string/citas_tab_pendientes"
-                android:textColor="@color/white"
-                android:textSize="13sp"
-                android:fontFamily="@font/lato_bold"
-                app:backgroundTint="@color/neutral_dark"
-                app:cornerRadius="20dp"
-                style="@style/Widget.Material3.Button.TextButton"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/tab_confirmadas"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_weight="1"
-                android:text="@string/citas_tab_confirmadas"
-                android:textColor="#AACDE0"
-                android:textSize="13sp"
-                android:fontFamily="@font/lato_regular"
-                app:backgroundTint="@android:color/transparent"
-                app:cornerRadius="20dp"
-                style="@style/Widget.Material3.Button.TextButton"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/tab_pasadas"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_weight="1"
-                android:text="@string/citas_tab_pasadas"
-                android:textColor="#AACDE0"
-                android:textSize="13sp"
-                android:fontFamily="@font/lato_regular"
-                app:backgroundTint="@android:color/transparent"
-                app:cornerRadius="20dp"
-                style="@style/Widget.Material3.Button.TextButton"/>
-        </LinearLayout>
     </LinearLayout>
 
-    <!-- RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_citas"
+    <!--
+        NavHostFragment — contiene el grafo nav_citas.xml.
+        Destino inicial: CitasViewPagerFragment (tabs + ViewPager2).
+        Al navegar a "Ver detalle", este host reemplaza el fragment actual.
+    -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nav_host_citas"
+        android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="12dp"
-        android:clipToPadding="false"/>
+        app:navGraph="@navigation/nav_citas"
+        app:defaultNavHost="true"/>
 
     <!-- Bottom Nav -->
     <com.google.android.material.bottomnavigation.BottomNavigationView

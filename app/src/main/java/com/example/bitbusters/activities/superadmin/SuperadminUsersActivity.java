@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
+import com.example.bitbusters.utils.PreferencesManager;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -80,7 +81,15 @@ public class SuperadminUsersActivity extends AppCompatActivity {
         setupSearch();
         setupInfiniteScroll();
 
-        showClients();
+        // Restaurar tab y filtro guardados en SharedPreferences
+        currentStatusFilter = PreferencesManager.obtenerFiltroEstado(this);
+        String tabGuardado = PreferencesManager.obtenerTabUsuarios(this);
+        updateFilterChipStyles();
+        switch (tabGuardado) {
+            case TAB_ADMINS:   showAdmins();   break;
+            case TAB_ADVISORS: showAdvisors(); break;
+            default:           showClients();  break;
+        }
     }
 
     private void setupInfiniteScroll() {
@@ -165,6 +174,7 @@ public class SuperadminUsersActivity extends AppCompatActivity {
         if (filterAllChip != null) {
             filterAllChip.setOnClickListener(v -> {
                 currentStatusFilter = "ALL";
+                PreferencesManager.guardarFiltroEstado(this, currentStatusFilter);
                 updateFilterChipStyles();
                 applyFiltersAndRender(true);
             });
@@ -172,6 +182,7 @@ public class SuperadminUsersActivity extends AppCompatActivity {
         if (filterActiveChip != null) {
             filterActiveChip.setOnClickListener(v -> {
                 currentStatusFilter = STATUS_ACTIVE;
+                PreferencesManager.guardarFiltroEstado(this, currentStatusFilter);
                 updateFilterChipStyles();
                 applyFiltersAndRender(true);
             });
@@ -179,6 +190,7 @@ public class SuperadminUsersActivity extends AppCompatActivity {
         if (filterInactiveChip != null) {
             filterInactiveChip.setOnClickListener(v -> {
                 currentStatusFilter = STATUS_INACTIVE;
+                PreferencesManager.guardarFiltroEstado(this, currentStatusFilter);
                 updateFilterChipStyles();
                 applyFiltersAndRender(true);
             });
@@ -224,18 +236,21 @@ public class SuperadminUsersActivity extends AppCompatActivity {
 
     private void showAdmins() {
         currentTab = TAB_ADMINS;
+        PreferencesManager.guardarTabUsuarios(this, TAB_ADMINS);
         setTabState(tabAdminsText, tabAdvisorsText, tabClientsText, tabAdminsLine, tabAdvisorsLine, tabClientsLine);
         applyFiltersAndRender(true);
     }
 
     private void showAdvisors() {
         currentTab = TAB_ADVISORS;
+        PreferencesManager.guardarTabUsuarios(this, TAB_ADVISORS);
         setTabState(tabAdvisorsText, tabAdminsText, tabClientsText, tabAdvisorsLine, tabAdminsLine, tabClientsLine);
         applyFiltersAndRender(true);
     }
 
     private void showClients() {
         currentTab = TAB_CLIENTS;
+        PreferencesManager.guardarTabUsuarios(this, TAB_CLIENTS);
         setTabState(tabClientsText, tabAdminsText, tabAdvisorsText, tabClientsLine, tabAdminsLine, tabAdvisorsLine);
         applyFiltersAndRender(true);
     }

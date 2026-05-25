@@ -44,6 +44,7 @@
                     android:textStyle="bold"
                     android:fontFamily="@font/lato_bold"/>
                 <TextView
+                    android:id="@+id/tv_pago_header_subtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Torres del Sol — Dpto 302"
@@ -214,7 +215,8 @@
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content"
                             android:layout_weight="1" android:text="@string/pago_label_proyecto"
                             android:textColor="#AACDE0" android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        <TextView android:id="@+id/tv_pago_proyecto_val"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="Torres del Sol" android:textColor="@color/white"
                             android:textSize="13sp" android:fontFamily="@font/lato_bold"/>
                     </LinearLayout>
@@ -224,7 +226,8 @@
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content"
                             android:layout_weight="1" android:text="@string/pago_label_unidad"
                             android:textColor="#AACDE0" android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        <TextView android:id="@+id/tv_pago_unidad_val"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="Dpto 302 - Piso 3" android:textColor="@color/white"
                             android:textSize="13sp" android:fontFamily="@font/lato_bold"/>
                     </LinearLayout>
@@ -234,7 +237,8 @@
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content"
                             android:layout_weight="1" android:text="@string/pago_label_cliente"
                             android:textColor="#AACDE0" android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        <TextView android:id="@+id/tv_pago_cliente_val"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="Carlos Mendoza" android:textColor="@color/white"
                             android:textSize="13sp" android:fontFamily="@font/lato_bold"/>
                     </LinearLayout>
@@ -256,7 +260,8 @@
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content"
                             android:layout_weight="1" android:text="@string/pago_label_monto_sep"
                             android:textColor="#AACDE0" android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        <TextView android:id="@+id/tv_pago_monto_val"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="S/ 3,200" android:textColor="@color/brand_lime"
                             android:textSize="14sp" android:fontFamily="@font/lato_bold"/>
                     </LinearLayout>
@@ -279,6 +284,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardCornerRadius="12dp"
                 app:cardBackgroundColor="@color/neutral_surface"
                 app:strokeWidth="2dp"
@@ -300,8 +307,10 @@
                             android:text="@string/pago_method_tarjeta_sub" android:textColor="@color/nav_inactive"
                             android:textSize="12sp" android:fontFamily="@font/lato_regular"/>
                     </LinearLayout>
-                    <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:checked="true" android:buttonTint="@color/brand_lime"/>
+                    <RadioButton android:id="@+id/rb_tarjeta"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:checked="true" android:clickable="false" android:focusable="false"
+                        android:buttonTint="@color/brand_lime"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -311,6 +320,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardCornerRadius="12dp"
                 app:cardBackgroundColor="@color/neutral_surface"
                 app:strokeWidth="1dp"
@@ -332,8 +343,10 @@
                             android:text="@string/pago_method_transferencia_sub" android:textColor="@color/nav_inactive"
                             android:textSize="12sp" android:fontFamily="@font/lato_regular"/>
                     </LinearLayout>
-                    <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:checked="false" android:buttonTint="@color/brand_lime"/>
+                    <RadioButton android:id="@+id/rb_transferencia"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:checked="false" android:clickable="false" android:focusable="false"
+                        android:buttonTint="@color/brand_lime"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -343,6 +356,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardCornerRadius="12dp"
                 app:cardBackgroundColor="@color/neutral_surface"
                 app:strokeWidth="1dp"
@@ -364,8 +379,10 @@
                             android:text="@string/pago_method_yape_sub" android:textColor="@color/nav_inactive"
                             android:textSize="12sp" android:fontFamily="@font/lato_regular"/>
                     </LinearLayout>
-                    <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:checked="false" android:buttonTint="@color/brand_lime"/>
+                    <RadioButton android:id="@+id/rb_yape"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:checked="false" android:clickable="false" android:focusable="false"
+                        android:buttonTint="@color/brand_lime"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

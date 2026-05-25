@@ -6,10 +6,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MensajeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -29,10 +31,58 @@ public class MensajeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
     }
 
-    private final List<Mensaje> mensajes;
+    private List<Mensaje> mensajes;
 
     public MensajeAdapter(List<Mensaje> mensajes) {
-        this.mensajes = mensajes;
+        this.mensajes = new ArrayList<>(mensajes);
+    }
+
+    // ── Actualización de datos ────────────────────────────────────────────────
+
+    /**
+     * Agrega un mensaje al final y notifica con animación (sin parpadeo).
+     * Usado por ConversacionActivity cuando el asesor envía un mensaje.
+     */
+    public void addMensaje(Mensaje m) {
+        int pos = mensajes.size();
+        mensajes.add(m);
+        notifyItemInserted(pos);
+    }
+
+    /**
+     * Reemplaza la lista completa usando DiffUtil.
+     * Usado cuando llegan actualizaciones en tiempo real de Firestore.
+     */
+    public void updateMensajes(List<Mensaje> newList) {
+        DiffUtil.DiffResult result =
+                DiffUtil.calculateDiff(new MensajeDiffCallback(mensajes, newList));
+        mensajes = new ArrayList<>(newList);
+        result.dispatchUpdatesTo(this);
+    }
+
+    private static class MensajeDiffCallback extends DiffUtil.Callback {
+        private final List<Mensaje> oldList;
+        private final List<Mensaje> newList;
+
+        MensajeDiffCallback(List<Mensaje> oldList, List<Mensaje> newList) {
+            this.oldList = oldList;
+            this.newList = newList;
+        }
+
+        @Override public int getOldListSize() { return oldList.size(); }
+        @Override public int getNewListSize() { return newList.size(); }
+
+        @Override
+        public boolean areItemsTheSame(int oldPos, int newPos) {
+            Mensaje o = oldList.get(oldPos), n = newList.get(newPos);
+            // Identidad: mismo texto + misma hora + mismo emisor
+            return o.texto.equals(n.texto) && o.hora.equals(n.hora) && o.sent == n.sent;
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldPos, int newPos) {
+            return areItemsTheSame(oldPos, newPos);
+        }
     }
 
     @Override

@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.example.bitbusters.R;
+import com.example.bitbusters.databinding.ActivityAsesorMapaBinding;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -19,7 +19,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import com.example.bitbusters.R;
+
 public class AsesorMapaActivity extends AppCompatActivity implements OnMapReadyCallback {
+
+    private ActivityAsesorMapaBinding binding;
 
     private static final int PERMISO_UBICACION = 101;
     private GoogleMap mMap;
@@ -32,7 +36,8 @@ public class AsesorMapaActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_asesor_mapa);
+        binding = ActivityAsesorMapaBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         SupportMapFragment mapFragment = (SupportMapFragment)
             getSupportFragmentManager().findFragmentById(R.id.mapFragment);
@@ -40,12 +45,12 @@ public class AsesorMapaActivity extends AppCompatActivity implements OnMapReadyC
             mapFragment.getMapAsync(this);
         }
 
-        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+        binding.btnBack.setOnClickListener(v -> finish());
 
         // Tap en un proyecto del panel → centra la cámara
-        findViewById(R.id.item_marina).setOnClickListener(v -> moveCamera(MARINA));
-        findViewById(R.id.item_torres).setOnClickListener(v -> moveCamera(TORRES));
-        findViewById(R.id.item_pinos).setOnClickListener(v -> moveCamera(PINOS));
+        binding.itemMarina.setOnClickListener(v -> moveCamera(MARINA));
+        binding.itemTorres.setOnClickListener(v -> moveCamera(TORRES));
+        binding.itemPinos.setOnClickListener(v -> moveCamera(PINOS));
     }
 
     private void moveCamera(LatLng pos) {
@@ -101,5 +106,11 @@ public class AsesorMapaActivity extends AppCompatActivity implements OnMapReadyC
                 mMap.setMyLocationEnabled(true);
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        binding = null;
     }
 }

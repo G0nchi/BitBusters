@@ -1,5 +1,6 @@
 package com.example.bitbusters.utils;
 
+import com.example.bitbusters.R;
 import android.Manifest;
 import android.app.Activity;
 import android.app.NotificationChannel;
@@ -45,17 +46,16 @@ public class NotificationHelper {
     public static final int NOTIF_SEPARACION       = 2;
     public static final int NOTIF_METODO_PAGO      = 3;
 
-    // ── IDs de notificaciones del administrador (Lab 5) ─────────────────────
-    /** Se lanza al guardar exitosamente un proyecto en AdminCrearProyectoActivity. */
-    public static final int NOTIF_ADMIN_PROYECTO_GUARDADO   = 10;
-    /** Se lanza cuando un asesor registra una nueva separación (simulado). */
-    public static final int NOTIF_ADMIN_NUEVA_SEPARACION    = 11;
-    /** Se lanza cuando el admin aprueba el monto de una separación. */
-    public static final int NOTIF_ADMIN_SEPARACION_APROBADA = 12;
-    /** Se lanza cuando un cliente agenda una cita para un proyecto del admin (simulado). */
-    public static final int NOTIF_ADMIN_NUEVA_CITA          = 13;
+    // IDs para notificaciones del superadmin (aprobaciones de proyectos)
+    public static final int NOTIF_APROBACION_ACEPTADA  = 10;
+    public static final int NOTIF_APROBACION_RECHAZADA = 11;
 
-    // Código de solicitud para el diálogo de permiso (compartido por ambos roles)
+    // IDs para alertas proactivas del dashboard superadmin
+    public static final int NOTIF_SA_NUEVA_APROBACION = 20;
+    public static final int NOTIF_SA_NUEVO_USUARIO    = 21;
+    public static final int NOTIF_SA_LOG_CRITICO      = 22;
+
+    // Código de solicitud para el diálogo de permiso
     public static final int REQUEST_CODE_NOTIF = 101;
 
     // ── Creación de canales ─────────────────────────────────────────────────
@@ -154,7 +154,7 @@ public class NotificationHelper {
 
         // Construir la notificación siguiendo el patrón del curso
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setSmallIcon(R.drawable.ic_notifications)
                 .setContentTitle(titulo)
                 .setContentText(mensaje)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -165,52 +165,44 @@ public class NotificationHelper {
     }
 
     /**
-     * Lanza una notificación local usando el canal del ADMINISTRADOR.
-     * Misma firma que lanzarNotificacion() pero apunta a ADMIN_CHANNEL_ID.
-     *
-     * @param context  Contexto de la Activity del admin que lanza la notificación.
-     * @param titulo   Título visible en la barra de notificaciones.
-     * @param mensaje  Cuerpo del mensaje de la notificación.
-     * @param notifId  ID único — usar las constantes NOTIF_ADMIN_* de esta clase.
-     * @param destino  Intent de la Activity del admin a abrir al tocar la notificación.
+     * Notifica al superadmin que hay una nueva aprobación pendiente.
+     * Al tocar, abre SuperadminApprovalsActivity.
      */
-    public static void lanzarNotificacionAdmin(Context context, String titulo, String mensaje,
-                                               int notifId, Intent destino) {
-        // Verificar permiso en Android 13+ antes de lanzar
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-        }
+    public static void notificarNuevaAprobacion(Context context) {
+        Intent destino = new Intent();
+        destino.setClassName(context, "com.example.bitbusters.activities.superadmin.SuperadminApprovalsActivity");
+        lanzarNotificacion(context,
+                "Nueva aprobación pendiente",
+                "Hay un proyecto que requiere tu revisión y aprobación.",
+                NOTIF_SA_NUEVA_APROBACION,
+                destino);
+    }
 
-        // Flags para abrir la Activity correctamente desde la bandeja de notificaciones
-        destino.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    /**
+     * Notifica al superadmin que un nuevo usuario se ha registrado.
+     * Al tocar, abre SuperadminUsersActivity.
+     */
+    public static void notificarNuevoUsuario(Context context) {
+        Intent destino = new Intent();
+        destino.setClassName(context, "com.example.bitbusters.activities.superadmin.SuperadminUsersActivity");
+        lanzarNotificacion(context,
+                "Nuevo usuario registrado",
+                "Un nuevo asesor se ha registrado en la plataforma.",
+                NOTIF_SA_NUEVO_USUARIO,
+                destino);
+    }
 
-        // PendingIntent con FLAG_IMMUTABLE (obligatorio desde Android 12)
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                context,
-                notifId,
-                destino,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        // Construir la notificación usando el canal del administrador
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, ADMIN_CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle(titulo)
-                .setContentText(mensaje)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(mensaje)) // texto largo visible
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true);
-
-        NotificationManagerCompat.from(context).notify(notifId, builder.build());
-
-        // ── Parte 5: Registrar en el repositorio en memoria ─────────────────
-        // Guarda la notificación para que AdminNotificacionesActivity la muestre
-        String fechaHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-                .format(new Date());
-        AdminNotificacionesRepository.agregar(new AdminNotificacion(titulo, mensaje, fechaHora));
+    /**
+     * Notifica al superadmin que se ha detectado un log crítico.
+     * Al tocar, abre SuperadminLogsActivity.
+     */
+    public static void notificarLogCritico(Context context) {
+        Intent destino = new Intent();
+        destino.setClassName(context, "com.example.bitbusters.activities.superadmin.SuperadminLogsActivity");
+        lanzarNotificacion(context,
+                "Error crítico detectado",
+                "Se registró un error crítico en el sistema. Revisa los logs.",
+                NOTIF_SA_LOG_CRITICO,
+                destino);
     }
 }

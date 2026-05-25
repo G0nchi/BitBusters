@@ -1,209 +1,114 @@
 package com.example.bitbusters.activities.asesor;
 
+import android.Manifest;
 import android.content.Intent;
-import android.graphics.Color;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.app.ActivityCompat;
+import androidx.navigation.NavController;
+import androidx.navigation.NavDestination;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.bitbusters.R;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.button.MaterialButton;
+import com.example.bitbusters.databinding.ActivityCitasAgendadasBinding;
+import com.example.bitbusters.utils.AsesorNotificationHelper;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * Activity anfitriona del módulo de citas.
+ *
+ * Delega toda la UI de tabs + detalle al grafo de Navigation Component
+ * (nav_citas.xml) mediante un NavHostFragment declarado en el layout.
+ * La Activity sólo gestiona permisos, botón atrás y bottom nav.
+ */
 public class CitasAgendadasActivity extends AppCompatActivity {
 
-    private RecyclerView rvCitas;
-    private MaterialButton tabPendientes, tabConfirmadas, tabPasadas;
+    private ActivityCitasAgendadasBinding binding;
+    private NavController navController;
+
+    private static final int REQ_NOTIF_PERMISSION = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_citas_agendadas);
+        binding = ActivityCitasAgendadasBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        rvCitas = findViewById(R.id.rv_citas);
-        rvCitas.setLayoutManager(new LinearLayoutManager(this));
+        AsesorNotificationHelper.createChannel(this);
+        requestNotifPermission();
 
-        tabPendientes  = findViewById(R.id.tab_pendientes);
-        tabConfirmadas = findViewById(R.id.tab_confirmadas);
-        tabPasadas     = findViewById(R.id.tab_pasadas);
+        // NavController desde el NavHostFragment declarado en el layout
+        NavHostFragment navHost = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_citas);
+        if (navHost != null) {
+            navController = navHost.getNavController();
 
-        tabPendientes.setOnClickListener(v -> switchTab(0));
-        tabConfirmadas.setOnClickListener(v -> switchTab(1));
-        tabPasadas.setOnClickListener(v -> switchTab(2));
+            // Ocultar el header de la Activity cuando se muestra VerDetalleCitaFragment
+            // (ese fragment ya tiene su propio header "Detalle de Cita").
+            navController.addOnDestinationChangedListener(
+                    (NavController controller, NavDestination destination, Bundle args) -> {
+                        if (destination.getId() == R.id.verDetalleCitaFragment) {
+                            binding.layoutHeaderCitas.setVisibility(View.GONE);
+                            binding.bottomNav.setVisibility(View.GONE);
+                        } else {
+                            binding.layoutHeaderCitas.setVisibility(View.VISIBLE);
+                            binding.bottomNav.setVisibility(View.VISIBLE);
+                        }
+                    });
+        }
 
-        switchTab(0);
+        // Botón atrás: NavController maneja el back stack (tabs → detalle → atrás)
+        binding.btnBack.setOnClickListener(v -> {
+            if (navController != null && !navController.navigateUp()) {
+                finish();
+            }
+        });
+
         setupBottomNav();
-        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
     }
 
-    private void switchTab(int tab) {
-        int activeColor   = Color.parseColor("#252B5C");
-        int inactiveColor = Color.TRANSPARENT;
-        int activeText    = Color.WHITE;
-        int inactiveText  = Color.parseColor("#AACDE0");
+    // ── Permisos ──────────────────────────────────────────────────────────────
 
-        tabPendientes.setBackgroundTintList(android.content.res.ColorStateList.valueOf(tab == 0 ? activeColor : inactiveColor));
-        tabPendientes.setTextColor(tab == 0 ? activeText : inactiveText);
-        tabConfirmadas.setBackgroundTintList(android.content.res.ColorStateList.valueOf(tab == 1 ? activeColor : inactiveColor));
-        tabConfirmadas.setTextColor(tab == 1 ? activeText : inactiveText);
-        tabPasadas.setBackgroundTintList(android.content.res.ColorStateList.valueOf(tab == 2 ? activeColor : inactiveColor));
-        tabPasadas.setTextColor(tab == 2 ? activeText : inactiveText);
-
-        rvCitas.setAdapter(new CitaAdapter(buildCitas(tab),
-            new CitaAdapter.OnCitaActionListener() {
-                @Override
-                public void onLeftClick(int pos, CitaAdapter.Cita c) {
-                    handleLeftAction(c);
-                }
-                @Override
-                public void onRightClick(int pos, CitaAdapter.Cita c) {
-                    handleRightAction(c);
-                }
-            }));
-    }
-
-    // ── Acciones botón izquierdo ──────────────────────────────────────────────
-    private void handleLeftAction(CitaAdapter.Cita c) {
-        switch (c.btnLeft) {
-            case "Reagendar":
-                openReagendar(c);
-                break;
-            case "Ver detalle":
-                openVerDetalle(c);
-                break;
-            case "Ver valoración":
-                // El asesor ve la valoración que le dio el cliente
-                startActivity(new Intent(this, ValorarVisitaActivity.class));
-                break;
+    private void requestNotifPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_NOTIF_PERMISSION);
         }
     }
 
-    // ── Acciones botón derecho ────────────────────────────────────────────────
-    private void handleRightAction(CitaAdapter.Cita c) {
-        switch (c.btnRight) {
-            case "Confirmar":
-                showConfirmDialog();
-                break;
-            case "Separar":
-                startActivity(new Intent(this, NuevaSeparacionActivity.class));
-                break;
-            case "Valorar":
-                // El asesor valora al cliente tras la visita
-                startActivity(new Intent(this, ValorarVisitaActivity.class));
-                break;
-            case "Cancelar":
-                showCancelDialog();
-                break;
-            case "Reagendar":
-                openReagendar(c);
-                break;
-        }
-    }
-
-    private void openReagendar(CitaAdapter.Cita c) {
-        Intent intent = new Intent(this, ReagendarCitaActivity.class);
-        intent.putExtra(ReagendarCitaActivity.EXTRA_NOMBRE, c.nombre);
-        intent.putExtra(ReagendarCitaActivity.EXTRA_PROYECTO, c.proyecto);
-        intent.putExtra(ReagendarCitaActivity.EXTRA_FECHA, c.fecha);
-        intent.putExtra(ReagendarCitaActivity.EXTRA_HORA, c.hora);
-        intent.putExtra(ReagendarCitaActivity.EXTRA_INITIALS, c.initials);
-        intent.putExtra(ReagendarCitaActivity.EXTRA_AVATAR_COLOR, c.avatarColor);
-        startActivity(intent);
-    }
-
-    private void openVerDetalle(CitaAdapter.Cita c) {
-        Intent intent = new Intent(this, VerDetalleCitaActivity.class);
-        intent.putExtra(VerDetalleCitaActivity.EXTRA_NOMBRE, c.nombre);
-        intent.putExtra(VerDetalleCitaActivity.EXTRA_PROYECTO, c.proyecto);
-        intent.putExtra(VerDetalleCitaActivity.EXTRA_FECHA, c.fecha);
-        intent.putExtra(VerDetalleCitaActivity.EXTRA_HORA, c.hora);
-        intent.putExtra(VerDetalleCitaActivity.EXTRA_BADGE, c.badge);
-        intent.putExtra(VerDetalleCitaActivity.EXTRA_INITIALS, c.initials);
-        intent.putExtra(VerDetalleCitaActivity.EXTRA_AVATAR_COLOR, c.avatarColor);
-        startActivity(intent);
-    }
-
-    private List<CitaAdapter.Cita> buildCitas(int tab) {
-        List<CitaAdapter.Cita> list = new ArrayList<>();
-        int pendText     = Color.parseColor("#9A5700");
-        int confText     = Color.parseColor("#186A3B");
-        int pasadaText   = Color.parseColor("#666666");
-        int valoradaText = Color.parseColor("#1A5799");
-        int cancelText   = Color.parseColor("#CC2222");
-
-        if (tab == 0) {
-            list.add(new CitaAdapter.Cita("CM", Color.parseColor("#4ECDC4"), "Carlos Mendoza",
-                "Torres del Sol · Dpto 302", "Lun 7 Abr, 2025", "10:30 AM",
-                "Pendiente", 0, pendText, "Reagendar", "Confirmar", false, false));
-            list.add(new CitaAdapter.Cita("AL", Color.parseColor("#FF8C42"), "Ana López",
-                "Torres del Sol · Dpto 501", "Mar 8 Abr, 2025", "3:00 PM",
-                "Pendiente", 0, pendText, "Reagendar", "Confirmar", false, false));
-            list.add(new CitaAdapter.Cita("RT", Color.parseColor("#FF6B9D"), "Rosa Torres",
-                "Torres del Sol · Dpto 108", "Mié 9 Abr, 2025", "11:00 AM",
-                "Confirmada", 0, confText, "Ver detalle", "Separar", false, false));
-        } else if (tab == 1) {
-            list.add(new CitaAdapter.Cita("RT", Color.parseColor("#FF6B9D"), "Rosa Torres",
-                "Torres del Sol · Dpto 108", "Mié 9 Abr, 2025", "11:00 AM",
-                "Confirmada", 0, confText, "Ver detalle", "Cancelar", false, false));
-            list.add(new CitaAdapter.Cita("MP", Color.parseColor("#9B59B6"), "Marco Paredes",
-                "Torres del Sol · Dpto 210", "Jue 10 Abr, 2025", "2:00 PM",
-                "Confirmada", 0, confText, "Ver detalle", "Cancelar", false, false));
-            list.add(new CitaAdapter.Cita("SV", Color.parseColor("#3498DB"), "Sandra Vega",
-                "Torres del Sol · Dpto 415", "Vie 11 Abr, 2025", "4:30 PM",
-                "Confirmada", 0, confText, "Ver detalle", "Cancelar", false, false));
-        } else {
-            list.add(new CitaAdapter.Cita("RT", Color.parseColor("#FF6B9D"), "Rosa Torres",
-                "Torres del Sol · Dpto 108", "Mié 2 Abr, 2025", "11:00 AM",
-                "Realizada", 0, pasadaText, "Ver detalle", "Valorar", true, false));
-            list.add(new CitaAdapter.Cita("LV", Color.parseColor("#C8956C"), "Luis Vargas",
-                "Torres del Sol · Dpto 204", "Mar 1 Abr, 2025", "2:00 PM",
-                "Cancelada", 0, cancelText, "Ver detalle", "Reagendar", false, false));
-            list.add(new CitaAdapter.Cita("JC", Color.parseColor("#27AE60"), "Jorge Castro",
-                "Torres del Sol · Dpto 601", "Lun 28 Mar, 2025", "4:00 PM",
-                "Valorada", 0, valoradaText, "Ver valoración", "Valorar", false, true));
-        }
-        return list;
-    }
-
-    private void showConfirmDialog() {
-        new AlertDialog.Builder(this)
-            .setTitle(getString(R.string.cita_dialog_title))
-            .setMessage(getString(R.string.cita_dialog_msg))
-            .setPositiveButton(getString(R.string.cita_dialog_ok), null)
-            .show();
-    }
-
-    private void showCancelDialog() {
-        new AlertDialog.Builder(this)
-            .setTitle("Cancelar cita")
-            .setMessage("¿Seguro que deseas cancelar esta cita? Se notificará al cliente.")
-            .setPositiveButton("Sí, cancelar", (d, w) -> { /* lógica futura */ })
-            .setNegativeButton("No", null)
-            .show();
-    }
+    // ── Bottom Nav ────────────────────────────────────────────────────────────
 
     private void setupBottomNav() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
-        bottomNav.setSelectedItemId(R.id.nav_citas);
-        bottomNav.setOnItemSelectedListener(item -> {
+        binding.bottomNav.setSelectedItemId(R.id.nav_citas);
+        binding.bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_inicio) {
-                startActivity(new Intent(this, AsesorHomeActivity.class));
-                finish();
+                startActivity(new Intent(this, AsesorHomeActivity.class)); finish();
             } else if (id == R.id.nav_chat) {
-                startActivity(new Intent(this, MensajesActivity.class));
-                finish();
+                startActivity(new Intent(this, MensajesActivity.class)); finish();
             } else if (id == R.id.nav_perfil) {
-                startActivity(new Intent(this, AsesorPerfilActivity.class));
-                finish();
+                startActivity(new Intent(this, AsesorPerfilActivity.class)); finish();
             }
             return true;
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        // Primero intenta navegar atrás en el grafo; si no puede, sale de la Activity
+        if (navController == null || !navController.navigateUp()) {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        binding = null;
     }
 }
