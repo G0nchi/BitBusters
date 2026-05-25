@@ -17,11 +17,11 @@ public final class ClientDataRepository {
 
     public static List<Chat> getChats() {
         return new ArrayList<>(Arrays.asList(
-                new Chat("1", "Milano", "Tiene acceso a la piscina", "10:45", "MI", "#4ECDC4", 2, true),
-                new Chat("2", "Samuel Ella", "Si, es petfriendly", "11:00", "SE", "#FF6B9D", 0, true),
-                new Chat("3", "Santa Lcyua", "Hoy no creo que pueda ver", "12:50", "SL", "#FF8C42", 1, true),
-                new Chat("4", "Sandra Sotomayor", "Dependiendo la hora en que se pueda...", "Ayer", "SS", "#9B59B6", 0, false),
-                new Chat("5", "Valerai CW", "Muchas gracias por agendar la cita", "Hace 2 dias", "VC", "#27AE60", 0, false)
+                new Chat("1", "Milano", "Tiene acceso a la piscina", "10:45", "MI", "#4ECDC4", 2, true, "Catalina Sky"),
+                new Chat("2", "Samuel Ella", "Si, es petfriendly", "11:00", "SE", "#FF6B9D", 0, true, "Torre Miramar"),
+                new Chat("3", "Santa Lcyua", "Hoy no creo que pueda ver", "12:50", "SL", "#FF8C42", 1, true, "Residencial El Park"),
+                new Chat("4", "Sandra Sotomayor", "Dependiendo la hora en que se pueda...", "Ayer", "SS", "#9B59B6", 0, false, "Condominio Las Lomas"),
+                new Chat("5", "Valerai CW", "Muchas gracias por agendar la cita", "Hace 2 dias", "VC", "#27AE60", 0, false, "Catalina Ventor")
         ));
     }
 
