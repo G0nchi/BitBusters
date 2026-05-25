@@ -48,6 +48,7 @@
                     android:fontFamily="@font/lato_bold"/>
 
                 <TextView
+                    android:id="@+id/tv_sep_header_subtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Torres del Sol — Dpto 302"
@@ -220,6 +221,7 @@
                 android:layout_marginBottom="14dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_sep_proyecto_value"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Torres del Sol — Miraflores"
@@ -289,12 +291,14 @@
                     android:padding="12dp"
                     android:gravity="center_vertical">
                     <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cv_sep_cliente_avatar"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
                         app:cardCornerRadius="18dp"
                         app:cardBackgroundColor="@color/avatar_teal"
                         app:strokeWidth="0dp">
                         <TextView
+                            android:id="@+id/tv_sep_cliente_initials"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:text="CM"
@@ -310,6 +314,7 @@
                         android:orientation="vertical"
                         android:layout_marginLeft="10dp">
                         <TextView
+                            android:id="@+id/tv_sep_cliente_nombre"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Carlos Mendoza"
@@ -347,6 +352,7 @@
                 android:layout_marginBottom="14dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_sep_valor"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/sep_hint_valor"
@@ -379,10 +385,13 @@
                         android:layout_height="wrap_content"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_sep_fecha"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="@string/sep_hint_fecha"
-                            android:text="04/07/2025"
+                            android:hint="Seleccionar fecha"
+                            android:focusable="false"
+                            android:focusableInTouchMode="false"
+                            android:cursorVisible="false"
                             android:fontFamily="@font/lato_regular"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -405,10 +414,13 @@
                         android:layout_height="wrap_content"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_sep_hora"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="@string/sep_hint_hora"
-                            android:text="10:30 AM"
+                            android:hint="Seleccionar hora"
+                            android:focusable="false"
+                            android:focusableInTouchMode="false"
+                            android:cursorVisible="false"
                             android:fontFamily="@font/lato_regular"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>

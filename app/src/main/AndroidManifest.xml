@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Permiso para notificaciones locales (requerido desde Android 13 / API 33) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
@@ -44,22 +45,33 @@
         <activity android:name=".activities.access.RegisterOtpActivity" android:exported="false" />
         <activity android:name=".activities.access.RegisterPasswordActivity" android:exported="false" />
 
+        <!-- Asesor: BroadcastReceiver para recordatorios de citas -->
+        <receiver
+            android:name=".receivers.CitaReminderReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.bitbusters.ACTION_CITA_REMINDER" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
         <!-- Asesor Activities -->
-        <activity android:name=".activities.asesor.AsesorHomeActivity" android:exported="false" />
-        <activity android:name=".activities.asesor.ProyectoDetalleActivity" android:exported="false" />
-        <activity android:name=".activities.asesor.NuevaSeparacionActivity" android:exported="false" />
-        <activity android:name=".activities.asesor.PagoSeparacionActivity" android:exported="false" />
+        <!-- launchMode singleTop evita instancias duplicadas en la navegación del asesor -->
+        <activity android:name=".activities.asesor.AsesorHomeActivity"     android:exported="false" android:launchMode="singleTop" />
+        <activity android:name=".activities.asesor.CitasAgendadasActivity" android:exported="false" android:launchMode="singleTop" />
+        <activity android:name=".activities.asesor.MensajesActivity"       android:exported="false" android:launchMode="singleTop" />
+        <activity android:name=".activities.asesor.AsesorPerfilActivity"   android:exported="false" android:launchMode="singleTop" />
+        <activity android:name=".activities.asesor.ProyectoDetalleActivity"        android:exported="false" />
+        <activity android:name=".activities.asesor.NuevaSeparacionActivity"        android:exported="false" />
+        <activity android:name=".activities.asesor.PagoSeparacionActivity"         android:exported="false" />
         <activity android:name=".activities.asesor.ConfirmacionSeparacionActivity" android:exported="false" />
-        <activity android:name=".activities.asesor.CitasAgendadasActivity" android:exported="false" />
-        <activity android:name=".activities.asesor.ValorarVisitaActivity" android:exported="false" />
-        <activity android:name=".activities.asesor.MensajesActivity" android:exported="false" />
-        <activity android:name=".activities.asesor.ConversacionActivity" android:exported="false" />
-        <activity android:name=".activities.asesor.AsesorPerfilActivity" android:exported="false" />
-        <activity android:name=".activities.asesor.AsesorMapaActivity" android:exported="false" />
-        <activity android:name=".activities.asesor.AsesorNotificacionesActivity" android:exported="false" />
-        <activity android:name=".activities.asesor.AsesorOfertasActivity" android:exported="false" />
-        <activity android:name=".activities.asesor.ReagendarCitaActivity" android:exported="false" />
-        <activity android:name=".activities.asesor.VerDetalleCitaActivity" android:exported="false" />
+        <activity android:name=".activities.asesor.ValorarVisitaActivity"          android:exported="false" />
+        <activity android:name=".activities.asesor.ConversacionActivity"           android:exported="false" />
+        <activity android:name=".activities.asesor.AsesorMapaActivity"             android:exported="false" />
+        <activity android:name=".activities.asesor.AsesorNotificacionesActivity"   android:exported="false" />
+        <activity android:name=".activities.asesor.AsesorOfertasActivity"          android:exported="false" />
+        <activity android:name=".activities.asesor.ReagendarCitaActivity"          android:exported="false" />
+        <activity android:name=".activities.asesor.VerDetalleCitaActivity"         android:exported="false" />
 
         <!-- Cliente Activities -->
         <activity android:name=".activities.cliente.HomeActivity" android:exported="false" />

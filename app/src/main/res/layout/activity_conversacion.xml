@@ -27,6 +27,7 @@
             android:contentDescription="@null"/>
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cv_avatar_chat"
             android:layout_width="42dp"
             android:layout_height="42dp"
             app:cardCornerRadius="21dp"
@@ -34,6 +35,7 @@
             app:strokeWidth="0dp"
             android:layout_marginRight="10dp">
             <TextView
+                android:id="@+id/tv_initials_chat"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:text="CM"
@@ -49,20 +51,35 @@
             android:layout_weight="1"
             android:orientation="vertical">
             <TextView
+                android:id="@+id/tv_nombre_chat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Carlos Mendoza"
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 android:fontFamily="@font/lato_bold"/>
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:orientation="horizontal" android:gravity="center_vertical">
-                <View android:layout_width="8dp" android:layout_height="8dp"
-                    android:background="@color/brand_lime"
-                    android:layout_marginRight="5dp"/>
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="@string/en_linea" android:textColor="#AACDE0"
-                    android:textSize="12sp" android:fontFamily="@font/lato_regular"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/ic_nav_home"
+                    android:tint="#AACDE0"
+                    android:layout_marginEnd="4dp"
+                    android:contentDescription="@null"/>
+                <TextView
+                    android:id="@+id/tv_proyecto_chat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Torres del Sol · Dpto 302"
+                    android:textColor="#AACDE0"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/lato_regular"
+                    android:maxLines="1"
+                    android:ellipsize="end"/>
             </LinearLayout>
         </LinearLayout>
 

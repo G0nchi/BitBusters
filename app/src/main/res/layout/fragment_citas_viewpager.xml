@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Layout del CitasViewPagerFragment.
+    Contiene los tab buttons + ViewPager2 (movidos desde la activity).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/neutral_soft_1">
+
+    <!-- Tabs dentro del área oscura de la activity -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/brand_deep_blue"
+        android:padding="4dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/tab_pendientes"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:text="@string/citas_tab_pendientes"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:fontFamily="@font/lato_bold"
+            app:backgroundTint="@color/neutral_dark"
+            app:cornerRadius="20dp"
+            style="@style/Widget.Material3.Button.TextButton"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/tab_confirmadas"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:text="@string/citas_tab_confirmadas"
+            android:textColor="#AACDE0"
+            android:textSize="13sp"
+            android:fontFamily="@font/lato_regular"
+            app:backgroundTint="@android:color/transparent"
+            app:cornerRadius="20dp"
+            style="@style/Widget.Material3.Button.TextButton"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/tab_pasadas"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:text="@string/citas_tab_pasadas"
+            android:textColor="#AACDE0"
+            android:textSize="13sp"
+            android:fontFamily="@font/lato_regular"
+            app:backgroundTint="@android:color/transparent"
+            app:cornerRadius="20dp"
+            style="@style/Widget.Material3.Button.TextButton"/>
+    </LinearLayout>
+
+    <!-- ViewPager2 gestionado por Fragment -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+</LinearLayout>

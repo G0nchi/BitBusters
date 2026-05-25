@@ -1,34 +1,56 @@
 package com.example.bitbusters.activities.asesor;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+
+import android.util.Log;
 
 import com.example.bitbusters.R;
 import com.example.bitbusters.activities.access.LoginActivity;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.example.bitbusters.databinding.ActivityAsesorHomeBinding;
+import com.example.bitbusters.models.ProyectoApi;
+import com.example.bitbusters.utils.ApiClient;
+import com.example.bitbusters.utils.AsesorNotificationHelper;
+import com.example.bitbusters.utils.AsesorStorage;
+import com.example.bitbusters.utils.BitBustersApiService;
 import com.google.android.material.button.MaterialButton;
+
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AsesorHomeActivity extends AppCompatActivity {
 
+    private ActivityAsesorHomeBinding binding;
     private ProyectoAdapter proyectoAdapter;
     private MaterialButton chipTodos, chipDepartamentos, chipVillas;
+    private TextView badgeCampana;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_asesor_home);
+        binding = ActivityAsesorHomeBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        AsesorNotificationHelper.createChannel(this);
+        requestNotifPermission();
         setupRecyclerView();
         setupChips();
         setupQuickActions();
         setupBottomNav();
 
-        View imgPerfil = findViewById(R.id.imgPerfilAsesor);
+        View imgPerfil = binding.imgPerfilAsesor;
         if (imgPerfil != null) {
             imgPerfil.setOnClickListener(v -> showProfileMenu(v));
         }
@@ -48,41 +70,82 @@ public class AsesorHomeActivity extends AppCompatActivity {
     }
 
     private void logout() {
+        AsesorStorage.clearAll(this);
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }
 
+    private void requestNotifPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.POST_NOTIFICATIONS}, 102);
+        }
+    }
+
     private void setupRecyclerView() {
-        RecyclerView recyclerView = findViewById(R.id.rv_proyectos);
-        if (recyclerView != null) {
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));
-            recyclerView.setNestedScrollingEnabled(false);
+        if (binding.rvProyectos != null) {
+            binding.rvProyectos.setLayoutManager(new LinearLayoutManager(this));
+            binding.rvProyectos.setNestedScrollingEnabled(false);
             proyectoAdapter = new ProyectoAdapter(position -> {
                 Intent intent = new Intent(this, ProyectoDetalleActivity.class);
                 intent.putExtra(ProyectoDetalleActivity.EXTRA_PROYECTO_INDEX, position);
                 startActivity(intent);
             });
-            recyclerView.setAdapter(proyectoAdapter);
+            binding.rvProyectos.setAdapter(proyectoAdapter);
+            loadProyectosFromApi();
         }
     }
 
+    /**
+     * Carga proyectos desde la API (Retrofit + MockInterceptor en esta fase).
+     * Callback en hilo principal: actualiza el adapter con DiffUtil al recibir datos.
+     */
+    private void loadProyectosFromApi() {
+        BitBustersApiService api = ApiClient.getApiService();
+        api.getAllProyectos().enqueue(new Callback<List<ProyectoApi>>() {
+            @Override
+            public void onResponse(Call<List<ProyectoApi>> call,
+                                   Response<List<ProyectoApi>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    proyectoAdapter.setProyectos(response.body());
+                    // Reaplicar filtro activo (chip seleccionado)
+                    if (proyectoAdapter != null) {
+                        proyectoAdapter.applyFilter(AsesorStorage.getHomeFilter(
+                            AsesorHomeActivity.this));
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ProyectoApi>> call, Throwable t) {
+                Log.e("BitBusters", "Error al cargar proyectos: " + t.getMessage());
+                // La lista queda vacía; en producción se mostraría un estado de error
+            }
+        });
+    }
+
     private void setupChips() {
-        chipTodos = findViewById(R.id.chip_todos);
-        chipDepartamentos = findViewById(R.id.chip_departamentos);
-        chipVillas = findViewById(R.id.chip_villas);
+        chipTodos = binding.chipTodos;
+        chipDepartamentos = binding.chipDepartamentos;
+        chipVillas = binding.chipVillas;
         if (chipTodos == null) return;
         chipTodos.setOnClickListener(v -> activateChip("Todos"));
         chipDepartamentos.setOnClickListener(v -> activateChip("Departamento"));
         chipVillas.setOnClickListener(v -> activateChip("Villa"));
+
+        // Aplica el estado inicial del chip activo
+        activateChip("Todos");
     }
 
     private void activateChip(String tipo) {
-        int activeColor = getColor(R.color.neutral_dark);
+        int activeColor   = getColor(R.color.brand_lime);
         int inactiveColor = android.graphics.Color.TRANSPARENT;
-        int activeText = android.graphics.Color.WHITE;
-        int inactiveText = getColor(R.color.text_secondary);
+        int activeText    = android.graphics.Color.WHITE;
+        int inactiveText  = getColor(R.color.text_secondary);
 
         boolean isTodos = "Todos".equals(tipo);
         boolean isDept = "Departamento".equals(tipo);
@@ -96,33 +159,54 @@ public class AsesorHomeActivity extends AppCompatActivity {
         chipVillas.setTextColor(isVilla ? activeText : inactiveText);
 
         if (proyectoAdapter != null) proyectoAdapter.applyFilter(tipo);
+        AsesorStorage.saveHomeFilter(this, tipo);
     }
 
     private void setupQuickActions() {
-        View cardMapa = findViewById(R.id.card_mapa);
-        if (cardMapa != null) {
-            cardMapa.setOnClickListener(v ->
+        if (binding.cardMapa != null) {
+            binding.cardMapa.setOnClickListener(v ->
                 startActivity(new Intent(this, AsesorMapaActivity.class)));
         }
 
-        View cardOfertas = findViewById(R.id.card_ofertas);
-        if (cardOfertas != null) {
-            cardOfertas.setOnClickListener(v ->
+        if (binding.cardOfertas != null) {
+            binding.cardOfertas.setOnClickListener(v ->
                 startActivity(new Intent(this, AsesorOfertasActivity.class)));
         }
 
-        View imgCampana = findViewById(R.id.img_campana);
-        if (imgCampana != null) {
-            imgCampana.setOnClickListener(v ->
+        if (binding.cardMisCitas != null) {
+            binding.cardMisCitas.setOnClickListener(v ->
+                startActivity(new Intent(this, CitasAgendadasActivity.class)));
+        }
+
+        badgeCampana = binding.tvBadgeCampana;
+
+        if (binding.imgCampana != null) {
+            binding.imgCampana.setOnClickListener(v ->
                 startActivity(new Intent(this, AsesorNotificacionesActivity.class)));
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshBadge();
+    }
+
+    private void refreshBadge() {
+        if (badgeCampana == null) return;
+        int count = AsesorStorage.getNotifCount(this);
+        if (count > 0) {
+            badgeCampana.setVisibility(View.VISIBLE);
+            badgeCampana.setText(count > 9 ? "9+" : String.valueOf(count));
+        } else {
+            badgeCampana.setVisibility(View.GONE);
+        }
+    }
+
     private void setupBottomNav() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
-        if (bottomNav != null) {
-            bottomNav.setSelectedItemId(R.id.nav_inicio);
-            bottomNav.setOnItemSelectedListener(item -> {
+        if (binding.bottomNav != null) {
+            binding.bottomNav.setSelectedItemId(R.id.nav_inicio);
+            binding.bottomNav.setOnItemSelectedListener(item -> {
                 int id = item.getItemId();
                 if (id == R.id.nav_citas) {
                     startActivity(new Intent(this, CitasAgendadasActivity.class));
@@ -134,5 +218,11 @@ public class AsesorHomeActivity extends AppCompatActivity {
                 return true;
             });
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        binding = null;
     }
 }

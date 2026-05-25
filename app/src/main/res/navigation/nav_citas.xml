@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Grafo de navegación para el módulo Citas Agendadas (Clase 06.2).
+    start: ViewPager con los 3 tabs (Pendientes, Confirmadas, Pasadas).
+    Destino adicional: VerDetalleCita como Fragment gestionado por NavController.
+-->
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_citas"
+    app:startDestination="@id/citasViewPagerFragment">
+
+    <!-- Destino inicial: tabs con ViewPager2 -->
+    <fragment
+        android:id="@+id/citasViewPagerFragment"
+        android:name="com.example.bitbusters.activities.asesor.CitasViewPagerFragment"
+        android:label="Citas Agendadas"
+        tools:layout="@layout/fragment_citas_viewpager">
+
+        <action
+            android:id="@+id/action_tabs_to_detalle"
+            app:destination="@id/verDetalleCitaFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+    </fragment>
+
+    <!-- Destino secundario: detalle de una cita -->
+    <fragment
+        android:id="@+id/verDetalleCitaFragment"
+        android:name="com.example.bitbusters.activities.asesor.VerDetalleCitaFragment"
+        android:label="Detalle de Cita"
+        tools:layout="@layout/activity_ver_detalle_cita">
+
+        <argument
+            android:name="nombre"
+            app:argType="string"
+            android:defaultValue=""/>
+        <argument
+            android:name="proyecto"
+            app:argType="string"
+            android:defaultValue=""/>
+        <argument
+            android:name="fecha"
+            app:argType="string"
+            android:defaultValue=""/>
+        <argument
+            android:name="hora"
+            app:argType="string"
+            android:defaultValue=""/>
+        <argument
+            android:name="badge"
+            app:argType="string"
+            android:defaultValue=""/>
+        <argument
+            android:name="initials"
+            app:argType="string"
+            android:defaultValue=""/>
+        <argument
+            android:name="avatarColor"
+            app:argType="integer"
+            android:defaultValue="0"/>
+    </fragment>
+
+</navigation>
