@@ -71,4 +71,74 @@ public class PreferencesManager {
         java.util.Set<String> guardadas = getPrefs(context).getStringSet(KEY_CITAS_CANCELADAS, null);
         return guardadas != null ? new java.util.HashSet<>(guardadas) : new java.util.HashSet<>();
     }
+
+    // ── Superadmin: sesión ──────────────────────────────────────────────────
+
+    private static final String KEY_SA_NOMBRE          = "sa_nombre";
+    private static final String KEY_SA_ULTIMO_ACCESO   = "sa_ultimo_acceso";
+    private static final String KEY_SA_TAB_USUARIOS    = "sa_tab_usuarios";
+    private static final String KEY_SA_FILTRO_ESTADO   = "sa_filtro_estado";
+    private static final String KEY_SA_FILTRO_FECHA    = "sa_filtro_fecha";
+    private static final String KEY_SA_FILTRO_UBICACION = "sa_filtro_ubicacion";
+    private static final String KEY_SA_FILTRO_EMPRESA  = "sa_filtro_empresa";
+
+    public static void guardarNombreSuperadmin(Context context, String nombre) {
+        getPrefs(context).edit().putString(KEY_SA_NOMBRE, nombre).apply();
+    }
+
+    public static String obtenerNombreSuperadmin(Context context) {
+        return getPrefs(context).getString(KEY_SA_NOMBRE, "Superadmin");
+    }
+
+    public static void guardarUltimoAccesoSuperadmin(Context context, String fechaHora) {
+        getPrefs(context).edit().putString(KEY_SA_ULTIMO_ACCESO, fechaHora).apply();
+    }
+
+    public static String obtenerUltimoAccesoSuperadmin(Context context) {
+        return getPrefs(context).getString(KEY_SA_ULTIMO_ACCESO, "");
+    }
+
+    // ── Superadmin: preferencias de Usuarios ───────────────────────────────
+
+    public static void guardarTabUsuarios(Context context, String tab) {
+        getPrefs(context).edit().putString(KEY_SA_TAB_USUARIOS, tab).apply();
+    }
+
+    public static String obtenerTabUsuarios(Context context) {
+        return getPrefs(context).getString(KEY_SA_TAB_USUARIOS, "CLIENTS");
+    }
+
+    public static void guardarFiltroEstado(Context context, String filtro) {
+        getPrefs(context).edit().putString(KEY_SA_FILTRO_ESTADO, filtro).apply();
+    }
+
+    public static String obtenerFiltroEstado(Context context) {
+        return getPrefs(context).getString(KEY_SA_FILTRO_ESTADO, "ALL");
+    }
+
+    // ── Superadmin: filtros de Aprobaciones ────────────────────────────────
+
+    public static void guardarFiltroFecha(Context context, int valor) {
+        getPrefs(context).edit().putInt(KEY_SA_FILTRO_FECHA, valor).apply();
+    }
+
+    public static int obtenerFiltroFecha(Context context) {
+        return getPrefs(context).getInt(KEY_SA_FILTRO_FECHA, 0);
+    }
+
+    public static void guardarFiltroUbicacion(Context context, String ubicacion) {
+        getPrefs(context).edit().putString(KEY_SA_FILTRO_UBICACION, ubicacion).apply();
+    }
+
+    public static String obtenerFiltroUbicacion(Context context) {
+        return getPrefs(context).getString(KEY_SA_FILTRO_UBICACION, "");
+    }
+
+    public static void guardarFiltroEmpresa(Context context, String empresa) {
+        getPrefs(context).edit().putString(KEY_SA_FILTRO_EMPRESA, empresa).apply();
+    }
+
+    public static String obtenerFiltroEmpresa(Context context) {
+        return getPrefs(context).getString(KEY_SA_FILTRO_EMPRESA, "");
+    }
 }

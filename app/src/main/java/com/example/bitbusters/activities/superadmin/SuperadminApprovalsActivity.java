@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
+import com.example.bitbusters.utils.PreferencesManager;
 
 import java.text.Normalizer;
 import java.text.ParseException;
@@ -74,6 +75,12 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
         setupInfiniteScroll();
 
         seedApprovals();
+
+        // Restaurar filtros guardados en SharedPreferences
+        selectedDateFilter = PreferencesManager.obtenerFiltroFecha(this);
+        selectedLocation   = PreferencesManager.obtenerFiltroUbicacion(this);
+        selectedCompany    = PreferencesManager.obtenerFiltroEmpresa(this);
+
         updateFilterButtonLabels();
         updateFilterButtonStyles();
         applySearchAndRender("", true);
@@ -310,6 +317,7 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
 
         menu.setOnMenuItemClickListener(item -> {
             selectedDateFilter = item.getItemId();
+            PreferencesManager.guardarFiltroFecha(this, selectedDateFilter);
             updateFilterButtonLabels();
             updateFilterButtonStyles();
             applySearchAndRender(currentQuery, true);
@@ -342,6 +350,7 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
                     selectedLocation = locations.get(index);
                 }
             }
+            PreferencesManager.guardarFiltroUbicacion(this, selectedLocation);
             updateFilterButtonLabels();
             updateFilterButtonStyles();
             applySearchAndRender(currentQuery, true);
@@ -374,6 +383,7 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
                     selectedCompany = companies.get(index);
                 }
             }
+            PreferencesManager.guardarFiltroEmpresa(this, selectedCompany);
             updateFilterButtonLabels();
             updateFilterButtonStyles();
             applySearchAndRender(currentQuery, true);

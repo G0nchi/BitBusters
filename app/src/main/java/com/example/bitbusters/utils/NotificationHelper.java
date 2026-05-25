@@ -29,6 +29,10 @@ public class NotificationHelper {
     public static final int NOTIF_SEPARACION       = 2;
     public static final int NOTIF_METODO_PAGO      = 3;
 
+    // IDs para notificaciones del superadmin
+    public static final int NOTIF_APROBACION_ACEPTADA  = 10;
+    public static final int NOTIF_APROBACION_RECHAZADA = 11;
+
     // Código de solicitud para el diálogo de permiso
     public static final int REQUEST_CODE_NOTIF = 101;
 

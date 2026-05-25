@@ -14,6 +14,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bitbusters.R;
 import com.example.bitbusters.activities.access.LoginActivity;
+import com.example.bitbusters.utils.NotificationHelper;
 
 public class SuperadminControlCenterActivity extends AppCompatActivity {
 
@@ -22,6 +23,9 @@ public class SuperadminControlCenterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ImmersiveMode.apply(this);
         setContentView(R.layout.activity_superadmin_control_center);
+
+        NotificationHelper.crearCanal(this);
+        NotificationHelper.solicitarPermiso(this);
 
         bindInsets();
         setupClicks();
