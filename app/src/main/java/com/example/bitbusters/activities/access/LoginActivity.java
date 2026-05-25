@@ -19,6 +19,7 @@ import com.example.bitbusters.activities.admin.AdminMainActivity;
 import com.example.bitbusters.activities.asesor.AsesorHomeActivity;
 import com.example.bitbusters.activities.cliente.HomeActivity;
 import com.example.bitbusters.activities.superadmin.SuperadminControlCenterActivity;
+import com.example.bitbusters.utils.AdminPreferencesManager;
 import com.example.bitbusters.utils.PreferencesManager;
 import com.google.android.material.button.MaterialButton;
 import java.text.SimpleDateFormat;
@@ -123,6 +124,12 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         if (ADMIN_USER.equals(user) && ADMIN_PASSWORD.equals(password)) {
+            // Guardar datos del admin en SharedPreferences separadas (Lab 5)
+            AdminPreferencesManager.guardarNombre(this, "Juan García");
+            AdminPreferencesManager.guardarInmobiliaria(this, "Inmobiliaria BitBuilders");
+            String fechaHoraAdmin = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                    .format(new Date());
+            AdminPreferencesManager.guardarUltimoAcceso(this, fechaHoraAdmin);
             startActivity(new Intent(this, AdminMainActivity.class));
             finish();
             return;

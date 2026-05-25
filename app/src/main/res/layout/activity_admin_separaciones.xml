@@ -174,6 +174,19 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Botón Lab 5 — Simula que un asesor registra una nueva separación.
+         Ubicado entre el scroll y el nav para que siempre sea visible. -->
+    <Button
+        android:id="@+id/btnSimularSeparacion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="@color/brand_deep_blue"
+        android:text="Simular: Asesor registra una separación"
+        android:textColor="@android:color/white" />
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"

@@ -1,5 +1,10 @@
 package com.example.bitbusters.data;
 
+import com.example.bitbusters.models.Tipologia;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Singleton que guarda temporalmente los datos del proyecto
  * mientras el admin navega entre los pasos de creación.
@@ -9,22 +14,28 @@ public class AdminProyectoSessionData {
 
     private static AdminProyectoSessionData instance;
 
-    // Datos del proyecto
-    public String nombreProyecto   = "";
-    public String descripcion      = "";
-    public String direccion        = "";
-    public String distrito         = "";
-    public String costoSeparacion  = "";
-    public String precioTotal      = "";
-    public String nombreComercial  = "";
-    public String precioPublicado  = "";
-    public String fechaEntrega     = "";
-    public String estado           = ""; // "En planos", "En preventa", "En venta"
+    // ── Campos de texto ───────────────────────────────────────────────────────
+    public String nombreProyecto  = "";
+    public String descripcion     = "";
+    public String direccion       = "";
+    public String distrito        = "";
+    public String costoSeparacion = "";
+    public String precioTotal     = "";
+    public String nombreComercial = "";
+    public String precioPublicado = "";
+    public String fechaEntrega    = "";
+    public String estado          = ""; // "En planos" | "Preventa" | "En venta"
 
-    // Constructor privado — solo se accede por getInstance()
+    // ── Parte 1: tipologías agregadas desde AdminAgregarTipologiaActivity ────
+    public List<Tipologia> tipologias = new ArrayList<>();
+
+    // ── Parte 2: asesores asignados desde AdminAsignarAsesoresActivity ───────
+    public List<String> asesoresAsignados = new ArrayList<>();
+
+    /** Constructor privado — solo se accede por getInstance() */
     private AdminProyectoSessionData() {}
 
-    // Obtener instancia única
+    /** Devuelve la instancia única, creándola si no existe. */
     public static AdminProyectoSessionData getInstance() {
         if (instance == null) {
             instance = new AdminProyectoSessionData();
@@ -32,18 +43,23 @@ public class AdminProyectoSessionData {
         return instance;
     }
 
-    // Limpiar todos los datos al terminar o cancelar
+    /**
+     * Limpia todos los datos al guardar o cancelar la creación del proyecto.
+     * Setear instance = null fuerza la recreación al próximo getInstance().
+     */
     public void clear() {
-        instance            = null;
-        nombreProyecto      = "";
-        descripcion         = "";
-        direccion           = "";
-        distrito            = "";
-        costoSeparacion     = "";
-        precioTotal         = "";
-        nombreComercial     = "";
-        precioPublicado     = "";
-        fechaEntrega        = "";
-        estado              = "";
+        instance          = null;
+        nombreProyecto    = "";
+        descripcion       = "";
+        direccion         = "";
+        distrito          = "";
+        costoSeparacion   = "";
+        precioTotal       = "";
+        nombreComercial   = "";
+        precioPublicado   = "";
+        fechaEntrega      = "";
+        estado            = "";
+        tipologias        = new ArrayList<>();
+        asesoresAsignados = new ArrayList<>();
     }
 }

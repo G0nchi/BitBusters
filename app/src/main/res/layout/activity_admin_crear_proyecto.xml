@@ -261,17 +261,43 @@
                         android:textSize="12sp"
                         android:layout_marginBottom="4dp" />
 
-                    <com.google.android.material.textfield.TextInputLayout
+                    <!-- Parte 3: Selector de distrito — abre AlertDialog con búsqueda en tiempo real -->
+                    <LinearLayout
+                        android:id="@+id/layoutDistritoSelector"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        android:layout_height="48dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:background="@drawable/button_outline_state_bg"
+                        android:clickable="true"
+                        android:focusable="true">
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etDistrito"
-                            android:layout_width="match_parent"
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_location"
+                            android:tint="@color/brand_deep_blue"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Distrito" />
+
+                        <TextView
+                            android:id="@+id/tvDistrito"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:inputType="text" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                            android:layout_weight="1"
+                            android:text="Seleccionar distrito"
+                            android:textColor="@color/neutral_medium"
+                            android:textSize="14sp" />
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_arrow_right"
+                            android:tint="@color/brand_deep_blue"
+                            android:contentDescription="Abrir selector" />
+                    </LinearLayout>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -553,38 +579,56 @@
                         android:textStyle="bold"
                         android:layout_marginBottom="12dp" />
 
-                    <!-- Images container -->
-                    <LinearLayout
-                        android:id="@+id/imagesContainer"
+                    <!-- Scroll horizontal para las miniaturas de imágenes seleccionadas -->
+                    <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:spacing="8dp">
+                        android:layout_marginBottom="8dp"
+                        android:scrollbars="none">
 
                         <LinearLayout
-                            android:id="@+id/btnAddImage"
-                            android:layout_width="0dp"
-                            android:layout_height="100dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/dashed_border_bg"
-                            android:gravity="center"
-                            android:orientation="vertical">
+                            android:id="@+id/imagesContainer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="88dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingStart="2dp"
+                            android:paddingEnd="2dp" />
+                    </HorizontalScrollView>
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="+"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="32sp" />
+                    <!-- Contador: "X imágenes seleccionadas" -->
+                    <TextView
+                        android:id="@+id/tvContadorImagenes"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 imágenes seleccionadas"
+                        android:textColor="@color/neutral_medium"
+                        android:textSize="12sp"
+                        android:layout_marginBottom="12dp" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Agregar"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
+                    <!-- Botón para abrir galería y seleccionar imágenes -->
+                    <LinearLayout
+                        android:id="@+id/btnAddImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:background="@drawable/dashed_border_bg"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="+"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="24sp"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Agregar imágenes"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="14sp" />
                     </LinearLayout>
 
                 </LinearLayout>

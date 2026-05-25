@@ -54,4 +54,17 @@
             android:padding="16dp" />
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Estado vacío: visible cuando no hay notificaciones registradas en la sesión -->
+    <TextView
+        android:id="@+id/tvEstadoVacio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="48dp"
+        android:text="No hay notificaciones"
+        android:textColor="@color/neutral_medium"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
