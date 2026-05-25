@@ -62,6 +62,10 @@ public class ClientAppointmentsAdapter extends RecyclerView.Adapter<ClientAppoin
         String status = item.getStatus();
         holder.tvStatus.setText(status);
 
+        // Restablecer visibilidad de botones (puede haber sido ocultada para CANCELADA)
+        holder.btnLeft.setVisibility(android.view.View.VISIBLE);
+        holder.btnRight.setVisibility(android.view.View.VISIBLE);
+
         if (ClientAppointment.STATUS_CONFIRMED.equals(status)) {
             holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_confirmada);
             holder.tvStatus.setTextColor(0xFF2E7D32);
@@ -83,10 +87,11 @@ public class ClientAppointmentsAdapter extends RecyclerView.Adapter<ClientAppoin
             holder.btnLeft.setText(ACTION_VER_DETALLE);
             holder.btnRight.setText(ACTION_ESCRIBIR_NUEVO);
         } else {
+            // Estado CANCELADA: badge rojo y botones ocultos
             holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelar);
             holder.tvStatus.setTextColor(0xFFB71C1C);
-            holder.btnLeft.setText(ACTION_VER_DETALLE);
-            holder.btnRight.setText(ACTION_REAGENDAR);
+            holder.btnLeft.setVisibility(android.view.View.GONE);
+            holder.btnRight.setVisibility(android.view.View.GONE);
         }
     }
 

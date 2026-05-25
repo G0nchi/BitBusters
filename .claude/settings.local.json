@@ -3,7 +3,9 @@
     "allow": [
       "mcp__figma__get_design_context",
       "Bash(grep -E \"\\\\.xml$\")",
-      "Bash(awk '{print $NF}')"
+      "Bash(awk '{print $NF}')",
+      "Bash(Get-ChildItem -Path \"D:\\\\2026.1\\\\IoT\\\\Proyecto\\\\BitBusters\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ]
   }
 }

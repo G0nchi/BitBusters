@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.bitbusters.R;
 import com.example.bitbusters.utils.ImageUrls;
+import com.example.bitbusters.utils.NotificationHelper;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -44,6 +45,9 @@ public class AgendaCitaActivity extends AppCompatActivity {
             int imageRes = obtenerImagenProyecto(nombreProyecto);
             Glide.with(this).load(imageRes).into(imgProyecto);
         }
+
+        // Crear el canal de notificaciones (necesario para lanzar la notificación de cita)
+        NotificationHelper.crearCanal(this);
 
         tvFechaSeleccionada = findViewById(R.id.tvFechaSeleccionada);
 
@@ -206,6 +210,17 @@ public class AgendaCitaActivity extends AppCompatActivity {
 
         dialog.setContentView(layout);
         dialog.show();
+
+        // Lanzar notificación de cita confirmada al mostrarse el bottom sheet
+        // Al tocarla, abre MisCitasActivity
+        Intent intentCitas = new Intent(this, MisCitasActivity.class);
+        NotificationHelper.lanzarNotificacion(
+                this,
+                "Cita Confirmada",
+                "Tu cita ha sido agendada correctamente",
+                NotificationHelper.NOTIF_CITA_CONFIRMADA,
+                intentCitas
+        );
     }
 
     private int obtenerImagenProyecto(String nombreProyecto) {

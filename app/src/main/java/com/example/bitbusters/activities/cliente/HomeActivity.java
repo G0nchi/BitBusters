@@ -1,8 +1,7 @@
 package com.example.bitbusters.activities.cliente;
 
-import android.os.Bundle;
 import android.content.Intent;
-import android.view.View;
+import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +13,8 @@ import com.example.bitbusters.adapters.ProyectoAdapter;
 import com.example.bitbusters.data.ProjectSessionData;
 import com.example.bitbusters.models.Proyecto;
 import com.example.bitbusters.utils.ImageUrls;
+import com.example.bitbusters.utils.NotificationHelper;
+import com.example.bitbusters.utils.PreferencesManager;
 import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,8 @@ import java.util.List;
 public class HomeActivity extends AppCompatActivity {
 
     private static final String EXTRA_PROYECTO = "proyecto";
+
+    private TextView tvSaludoNombre;
     private TextView btnTodos, btnTipo1, btnTipo2, btnTipo3;
     private RecyclerView rvProyectos;
     private ProyectoAdapter adapter;
@@ -30,6 +33,18 @@ public class HomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        // Crear el canal de notificaciones (solo tiene efecto en Android 8+)
+        NotificationHelper.crearCanal(this);
+        // Solicitar permiso POST_NOTIFICATIONS en Android 13+
+        NotificationHelper.solicitarPermiso(this);
+
+        // Leer el nombre guardado en SharedPreferences y mostrar el saludo
+        tvSaludoNombre = findViewById(R.id.tvSaludoNombre);
+        String nombre = PreferencesManager.obtenerNombre(this);
+        if (tvSaludoNombre != null) {
+            tvSaludoNombre.setText("¡Hola, " + nombre + "!");
+        }
 
         // Imágenes destacados
         ImageView imgDestacado1 = findViewById(R.id.imgDestacado1);
@@ -54,75 +69,52 @@ public class HomeActivity extends AppCompatActivity {
                     startActivity(new Intent(this, ProfileActivity.class)));
         }
 
-        // Botones filtro
+        // Referencias a los botones de filtro
         btnTodos = findViewById(R.id.btnTodos);
         btnTipo1 = findViewById(R.id.btnTipo1);
         btnTipo2 = findViewById(R.id.btnTipo2);
         btnTipo3 = findViewById(R.id.btnTipo3);
 
-        // RecyclerView — carga toda la lista al inicio
-        rvProyectos = findViewById(R.id.rvProyectos);
-        todaLaLista = ProjectSessionData.getProyectos();
-        adapter     = new ProyectoAdapter(this, new ArrayList<>(todaLaLista));
+        // RecyclerView — se inicializa con lista vacía; onResume aplica el filtro guardado
+        rvProyectos  = findViewById(R.id.rvProyectos);
+        todaLaLista  = ProjectSessionData.getProyectos();
+        adapter      = new ProyectoAdapter(this, new ArrayList<>(todaLaLista));
         rvProyectos.setLayoutManager(new LinearLayoutManager(this));
         rvProyectos.setAdapter(adapter);
 
-        // Filtro Todos — restaura lista completa e imágenes originales (drawables)
+        // Filtro Todos — guarda preferencia y aplica vista completa
         btnTodos.setOnClickListener(v -> {
-            resetFiltros();
-            btnTodos.setBackgroundResource(R.drawable.bg_filter_selected);
-            btnTodos.setTextColor(getResources().getColor(android.R.color.white, getTheme()));
-            adapter.setData(new ArrayList<>(todaLaLista));
-            restaurarImagenesOriginales();
+            PreferencesManager.guardarTipologiaFavorita(this, "Todos");
+            aplicarFiltro("Todos");
         });
 
-        // Filtro Tipo 1 → Departamento: edificios modernos y departamentos urbanos
+        // Filtro Tipo 1 → Departamento
         btnTipo1.setOnClickListener(v -> {
-            resetFiltros();
-            btnTipo1.setBackgroundResource(R.drawable.bg_filter_selected);
-            btnTipo1.setTextColor(getResources().getColor(android.R.color.white, getTheme()));
-            filtrar("Departamento");
-            actualizarDestacados(
-                "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400",
-                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400");
-            actualizarGuardados(
-                "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400",
-                "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400",
-                "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400",
-                "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400");
+            PreferencesManager.guardarTipologiaFavorita(this, "Departamento");
+            aplicarFiltro("Departamento");
         });
 
-        // Filtro Tipo 2 → Casa: casas residenciales y viviendas familiares
+        // Filtro Tipo 2 → Casa
         btnTipo2.setOnClickListener(v -> {
-            resetFiltros();
-            btnTipo2.setBackgroundResource(R.drawable.bg_filter_selected);
-            btnTipo2.setTextColor(getResources().getColor(android.R.color.white, getTheme()));
-            filtrar("Casa");
-            actualizarDestacados(
-                "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400",
-                "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400");
-            actualizarGuardados(
-                "https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=400",
-                "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400",
-                "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=400",
-                "https://images.unsplash.com/photo-1576941089067-2de3c901e126?w=400");
+            PreferencesManager.guardarTipologiaFavorita(this, "Casa");
+            aplicarFiltro("Casa");
         });
 
-        // Filtro Tipo 3 → Terreno: campos abiertos, lotes y terrenos
+        // Filtro Tipo 3 → Terreno
         btnTipo3.setOnClickListener(v -> {
-            resetFiltros();
-            btnTipo3.setBackgroundResource(R.drawable.bg_filter_selected);
-            btnTipo3.setTextColor(getResources().getColor(android.R.color.white, getTheme()));
-            filtrar("Terreno");
-            actualizarDestacados(
-                "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400",
-                "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400");
-            actualizarGuardados(
-                "https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=400",
-                "https://images.unsplash.com/photo-1446329813274-7c9036bd9a1f?w=400",
-                "https://images.unsplash.com/photo-1588421357574-87938a86fa28?w=400",
-                "https://images.unsplash.com/photo-1473773508845-188df298d2d1?w=400");
+            PreferencesManager.guardarTipologiaFavorita(this, "Terreno");
+            aplicarFiltro("Terreno");
         });
+
+        // "Ver todos" en la sección Destacados → SearchActivity mostrando todos los proyectos
+        android.view.View tvVerTodos = findViewById(R.id.tvVerTodos);
+        if (tvVerTodos != null) {
+            tvVerTodos.setOnClickListener(v -> {
+                Intent intent = new Intent(this, SearchActivity.class);
+                intent.putExtra("mostrar_todos", true);
+                startActivity(intent);
+            });
+        }
 
         // Cards destacados
         findViewById(R.id.cardDestacado1).setOnClickListener(v -> abrirDetalle("Catalina Ventor"));
@@ -155,6 +147,74 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Restaurar el último filtro seleccionado al volver a esta pantalla
+        String tipologiaGuardada = PreferencesManager.obtenerTipologiaFavorita(this);
+        aplicarFiltro(tipologiaGuardada);
+    }
+
+    /**
+     * Aplica el filtro indicado: actualiza estado visual de botones,
+     * lista del RecyclerView e imágenes de los cards.
+     */
+    private void aplicarFiltro(String tipologia) {
+        resetFiltros();
+        int blanco = getResources().getColor(android.R.color.white, getTheme());
+
+        switch (tipologia) {
+            case "Departamento":
+                btnTipo1.setBackgroundResource(R.drawable.bg_filter_selected);
+                btnTipo1.setTextColor(blanco);
+                filtrar("Departamento");
+                actualizarDestacados(
+                    "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400",
+                    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400");
+                actualizarGuardados(
+                    "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400",
+                    "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400",
+                    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400",
+                    "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400");
+                break;
+
+            case "Casa":
+                btnTipo2.setBackgroundResource(R.drawable.bg_filter_selected);
+                btnTipo2.setTextColor(blanco);
+                filtrar("Casa");
+                actualizarDestacados(
+                    "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400",
+                    "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400");
+                actualizarGuardados(
+                    "https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=400",
+                    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400",
+                    "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=400",
+                    "https://images.unsplash.com/photo-1576941089067-2de3c901e126?w=400");
+                break;
+
+            case "Terreno":
+                btnTipo3.setBackgroundResource(R.drawable.bg_filter_selected);
+                btnTipo3.setTextColor(blanco);
+                filtrar("Terreno");
+                actualizarDestacados(
+                    "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400",
+                    "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400");
+                actualizarGuardados(
+                    "https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=400",
+                    "https://images.unsplash.com/photo-1446329813274-7c9036bd9a1f?w=400",
+                    "https://images.unsplash.com/photo-1588421357574-87938a86fa28?w=400",
+                    "https://images.unsplash.com/photo-1473773508845-188df298d2d1?w=400");
+                break;
+
+            default: // "Todos"
+                btnTodos.setBackgroundResource(R.drawable.bg_filter_selected);
+                btnTodos.setTextColor(blanco);
+                adapter.setData(new ArrayList<>(todaLaLista));
+                restaurarImagenesOriginales();
+                break;
+        }
+    }
+
     private void filtrar(String tipo) {
         List<Proyecto> filtrados = new ArrayList<>();
         for (Proyecto p : todaLaLista) {
@@ -184,20 +244,17 @@ public class HomeActivity extends AppCompatActivity {
             Glide.with(this).load(drawableId).centerCrop().into(img);
     }
 
-    // Carga una URL de Unsplash en el ImageView indicado
     private void cargarUrl(int imgId, String url) {
         ImageView img = findViewById(imgId);
         if (img != null)
             Glide.with(this).load(url).centerCrop().into(img);
     }
 
-    // Actualiza las imágenes de los dos cards Destacados
     private void actualizarDestacados(String url1, String url2) {
         cargarUrl(R.id.imgDestacado1, url1);
         cargarUrl(R.id.imgDestacado2, url2);
     }
 
-    // Actualiza las imágenes de los cuatro cards Proyectos Guardados
     private void actualizarGuardados(String urlG1, String urlG2, String urlG3, String urlG4) {
         cargarUrl(R.id.imgTorreMiramar,    urlG1);
         cargarUrl(R.id.imgResidencialPark, urlG2);
@@ -205,7 +262,6 @@ public class HomeActivity extends AppCompatActivity {
         cargarUrl(R.id.imgCatalinaSky,     urlG4);
     }
 
-    // Restaura las imágenes originales con los drawables locales
     private void restaurarImagenesOriginales() {
         ImageView d1 = findViewById(R.id.imgDestacado1);
         if (d1 != null) Glide.with(this).load(ImageUrls.PROYECTO_CATALINA_VENTOR).centerCrop().into(d1);
