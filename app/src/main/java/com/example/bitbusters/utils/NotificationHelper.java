@@ -1,5 +1,6 @@
 package com.example.bitbusters.utils;
 
+import com.example.bitbusters.R;
 import android.Manifest;
 import android.app.Activity;
 import android.app.NotificationChannel;
@@ -28,6 +29,15 @@ public class NotificationHelper {
     public static final int NOTIF_CITA_CONFIRMADA = 1;
     public static final int NOTIF_SEPARACION       = 2;
     public static final int NOTIF_METODO_PAGO      = 3;
+
+    // IDs para notificaciones del superadmin (aprobaciones de proyectos)
+    public static final int NOTIF_APROBACION_ACEPTADA  = 10;
+    public static final int NOTIF_APROBACION_RECHAZADA = 11;
+
+    // IDs para alertas proactivas del dashboard superadmin
+    public static final int NOTIF_SA_NUEVA_APROBACION = 20;
+    public static final int NOTIF_SA_NUEVO_USUARIO    = 21;
+    public static final int NOTIF_SA_LOG_CRITICO      = 22;
 
     // Código de solicitud para el diálogo de permiso
     public static final int REQUEST_CODE_NOTIF = 101;
@@ -101,7 +111,7 @@ public class NotificationHelper {
 
         // Construir la notificación siguiendo el patrón del curso
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setSmallIcon(R.drawable.ic_notifications)
                 .setContentTitle(titulo)
                 .setContentText(mensaje)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -109,5 +119,47 @@ public class NotificationHelper {
                 .setAutoCancel(true);
 
         NotificationManagerCompat.from(context).notify(notifId, builder.build());
+    }
+
+    /**
+     * Notifica al superadmin que hay una nueva aprobación pendiente.
+     * Al tocar, abre SuperadminApprovalsActivity.
+     */
+    public static void notificarNuevaAprobacion(Context context) {
+        Intent destino = new Intent();
+        destino.setClassName(context, "com.example.bitbusters.activities.superadmin.SuperadminApprovalsActivity");
+        lanzarNotificacion(context,
+                "Nueva aprobación pendiente",
+                "Hay un proyecto que requiere tu revisión y aprobación.",
+                NOTIF_SA_NUEVA_APROBACION,
+                destino);
+    }
+
+    /**
+     * Notifica al superadmin que un nuevo usuario se ha registrado.
+     * Al tocar, abre SuperadminUsersActivity.
+     */
+    public static void notificarNuevoUsuario(Context context) {
+        Intent destino = new Intent();
+        destino.setClassName(context, "com.example.bitbusters.activities.superadmin.SuperadminUsersActivity");
+        lanzarNotificacion(context,
+                "Nuevo usuario registrado",
+                "Un nuevo asesor se ha registrado en la plataforma.",
+                NOTIF_SA_NUEVO_USUARIO,
+                destino);
+    }
+
+    /**
+     * Notifica al superadmin que se ha detectado un log crítico.
+     * Al tocar, abre SuperadminLogsActivity.
+     */
+    public static void notificarLogCritico(Context context) {
+        Intent destino = new Intent();
+        destino.setClassName(context, "com.example.bitbusters.activities.superadmin.SuperadminLogsActivity");
+        lanzarNotificacion(context,
+                "Error crítico detectado",
+                "Se registró un error crítico en el sistema. Revisa los logs.",
+                NOTIF_SA_LOG_CRITICO,
+                destino);
     }
 }

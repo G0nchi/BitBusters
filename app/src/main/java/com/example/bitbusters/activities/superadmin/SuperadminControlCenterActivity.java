@@ -12,10 +12,17 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import android.widget.TextView;
+
 import com.example.bitbusters.R;
 import com.example.bitbusters.activities.access.LoginActivity;
+import com.example.bitbusters.utils.NotificationHelper;
+import com.example.bitbusters.utils.PreferencesManager;
 
 public class SuperadminControlCenterActivity extends AppCompatActivity {
+
+    // Evita que las notificaciones se disparen en cada onResume dentro de la misma sesión
+    private static boolean notificacionesEnviadas = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,8 +30,37 @@ public class SuperadminControlCenterActivity extends AppCompatActivity {
         ImmersiveMode.apply(this);
         setContentView(R.layout.activity_superadmin_control_center);
 
+        NotificationHelper.crearCanal(this);
+        NotificationHelper.solicitarPermiso(this);
+
         bindInsets();
         setupClicks();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!notificacionesEnviadas) {
+            notificacionesEnviadas = true;
+            NotificationHelper.notificarNuevaAprobacion(this);
+            NotificationHelper.notificarNuevoUsuario(this);
+            NotificationHelper.notificarLogCritico(this);
+        }
+        actualizarBadgeNotificaciones();
+    }
+
+    private void actualizarBadgeNotificaciones() {
+        TextView badge = findViewById(R.id.badgeNotifCount);
+        if (badge == null) return;
+        int total = 3; // IDs fijas: sa_aprobacion, sa_usuario, sa_log_critico
+        int descartadas = PreferencesManager.obtenerNotificacionesDescartadasSA(this).size();
+        int pendientes = total - descartadas;
+        if (pendientes > 0) {
+            badge.setVisibility(View.VISIBLE);
+            badge.setText(String.valueOf(pendientes));
+        } else {
+            badge.setVisibility(View.GONE);
+        }
     }
 
     private void bindInsets() {
@@ -64,6 +100,10 @@ public class SuperadminControlCenterActivity extends AppCompatActivity {
         }
         if (profileBadge != null) {
             profileBadge.setOnClickListener(this::showProfileMenu);
+        }
+        View btnNotifications = findViewById(R.id.btnNotifications);
+        if (btnNotifications != null) {
+            btnNotifications.setOnClickListener(v -> open(SuperadminNotificationsActivity.class));
         }
         if (navUsers != null) {
             navUsers.setOnClickListener(v -> open(SuperadminUsersActivity.class));

@@ -7,7 +7,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import android.widget.LinearLayout;
 import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.ProyectoAdapter;
 import com.example.bitbusters.data.ProjectSessionData;
@@ -135,16 +135,13 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(new Intent(this, SearchActivity.class)));
 
         // Bottom Navigation
-        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
-        bottomNav.setSelectedItemId(R.id.nav_home);
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_home)      return true;
-            if (id == R.id.nav_search)    { startActivity(new Intent(this, SearchActivity.class));  return true; }
-            if (id == R.id.nav_favoritos) { startActivity(new Intent(this, MisCitasActivity.class)); return true; }
-            if (id == R.id.nav_perfil)    { startActivity(new Intent(this, ProfileActivity.class));  return true; }
-            return false;
-        });
+        LinearLayout navSearch   = findViewById(R.id.navSearch);
+        LinearLayout navCitas    = findViewById(R.id.navCitas);
+        LinearLayout navPerfil   = findViewById(R.id.navPerfil);
+
+        navSearch.setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
+        navCitas.setOnClickListener(v  -> startActivity(new Intent(this, MisCitasActivity.class)));
+        navPerfil.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
     }
 
     @Override

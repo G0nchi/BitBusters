@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F0F4F8">
+    android:background="@color/neutral_canvas">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -34,7 +34,7 @@
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:layout_margin="12dp"
-                    android:src="@android:drawable/ic_menu_revert"
+                    android:src="@drawable/ic_arrow_back"
                     android:background="@drawable/bg_circle_white_alpha"
                     android:contentDescription="Volver" />
 
@@ -51,7 +51,7 @@
                         android:layout_width="36dp"
                         android:layout_height="36dp"
                         android:layout_marginEnd="8dp"
-                        android:src="@android:drawable/ic_menu_share"
+                        android:src="@drawable/ic_email"
                         android:background="@drawable/bg_circle_white_alpha"
                         android:contentDescription="Compartir" />
 
@@ -59,7 +59,7 @@
                         android:id="@+id/btnFavorito"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
-                        android:src="@android:drawable/btn_star_big_on"
+                        android:src="@drawable/ic_star_filled"
                         android:background="@drawable/bg_circle_green"
                         android:contentDescription="Favorito" />
                 </LinearLayout>
@@ -72,7 +72,7 @@
                     android:layout_margin="12dp"
                     android:text="★ 4.9"
                     android:textSize="12sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/white"
                     android:paddingStart="8dp"
                     android:paddingEnd="8dp"
                     android:paddingTop="3dp"
@@ -88,7 +88,7 @@
                     android:layout_marginBottom="12dp"
                     android:text="Apartamento"
                     android:textSize="11sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/white"
                     android:paddingStart="8dp"
                     android:paddingEnd="8dp"
                     android:paddingTop="3dp"
@@ -125,7 +125,7 @@
                         android:layout_marginTop="4dp"
                         android:text="+3"
                         android:textSize="14sp"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/white"
                         android:fontFamily="sans-serif-medium"
                         android:gravity="center"
                         android:background="@drawable/bg_badge_dark" />
@@ -137,7 +137,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="#F0F4F8"
+                android:background="@color/neutral_canvas"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp">
 
@@ -158,7 +158,7 @@
                             android:layout_height="wrap_content"
                             android:text="Torres Unidas"
                             android:textSize="20sp"
-                            android:textColor="#1A1A2E"
+                            android:textColor="@color/text_primary"
                             android:fontFamily="sans-serif-medium" />
 
                         <LinearLayout
@@ -179,7 +179,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="La Peral, Callao"
                                 android:textSize="12sp"
-                                android:textColor="#9E9E9E"
+                                android:textColor="@color/text_medium"
                                 android:layout_marginStart="4dp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -197,7 +197,7 @@
                             android:layout_height="wrap_content"
                             android:text="S/ 220"
                             android:textSize="20sp"
-                            android:textColor="#1A1A2E"
+                            android:textColor="@color/text_primary"
                             android:fontFamily="sans-serif-medium" />
 
                         <TextView
@@ -205,7 +205,7 @@
                             android:layout_height="wrap_content"
                             android:text="por mes"
                             android:textSize="11sp"
-                            android:textColor="#9E9E9E" />
+                            android:textColor="@color/text_medium" />
                     </LinearLayout>
                 </RelativeLayout>
 
@@ -228,7 +228,7 @@
                             android:layout_height="36dp"
                             android:text="Rentar"
                             android:textSize="13sp"
-                            android:textColor="#FFFFFF"
+                            android:textColor="@color/white"
                             android:gravity="center"
                             android:paddingStart="22dp"
                             android:paddingEnd="22dp"
@@ -241,7 +241,7 @@
                             android:layout_height="36dp"
                             android:text="Comprar"
                             android:textSize="13sp"
-                            android:textColor="#1A1A2E"
+                            android:textColor="@color/text_primary"
                             android:gravity="center"
                             android:paddingStart="22dp"
                             android:paddingEnd="22dp"
@@ -254,7 +254,7 @@
                             android:layout_height="36dp"
                             android:text="Agendar Cita"
                             android:textSize="13sp"
-                            android:textColor="#FFFFFF"
+                            android:textColor="@color/white"
                             android:gravity="center"
                             android:paddingStart="16dp"
                             android:paddingEnd="16dp"
@@ -265,7 +265,7 @@
                             android:id="@+id/btnQR"
                             android:layout_width="36dp"
                             android:layout_height="36dp"
-                            android:src="@android:drawable/ic_menu_zoom"
+                            android:src="@drawable/ic_search"
                             android:background="@drawable/bg_circle_outline"
                             android:contentDescription="Ver QR"
                             android:layout_marginEnd="8dp" />
@@ -274,7 +274,7 @@
                             android:id="@+id/btnCompartirProyecto"
                             android:layout_width="36dp"
                             android:layout_height="36dp"
-                            android:src="@android:drawable/ic_menu_share"
+                            android:src="@drawable/ic_email"
                             android:background="@drawable/bg_circle_outline"
                             android:contentDescription="Compartir proyecto" />
                     </LinearLayout>
@@ -288,7 +288,7 @@
                     android:layout_marginTop="16dp"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="0dp"
-                    app:cardBackgroundColor="#FFFFFF">
+                    app:cardBackgroundColor="@color/white">
 
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -317,7 +317,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Fabri"
                                 android:textSize="14sp"
-                                android:textColor="#1A1A2E"
+                                android:textColor="@color/text_primary"
                                 android:fontFamily="sans-serif-medium" />
 
                             <TextView
@@ -325,7 +325,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Asesor"
                                 android:textSize="12sp"
-                                android:textColor="#9E9E9E" />
+                                android:textColor="@color/text_medium" />
                         </LinearLayout>
 
                         <ImageButton
@@ -334,7 +334,7 @@
                             android:layout_height="36dp"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
-                            android:src="@android:drawable/ic_dialog_email"
+                            android:src="@drawable/ic_email_20"
                             android:background="@drawable/bg_circle_outline"
                             android:contentDescription="Chat con asesor" />
                     </RelativeLayout>
@@ -352,7 +352,7 @@
                         android:layout_height="36dp"
                         android:text="🛏 2 Cuartos"
                         android:textSize="12sp"
-                        android:textColor="#1A1A2E"
+                        android:textColor="@color/text_primary"
                         android:gravity="center"
                         android:paddingStart="12dp"
                         android:paddingEnd="12dp"
@@ -364,7 +364,7 @@
                         android:layout_height="36dp"
                         android:text="🚿 1 Baño"
                         android:textSize="12sp"
-                        android:textColor="#1A1A2E"
+                        android:textColor="@color/text_primary"
                         android:gravity="center"
                         android:paddingStart="12dp"
                         android:paddingEnd="12dp"
@@ -376,7 +376,7 @@
                         android:layout_height="36dp"
                         android:text="🚪 2 Dor"
                         android:textSize="12sp"
-                        android:textColor="#1A1A2E"
+                        android:textColor="@color/text_primary"
                         android:gravity="center"
                         android:paddingStart="12dp"
                         android:paddingEnd="12dp"
@@ -389,7 +389,7 @@
                     android:layout_height="wrap_content"
                     android:text="Ubicación e instalaciones públicas"
                     android:textSize="15sp"
-                    android:textColor="#1A1A2E"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="sans-serif-medium"
                     android:layout_marginTop="20dp"
                     android:layout_marginBottom="10dp" />
@@ -413,7 +413,7 @@
                         android:layout_height="wrap_content"
                         android:text="San Domingo cuando No 123256,\nSan Miguel, Lima"
                         android:textSize="13sp"
-                        android:textColor="#6B6B6B" />
+                        android:textColor="@color/text_secondary" />
                 </LinearLayout>
 
                 <!-- Distancia -->
@@ -435,7 +435,7 @@
                         android:layout_height="wrap_content"
                         android:text="2.5km desde tu ubicación"
                         android:textSize="13sp"
-                        android:textColor="#6B6B6B" />
+                        android:textColor="@color/text_secondary" />
                 </LinearLayout>
 
                 <!-- Chips de lugares de interés -->
@@ -455,7 +455,7 @@
                             android:layout_height="32dp"
                             android:text="🏥 Hospitales"
                             android:textSize="12sp"
-                            android:textColor="#1A1A2E"
+                            android:textColor="@color/text_primary"
                             android:gravity="center"
                             android:paddingStart="12dp"
                             android:paddingEnd="12dp"
@@ -467,7 +467,7 @@
                             android:layout_height="32dp"
                             android:text="⛳ Golfas"
                             android:textSize="12sp"
-                            android:textColor="#1A1A2E"
+                            android:textColor="@color/text_primary"
                             android:gravity="center"
                             android:paddingStart="12dp"
                             android:paddingEnd="12dp"
@@ -479,7 +479,7 @@
                             android:layout_height="32dp"
                             android:text="🎓 Colegio"
                             android:textSize="12sp"
-                            android:textColor="#1A1A2E"
+                            android:textColor="@color/text_primary"
                             android:gravity="center"
                             android:paddingStart="12dp"
                             android:paddingEnd="12dp"
@@ -504,9 +504,9 @@
                         <ImageView
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:src="@android:drawable/ic_menu_mapmode"
+                            android:src="@drawable/ic_location"
                             android:scaleType="centerCrop"
-                            android:background="#D0E8D0" />
+                            android:background="@color/badge_en_venta_bg" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -515,7 +515,7 @@
                             android:layout_marginBottom="8dp"
                             android:text="Mira todo el mapa"
                             android:textSize="12sp"
-                            android:textColor="#1A7EBD"
+                            android:textColor="@color/brand_deep_blue"
                             android:background="@drawable/bg_date_pill"
                             android:paddingStart="12dp"
                             android:paddingEnd="12dp"
@@ -536,7 +536,7 @@
                         android:layout_height="wrap_content"
                         android:text="Coste de vida"
                         android:textSize="15sp"
-                        android:textColor="#1A1A2E"
+                        android:textColor="@color/text_primary"
                         android:fontFamily="sans-serif-medium" />
 
                     <TextView
@@ -546,7 +546,7 @@
                         android:layout_alignParentEnd="true"
                         android:text="ver variadas"
                         android:textSize="12sp"
-                        android:textColor="#1A7EBD" />
+                        android:textColor="@color/brand_deep_blue" />
                 </RelativeLayout>
 
                 <androidx.cardview.widget.CardView
@@ -555,7 +555,7 @@
                     android:layout_marginBottom="16dp"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="0dp"
-                    app:cardBackgroundColor="#FFFFFF">
+                    app:cardBackgroundColor="@color/white">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -568,7 +568,7 @@
                             android:layout_height="wrap_content"
                             android:text="S/ 830/mes"
                             android:textSize="16sp"
-                            android:textColor="#1A1A2E"
+                            android:textColor="@color/text_primary"
                             android:fontFamily="sans-serif-medium" />
 
                         <TextView
@@ -576,7 +576,7 @@
                             android:layout_height="wrap_content"
                             android:text="Sin datos acerca de los alquileres en esta ubicación"
                             android:textSize="12sp"
-                            android:textColor="#9E9E9E"
+                            android:textColor="@color/text_medium"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -592,7 +592,7 @@
                         android:layout_height="wrap_content"
                         android:text="Comentarios"
                         android:textSize="15sp"
-                        android:textColor="#1A1A2E"
+                        android:textColor="@color/text_primary"
                         android:fontFamily="sans-serif-medium" />
 
                     <TextView
@@ -602,7 +602,7 @@
                         android:layout_alignParentEnd="true"
                         android:text="ver todos"
                         android:textSize="12sp"
-                        android:textColor="#1A7EBD" />
+                        android:textColor="@color/brand_deep_blue" />
                 </RelativeLayout>
 
                 <!-- Card rating global -->
@@ -612,7 +612,7 @@
                     android:layout_marginBottom="10dp"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="0dp"
-                    app:cardBackgroundColor="#1A2E44">
+                    app:cardBackgroundColor="@color/brand_deep_blue">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -626,7 +626,7 @@
                             android:layout_height="wrap_content"
                             android:text="★"
                             android:textSize="28sp"
-                            android:textColor="#FFC107"
+                            android:textColor="@color/star_yellow"
                             android:layout_marginEnd="10dp" />
 
                         <TextView
@@ -634,7 +634,7 @@
                             android:layout_height="wrap_content"
                             android:text="★★★★★  4.9"
                             android:textSize="16sp"
-                            android:textColor="#FFFFFF"
+                            android:textColor="@color/white"
                             android:fontFamily="sans-serif-medium" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -646,7 +646,7 @@
                     android:layout_marginBottom="10dp"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="0dp"
-                    app:cardBackgroundColor="#FFFFFF">
+                    app:cardBackgroundColor="@color/white">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -678,7 +678,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="Kurt Mulins"
                                     android:textSize="13sp"
-                                    android:textColor="#1A1A2E"
+                                    android:textColor="@color/text_primary"
                                     android:fontFamily="sans-serif-medium" />
                             </LinearLayout>
 
@@ -689,7 +689,7 @@
                                 android:layout_centerVertical="true"
                                 android:text="★★★★★"
                                 android:textSize="12sp"
-                                android:textColor="#FFC107" />
+                                android:textColor="@color/star_yellow" />
                         </RelativeLayout>
 
                         <TextView
@@ -697,7 +697,7 @@
                             android:layout_height="wrap_content"
                             android:text="Fue un poco malo todo pero tulla típica del establecimiento. No aceptar personas/fn"
                             android:textSize="12sp"
-                            android:textColor="#6B6B6B"
+                            android:textColor="@color/text_secondary"
                             android:layout_marginTop="8dp" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -709,7 +709,7 @@
                     android:layout_marginBottom="10dp"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="0dp"
-                    app:cardBackgroundColor="#FFFFFF">
+                    app:cardBackgroundColor="@color/white">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -741,7 +741,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="Ray Stevenson"
                                     android:textSize="13sp"
-                                    android:textColor="#1A1A2E"
+                                    android:textColor="@color/text_primary"
                                     android:fontFamily="sans-serif-medium" />
                             </LinearLayout>
 
@@ -752,7 +752,7 @@
                                 android:layout_centerVertical="true"
                                 android:text="★★★★"
                                 android:textSize="12sp"
-                                android:textColor="#FFC107" />
+                                android:textColor="@color/star_yellow" />
                         </RelativeLayout>
 
                         <TextView
@@ -760,7 +760,7 @@
                             android:layout_height="wrap_content"
                             android:text="Fue un poco más viral. todo bien yo también tengo una duda si lo recomiendo relativo"
                             android:textSize="12sp"
-                            android:textColor="#6B6B6B"
+                            android:textColor="@color/text_secondary"
                             android:layout_marginTop="8dp" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -779,7 +779,7 @@
                         android:layout_height="44dp"
                         android:text="+"
                         android:textSize="22sp"
-                        android:textColor="#1A1A2E"
+                        android:textColor="@color/text_primary"
                         android:gravity="center"
                         android:background="@drawable/bg_circle_outline" />
 
@@ -788,7 +788,7 @@
                         android:layout_height="wrap_content"
                         android:text="Agregar Comentario"
                         android:textSize="12sp"
-                        android:textColor="#9E9E9E"
+                        android:textColor="@color/text_medium"
                         android:layout_marginTop="6dp" />
                 </LinearLayout>
 
@@ -801,7 +801,7 @@
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:layout_gravity="bottom"
-        android:background="#FFFFFF"
+        android:background="@color/white"
         android:gravity="center"
         android:paddingStart="16dp"
         android:paddingEnd="16dp">
@@ -812,7 +812,7 @@
             android:layout_height="44dp"
             android:text="Separar Inmueble"
             android:textSize="15sp"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/white"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:background="@drawable/bg_btn_rentar" />

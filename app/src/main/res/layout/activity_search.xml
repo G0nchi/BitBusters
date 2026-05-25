@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
+    android:fitsSystemWindows="true"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F0F4F8">
+    android:background="@color/neutral_canvas">
 
     <!-- Top Bar -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="#F0F4F8"
+        android:background="@color/neutral_canvas"
         android:paddingStart="16dp"
         android:paddingEnd="16dp">
 
@@ -21,7 +22,7 @@
             android:layout_height="36dp"
             android:layout_centerVertical="true"
             android:layout_alignParentStart="true"
-            android:src="@android:drawable/ic_menu_revert"
+            android:src="@drawable/ic_arrow_back"
             android:background="@drawable/bg_circle_outline"
             android:contentDescription="Volver" />
 
@@ -31,7 +32,7 @@
             android:layout_centerInParent="true"
             android:text="Buscar resultados"
             android:textSize="16sp"
-            android:textColor="#1A1A2E"
+            android:textColor="@color/text_primary"
             android:fontFamily="sans-serif-medium" />
 
         <ImageButton
@@ -40,7 +41,7 @@
             android:layout_height="36dp"
             android:layout_centerVertical="true"
             android:layout_alignParentEnd="true"
-            android:src="@android:drawable/ic_menu_sort_by_size"
+            android:src="@drawable/ic_filter_16"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Filtros" />
     </RelativeLayout>
@@ -54,7 +55,7 @@
         android:layout_marginBottom="12dp"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
-        app:cardBackgroundColor="#FFFFFF">
+        app:cardBackgroundColor="@color/white">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -69,8 +70,8 @@
                 android:layout_toStartOf="@id/btnBuscar"
                 android:hint="Buscar..."
                 android:textSize="14sp"
-                android:textColorHint="#BDBDBD"
-                android:textColor="#1A1A2E"
+                android:textColorHint="@color/text_placeholder"
+                android:textColor="@color/text_primary"
                 android:background="@android:color/transparent"
                 android:inputType="text"
                 android:imeOptions="actionSearch"
@@ -82,7 +83,7 @@
                 android:layout_height="32dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:src="@android:drawable/ic_menu_search"
+                android:src="@drawable/ic_search"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Buscar" />
         </RelativeLayout>
@@ -103,9 +104,8 @@
             android:layout_centerVertical="true"
             android:text="Encontrado 0 respuestas"
             android:textSize="13sp"
-            android:textColor="#6B6B6B" />
+            android:textColor="@color/text_secondary" />
 
-        <!-- Íconos grid / lista -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -118,7 +118,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_marginEnd="4dp"
-                android:src="@android:drawable/ic_dialog_map"
+                android:src="@drawable/ic_location"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Vista grid" />
 
@@ -126,7 +126,7 @@
                 android:id="@+id/btnVistaLista"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:src="@android:drawable/ic_menu_agenda"
+                android:src="@drawable/ic_more_vert"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Vista lista" />
         </LinearLayout>
@@ -144,28 +144,25 @@
         android:paddingEnd="32dp"
         android:visibility="visible">
 
-        <!-- Ícono ! con halo verde -->
         <FrameLayout
             android:layout_width="160dp"
             android:layout_height="160dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="24dp">
 
-            <!-- Halo exterior -->
             <View
                 android:layout_width="160dp"
                 android:layout_height="160dp"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_halo_green" />
 
-            <!-- Círculo verde -->
             <TextView
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 android:layout_gravity="center"
                 android:text="!"
                 android:textSize="32sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/white"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:background="@drawable/bg_circle_green" />
@@ -176,7 +173,7 @@
             android:layout_height="wrap_content"
             android:text="Búsqueda no encontrada"
             android:textSize="18sp"
-            android:textColor="#1A1A2E"
+            android:textColor="@color/text_primary"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:layout_marginBottom="12dp" />
@@ -186,7 +183,7 @@
             android:layout_height="wrap_content"
             android:text="Lo sentimos, no encontramos las propiedades que busca. ¿Quizás haya habido un pequeño error ortográfico?"
             android:textSize="13sp"
-            android:textColor="#9E9E9E"
+            android:textColor="@color/text_medium"
             android:gravity="center"
             android:lineSpacingMultiplier="1.4" />
     </LinearLayout>

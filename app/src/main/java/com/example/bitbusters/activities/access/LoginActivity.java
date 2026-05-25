@@ -106,6 +106,10 @@ public class LoginActivity extends AppCompatActivity {
                 : "";
 
         if (SUPERADMIN_USER.equals(user) && SUPERADMIN_PASSWORD.equals(password)) {
+            PreferencesManager.guardarNombreSuperadmin(this, "Superadmin");
+            String fechaHoraSA = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                    .format(new Date());
+            PreferencesManager.guardarUltimoAccesoSuperadmin(this, fechaHoraSA);
             startActivity(new Intent(this, SuperadminControlCenterActivity.class));
             finish();
             return;

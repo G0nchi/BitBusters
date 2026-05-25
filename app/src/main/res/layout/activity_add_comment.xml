@@ -4,13 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F0F4F8">
+    android:background="@color/neutral_canvas">
 
     <!-- Top Bar -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="#F0F4F8"
+        android:background="@color/neutral_canvas"
         android:paddingStart="16dp"
         android:paddingEnd="16dp">
 
@@ -20,7 +20,7 @@
             android:layout_height="36dp"
             android:layout_centerVertical="true"
             android:layout_alignParentStart="true"
-            android:src="@android:drawable/ic_menu_revert"
+            android:src="@drawable/ic_arrow_back"
             android:background="@drawable/bg_circle_outline"
             android:contentDescription="Volver" />
 
@@ -30,7 +30,7 @@
             android:layout_centerInParent="true"
             android:text="Agrega un comentario"
             android:textSize="15sp"
-            android:textColor="#1A1A2E"
+            android:textColor="@color/text_primary"
             android:fontFamily="sans-serif-medium" />
     </RelativeLayout>
 
@@ -51,7 +51,7 @@
             android:layout_height="wrap_content"
             android:text="Hola, ¿Qué tal fue tu experiencia?"
             android:textSize="22sp"
-            android:textColor="#1A1A2E"
+            android:textColor="@color/text_primary"
             android:fontFamily="sans-serif-medium"
             android:layout_marginBottom="24dp" />
 
@@ -67,7 +67,7 @@
                 android:id="@+id/star1"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:src="@android:drawable/btn_star_big_off"
+                android:src="@drawable/ic_star_filled"
                 android:background="@android:color/transparent"
                 android:contentDescription="1 estrella" />
 
@@ -75,7 +75,7 @@
                 android:id="@+id/star2"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:src="@android:drawable/btn_star_big_off"
+                android:src="@drawable/ic_star_filled"
                 android:background="@android:color/transparent"
                 android:contentDescription="2 estrellas" />
 
@@ -83,7 +83,7 @@
                 android:id="@+id/star3"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:src="@android:drawable/btn_star_big_off"
+                android:src="@drawable/ic_star_filled"
                 android:background="@android:color/transparent"
                 android:contentDescription="3 estrellas" />
 
@@ -91,7 +91,7 @@
                 android:id="@+id/star4"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:src="@android:drawable/btn_star_big_off"
+                android:src="@drawable/ic_star_filled"
                 android:background="@android:color/transparent"
                 android:contentDescription="4 estrellas" />
 
@@ -99,7 +99,7 @@
                 android:id="@+id/star5"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:src="@android:drawable/btn_star_big_off"
+                android:src="@drawable/ic_star_filled"
                 android:background="@android:color/transparent"
                 android:contentDescription="5 estrellas" />
 
@@ -110,7 +110,7 @@
                 android:layout_height="wrap_content"
                 android:text="0.0"
                 android:textSize="16sp"
-                android:textColor="#1A1A2E"
+                android:textColor="@color/text_primary"
                 android:fontFamily="sans-serif-medium"
                 android:layout_marginStart="10dp" />
         </LinearLayout>
@@ -122,7 +122,7 @@
             android:layout_height="120dp"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
-            app:cardBackgroundColor="#FFFFFF">
+            app:cardBackgroundColor="@color/white">
 
             <EditText
                 android:id="@+id/etComentario"
@@ -130,8 +130,8 @@
                 android:layout_height="match_parent"
                 android:hint="Escribe tu experiencia aquí (Opcional)"
                 android:textSize="13sp"
-                android:textColorHint="#BDBDBD"
-                android:textColor="#1A1A2E"
+                android:textColorHint="@color/text_placeholder"
+                android:textColor="@color/text_primary"
                 android:background="@android:color/transparent"
                 android:padding="14dp"
                 android:gravity="top"
@@ -157,7 +157,7 @@
             android:layout_height="50dp"
             android:text="Guardar"
             android:textSize="15sp"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/white"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:background="@drawable/bg_btn_guardar" />

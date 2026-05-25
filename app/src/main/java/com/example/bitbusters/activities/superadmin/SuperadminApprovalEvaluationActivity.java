@@ -1,5 +1,6 @@
 package com.example.bitbusters.activities.superadmin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -11,6 +12,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bitbusters.R;
+import com.example.bitbusters.utils.NotificationHelper;
 
 public class SuperadminApprovalEvaluationActivity extends AppCompatActivity {
 
@@ -19,6 +21,8 @@ public class SuperadminApprovalEvaluationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ImmersiveMode.apply(this);
         setContentView(R.layout.activity_superadmin_approval_evaluation);
+
+        NotificationHelper.crearCanal(this);
 
         bindInsets();
         setupClicks();
@@ -45,12 +49,32 @@ public class SuperadminApprovalEvaluationActivity extends AppCompatActivity {
             backButton.setOnClickListener(v -> finish());
         }
         if (rejectButton != null) {
-            rejectButton.setOnClickListener(v ->
-                    Toast.makeText(this, getString(R.string.sa_reject), Toast.LENGTH_SHORT).show());
+            rejectButton.setOnClickListener(v -> {
+                Toast.makeText(this, getString(R.string.sa_reject), Toast.LENGTH_SHORT).show();
+                Intent destino = new Intent(this, SuperadminApprovalsActivity.class);
+                NotificationHelper.lanzarNotificacion(
+                        this,
+                        "Solicitud rechazada",
+                        "La solicitud de aprobación fue rechazada",
+                        NotificationHelper.NOTIF_APROBACION_RECHAZADA,
+                        destino
+                );
+                finish();
+            });
         }
         if (approveButton != null) {
-            approveButton.setOnClickListener(v ->
-                    Toast.makeText(this, getString(R.string.sa_approve), Toast.LENGTH_SHORT).show());
+            approveButton.setOnClickListener(v -> {
+                Toast.makeText(this, getString(R.string.sa_approve), Toast.LENGTH_SHORT).show();
+                Intent destino = new Intent(this, SuperadminApprovalsActivity.class);
+                NotificationHelper.lanzarNotificacion(
+                        this,
+                        "Solicitud aprobada",
+                        "La solicitud de aprobación fue aceptada correctamente",
+                        NotificationHelper.NOTIF_APROBACION_ACEPTADA,
+                        destino
+                );
+                finish();
+            });
         }
     }
 }
