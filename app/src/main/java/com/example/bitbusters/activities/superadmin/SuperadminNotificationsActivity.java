@@ -19,10 +19,15 @@ import com.example.bitbusters.adapters.SuperadminNotificationsAdapter.NotifEntry
 import com.example.bitbusters.utils.PreferencesManager;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class SuperadminNotificationsActivity extends AppCompatActivity {
+
+    // Ambos sets en memoria — se resetean al reiniciar la app
+    private static final Set<String> leidasEnSesion     = new HashSet<>();
+    private static final Set<String> descartadasEnSesion = new HashSet<>();
 
     private SuperadminNotificationsAdapter adapter;
     private List<Entry> entries;
@@ -44,11 +49,11 @@ public class SuperadminNotificationsActivity extends AppCompatActivity {
         adapter = new SuperadminNotificationsAdapter(
                 entries,
                 item -> {
-                    PreferencesManager.marcarNotificacionLeidaSA(this, item.id);
+                    leidasEnSesion.add(item.id);
                     startActivity(new Intent(this, item.destination));
                 },
                 () -> {
-                    PreferencesManager.eliminarTodasLeidasSA(this);
+                    leidasEnSesion.clear();
                     rebuildList();
                 }
         );
@@ -91,9 +96,7 @@ public class SuperadminNotificationsActivity extends AppCompatActivity {
                 int pos = vh.getAdapterPosition();
                 Entry entry = entries.get(pos);
                 if (entry instanceof NotifEntry) {
-                    String id = ((NotifEntry) entry).item.id;
-                    PreferencesManager.descartarNotificacionSA(
-                            SuperadminNotificationsActivity.this, id);
+                    descartadasEnSesion.add(((NotifEntry) entry).item.id);
                 }
                 adapter.removeEntryAt(pos);
                 cleanOrphanHeaders();
@@ -129,8 +132,8 @@ public class SuperadminNotificationsActivity extends AppCompatActivity {
     // ── Data ────────────────────────────────────────────────────────────────
 
     private List<Entry> buildEntries() {
-        Set<String> descartadas = PreferencesManager.obtenerNotificacionesDescartadasSA(this);
-        Set<String> leidas      = PreferencesManager.obtenerNotificacionesLeidasSA(this);
+        Set<String> descartadas = descartadasEnSesion;
+        Set<String> leidas      = leidasEnSesion;
 
         List<Item> unread = new ArrayList<>();
         List<Item> read   = new ArrayList<>();
