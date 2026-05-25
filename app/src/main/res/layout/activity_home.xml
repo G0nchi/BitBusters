@@ -4,9 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F0F4F8">
+    android:background="@color/neutral_canvas">
 
-    <!-- Contenido principal con scroll -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -17,12 +16,12 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Header azul degradado -->
+            <!-- Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="#1A2E44"
+                android:background="@color/brand_deep_blue"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 android:paddingTop="16dp"
@@ -39,13 +38,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="📍"
-                            android:textSize="14sp" />
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_location_pin"
+                            android:tint="@color/white" />
 
                         <TextView
                             android:id="@+id/tvUbicacion"
@@ -53,16 +53,16 @@
                             android:layout_height="wrap_content"
                             android:text="Lima, Perú"
                             android:textSize="14sp"
-                            android:textColor="#FFFFFF"
+                            android:textColor="@color/white"
                             android:layout_marginStart="4dp"
                             android:fontFamily="sans-serif-medium" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text=" ▾"
-                            android:textSize="12sp"
-                            android:textColor="#B0BEC5" />
+                        <ImageView
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:layout_marginStart="4dp"
+                            android:src="@drawable/ic_chevron_down_16"
+                            android:tint="@color/slate_300" />
                     </LinearLayout>
 
                     <!-- Íconos derecha: notificación + avatar -->
@@ -77,7 +77,8 @@
                             android:id="@+id/btnNotificaciones"
                             android:layout_width="36dp"
                             android:layout_height="36dp"
-                            android:src="@android:drawable/ic_dialog_info"
+                            android:src="@drawable/ic_notifications"
+                            android:tint="@color/white"
                             android:background="@drawable/bg_circle_white_alpha"
                             android:layout_marginEnd="10dp"
                             android:contentDescription="Notificaciones" />
@@ -86,18 +87,18 @@
                             android:id="@+id/imgPerfil"
                             android:layout_width="36dp"
                             android:layout_height="36dp"
-                            android:src="@android:drawable/ic_menu_myplaces" />
+                            android:src="@drawable/ic_person_20" />
                     </LinearLayout>
                 </RelativeLayout>
 
-                <!-- Saludo: texto actualizado dinámicamente desde SharedPreferences -->
+                <!-- Saludo -->
                 <TextView
                     android:id="@+id/tvSaludoNombre"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="¡Hola, Jonathan!"
                     android:textSize="22sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/white"
                     android:fontFamily="sans-serif-medium"
                     android:layout_marginTop="16dp" />
 
@@ -106,11 +107,11 @@
                     android:layout_height="wrap_content"
                     android:text="Encuentra tu próximo hogar"
                     android:textSize="16sp"
-                    android:textColor="#B0BEC5"
+                    android:textColor="@color/overlay_white_30"
                     android:layout_marginTop="2dp"
                     android:layout_marginBottom="16dp" />
 
-                <!-- Filtros: Todos / Tipo 1 / Tipo 2 / Tipo 3 -->
+                <!-- Filtros -->
                 <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -127,7 +128,7 @@
                             android:layout_height="36dp"
                             android:text="Todos"
                             android:textSize="13sp"
-                            android:textColor="#FFFFFF"
+                            android:textColor="@color/white"
                             android:gravity="center"
                             android:paddingStart="18dp"
                             android:paddingEnd="18dp"
@@ -140,7 +141,7 @@
                             android:layout_height="36dp"
                             android:text="Tipo 1"
                             android:textSize="13sp"
-                            android:textColor="#B0BEC5"
+                            android:textColor="@color/slate_300"
                             android:gravity="center"
                             android:paddingStart="18dp"
                             android:paddingEnd="18dp"
@@ -153,7 +154,7 @@
                             android:layout_height="36dp"
                             android:text="Tipo 2"
                             android:textSize="13sp"
-                            android:textColor="#B0BEC5"
+                            android:textColor="@color/slate_300"
                             android:gravity="center"
                             android:paddingStart="18dp"
                             android:paddingEnd="18dp"
@@ -166,7 +167,7 @@
                             android:layout_height="36dp"
                             android:text="Tipo 3"
                             android:textSize="13sp"
-                            android:textColor="#B0BEC5"
+                            android:textColor="@color/slate_300"
                             android:gravity="center"
                             android:paddingStart="18dp"
                             android:paddingEnd="18dp"
@@ -184,7 +185,7 @@
                 android:layout_marginTop="-20dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
-                app:cardBackgroundColor="#FFFFFF">
+                app:cardBackgroundColor="@color/white">
 
                 <RelativeLayout
                     android:layout_width="match_parent"
@@ -198,28 +199,20 @@
                         android:layout_height="20dp"
                         android:layout_centerVertical="true"
                         android:layout_alignParentStart="true"
-                        android:src="@android:drawable/ic_menu_search" />
+                        android:src="@drawable/ic_search"
+                        android:tint="@color/text_medium" />
 
                     <EditText
                         android:id="@+id/etBuscar"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_toEndOf="@id/icSearch"
-                        android:layout_toStartOf="@id/icMic"
                         android:hint="Buscar por distrito..."
                         android:textSize="13sp"
-                        android:textColorHint="#BDBDBD"
+                        android:textColorHint="@color/text_placeholder"
                         android:background="@android:color/transparent"
                         android:paddingStart="8dp"
                         android:inputType="text" />
-
-                    <ImageView
-                        android:id="@+id/icMic"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_centerVertical="true"
-                        android:layout_alignParentEnd="true"
-                        android:src="@android:drawable/ic_btn_speak_now" />
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
 
@@ -237,7 +230,7 @@
                     android:layout_height="wrap_content"
                     android:text="Destacados"
                     android:textSize="16sp"
-                    android:textColor="#1A1A2E"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="sans-serif-medium" />
 
                 <TextView
@@ -247,7 +240,7 @@
                     android:layout_alignParentEnd="true"
                     android:text="ver todos"
                     android:textSize="13sp"
-                    android:textColor="#1A7EBD" />
+                    android:textColor="@color/brand_deep_blue" />
             </RelativeLayout>
 
             <!-- Scroll horizontal de destacados -->
@@ -271,7 +264,7 @@
                         android:layout_marginEnd="12dp"
                         app:cardCornerRadius="14dp"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        app:cardBackgroundColor="@color/white">
 
                         <RelativeLayout
                             android:layout_width="match_parent"
@@ -284,31 +277,29 @@
                                 android:src="@android:drawable/ic_menu_gallery"
                                 android:scaleType="centerCrop" />
 
-                            <!-- Badge tipo -->
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="8dp"
                                 android:text="Apartment"
                                 android:textSize="10sp"
-                                android:textColor="#FFFFFF"
+                                android:textColor="@color/white"
                                 android:paddingStart="6dp"
                                 android:paddingEnd="6dp"
                                 android:paddingTop="2dp"
                                 android:paddingBottom="2dp"
                                 android:background="@drawable/bg_badge_dark" />
 
-                            <!-- Corazón favorito -->
                             <ImageButton
                                 android:layout_width="28dp"
                                 android:layout_height="28dp"
                                 android:layout_alignParentEnd="true"
                                 android:layout_margin="8dp"
-                                android:src="@android:drawable/btn_star_big_on"
+                                android:src="@drawable/ic_star_filled"
+                                android:tint="@color/star_yellow"
                                 android:background="@android:color/transparent"
                                 android:contentDescription="Favorito" />
 
-                            <!-- Info abajo -->
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -321,27 +312,41 @@
                                     android:layout_height="wrap_content"
                                     android:text="Catalina Ventor"
                                     android:textSize="13sp"
-                                    android:textColor="#1A1A2E"
+                                    android:textColor="@color/text_primary"
                                     android:fontFamily="sans-serif-medium" />
 
                                 <LinearLayout
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:orientation="horizontal">
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <ImageView
+                                        android:layout_width="12dp"
+                                        android:layout_height="12dp"
+                                        android:src="@drawable/ic_star_filled"
+                                        android:tint="@color/star_yellow" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="★ 4.9"
+                                        android:text=" 4.9"
                                         android:textSize="11sp"
-                                        android:textColor="#FFC107" />
+                                        android:textColor="@color/star_yellow" />
+
+                                    <ImageView
+                                        android:layout_width="10dp"
+                                        android:layout_height="10dp"
+                                        android:layout_marginStart="6dp"
+                                        android:src="@drawable/ic_location_pin"
+                                        android:tint="@color/text_medium" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="  📍 Santa Catalina, Lima"
+                                        android:text=" Santa Catalina, Lima"
                                         android:textSize="10sp"
-                                        android:textColor="#9E9E9E" />
+                                        android:textColor="@color/text_medium" />
                                 </LinearLayout>
 
                                 <TextView
@@ -349,7 +354,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="S/ 280,000"
                                     android:textSize="13sp"
-                                    android:textColor="#1A1A2E"
+                                    android:textColor="@color/text_primary"
                                     android:fontFamily="sans-serif-medium"
                                     android:layout_marginTop="2dp" />
                             </LinearLayout>
@@ -364,7 +369,7 @@
                         android:layout_marginEnd="12dp"
                         app:cardCornerRadius="14dp"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        app:cardBackgroundColor="@color/white">
 
                         <RelativeLayout
                             android:layout_width="match_parent"
@@ -383,7 +388,7 @@
                                 android:layout_margin="8dp"
                                 android:text="Villa"
                                 android:textSize="10sp"
-                                android:textColor="#FFFFFF"
+                                android:textColor="@color/white"
                                 android:paddingStart="6dp"
                                 android:paddingEnd="6dp"
                                 android:paddingTop="2dp"
@@ -395,7 +400,8 @@
                                 android:layout_height="28dp"
                                 android:layout_alignParentEnd="true"
                                 android:layout_margin="8dp"
-                                android:src="@android:drawable/btn_star_big_on"
+                                android:src="@drawable/ic_star_filled"
+                                android:tint="@color/star_yellow"
                                 android:background="@android:color/transparent"
                                 android:contentDescription="Favorito" />
 
@@ -411,27 +417,41 @@
                                     android:layout_height="wrap_content"
                                     android:text="Residencial Park"
                                     android:textSize="13sp"
-                                    android:textColor="#1A1A2E"
+                                    android:textColor="@color/text_primary"
                                     android:fontFamily="sans-serif-medium" />
 
                                 <LinearLayout
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:orientation="horizontal">
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <ImageView
+                                        android:layout_width="12dp"
+                                        android:layout_height="12dp"
+                                        android:src="@drawable/ic_star_filled"
+                                        android:tint="@color/star_yellow" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="★ 4.8"
+                                        android:text=" 4.8"
                                         android:textSize="11sp"
-                                        android:textColor="#FFC107" />
+                                        android:textColor="@color/star_yellow" />
+
+                                    <ImageView
+                                        android:layout_width="10dp"
+                                        android:layout_height="10dp"
+                                        android:layout_marginStart="6dp"
+                                        android:src="@drawable/ic_location_pin"
+                                        android:tint="@color/text_medium" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="  📍 Miraflores, Lima"
+                                        android:text=" Miraflores, Lima"
                                         android:textSize="10sp"
-                                        android:textColor="#9E9E9E" />
+                                        android:textColor="@color/text_medium" />
                                 </LinearLayout>
 
                                 <TextView
@@ -439,7 +459,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="S/ 320,000"
                                     android:textSize="13sp"
-                                    android:textColor="#1A1A2E"
+                                    android:textColor="@color/text_primary"
                                     android:fontFamily="sans-serif-medium"
                                     android:layout_marginTop="2dp" />
                             </LinearLayout>
@@ -455,7 +475,7 @@
                 android:layout_height="wrap_content"
                 android:text="Proyectos Guardados"
                 android:textSize="16sp"
-                android:textColor="#1A1A2E"
+                android:textColor="@color/text_primary"
                 android:fontFamily="sans-serif-medium"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="20dp"
@@ -480,7 +500,7 @@
                     android:layout_marginBottom="12dp"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="0dp"
-                    app:cardBackgroundColor="#FFFFFF">
+                    app:cardBackgroundColor="@color/white">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -505,7 +525,7 @@
                                 android:layout_margin="8dp"
                                 android:text="S/ 195,000"
                                 android:textSize="12sp"
-                                android:textColor="#FFFFFF"
+                                android:textColor="@color/white"
                                 android:fontFamily="sans-serif-medium"
                                 android:paddingStart="6dp"
                                 android:paddingEnd="6dp"
@@ -518,7 +538,8 @@
                                 android:layout_height="26dp"
                                 android:layout_gravity="top|end"
                                 android:layout_margin="6dp"
-                                android:src="@android:drawable/btn_star_big_on"
+                                android:src="@drawable/ic_star_filled"
+                                android:tint="@color/star_yellow"
                                 android:background="@android:color/transparent"
                                 android:contentDescription="Guardado" />
                         </FrameLayout>
@@ -534,28 +555,35 @@
                                 android:layout_height="wrap_content"
                                 android:text="Torre Miramar"
                                 android:textSize="13sp"
-                                android:textColor="#1A1A2E"
+                                android:textColor="@color/text_primary"
                                 android:fontFamily="sans-serif-medium" />
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
+                                android:gravity="center_vertical"
                                 android:layout_marginTop="2dp">
+
+                                <ImageView
+                                    android:layout_width="11dp"
+                                    android:layout_height="11dp"
+                                    android:src="@drawable/ic_star_filled"
+                                    android:tint="@color/star_yellow" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="★ 4.9"
+                                    android:text=" 4.9"
                                     android:textSize="11sp"
-                                    android:textColor="#FFC107" />
+                                    android:textColor="@color/star_yellow" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text=" Miraflores"
                                     android:textSize="11sp"
-                                    android:textColor="#9E9E9E" />
+                                    android:textColor="@color/text_medium" />
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
@@ -571,7 +599,7 @@
                     android:layout_marginBottom="12dp"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="0dp"
-                    app:cardBackgroundColor="#FFFFFF">
+                    app:cardBackgroundColor="@color/white">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -596,7 +624,7 @@
                                 android:layout_margin="8dp"
                                 android:text="S/ 248,000"
                                 android:textSize="12sp"
-                                android:textColor="#FFFFFF"
+                                android:textColor="@color/white"
                                 android:fontFamily="sans-serif-medium"
                                 android:paddingStart="6dp"
                                 android:paddingEnd="6dp"
@@ -609,7 +637,8 @@
                                 android:layout_height="26dp"
                                 android:layout_gravity="top|end"
                                 android:layout_margin="6dp"
-                                android:src="@android:drawable/btn_star_big_on"
+                                android:src="@drawable/ic_star_filled"
+                                android:tint="@color/star_yellow"
                                 android:background="@android:color/transparent"
                                 android:contentDescription="Guardado" />
                         </FrameLayout>
@@ -625,28 +654,35 @@
                                 android:layout_height="wrap_content"
                                 android:text="Residencial El Park"
                                 android:textSize="13sp"
-                                android:textColor="#1A1A2E"
+                                android:textColor="@color/text_primary"
                                 android:fontFamily="sans-serif-medium" />
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
+                                android:gravity="center_vertical"
                                 android:layout_marginTop="2dp">
+
+                                <ImageView
+                                    android:layout_width="11dp"
+                                    android:layout_height="11dp"
+                                    android:src="@drawable/ic_star_filled"
+                                    android:tint="@color/star_yellow" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="★ 4.8"
+                                    android:text=" 4.8"
                                     android:textSize="11sp"
-                                    android:textColor="#FFC107" />
+                                    android:textColor="@color/star_yellow" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text=" San Miguel"
                                     android:textSize="11sp"
-                                    android:textColor="#9E9E9E" />
+                                    android:textColor="@color/text_medium" />
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
@@ -662,7 +698,7 @@
                     android:layout_marginBottom="12dp"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="0dp"
-                    app:cardBackgroundColor="#FFFFFF">
+                    app:cardBackgroundColor="@color/white">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -687,7 +723,7 @@
                                 android:layout_margin="8dp"
                                 android:text="S/ 220,000"
                                 android:textSize="12sp"
-                                android:textColor="#FFFFFF"
+                                android:textColor="@color/white"
                                 android:fontFamily="sans-serif-medium"
                                 android:paddingStart="6dp"
                                 android:paddingEnd="6dp"
@@ -700,7 +736,8 @@
                                 android:layout_height="26dp"
                                 android:layout_gravity="top|end"
                                 android:layout_margin="6dp"
-                                android:src="@android:drawable/btn_star_big_off"
+                                android:src="@drawable/ic_star_filled"
+                                android:tint="@color/text_medium"
                                 android:background="@android:color/transparent"
                                 android:contentDescription="Guardado" />
                         </FrameLayout>
@@ -716,28 +753,35 @@
                                 android:layout_height="wrap_content"
                                 android:text="Condominio Las Lomas"
                                 android:textSize="13sp"
-                                android:textColor="#1A1A2E"
+                                android:textColor="@color/text_primary"
                                 android:fontFamily="sans-serif-medium" />
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
+                                android:gravity="center_vertical"
                                 android:layout_marginTop="2dp">
+
+                                <ImageView
+                                    android:layout_width="11dp"
+                                    android:layout_height="11dp"
+                                    android:src="@drawable/ic_star_filled"
+                                    android:tint="@color/star_yellow" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="★ 4.7"
+                                    android:text=" 4.7"
                                     android:textSize="11sp"
-                                    android:textColor="#FFC107" />
+                                    android:textColor="@color/star_yellow" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text=" Jakarta"
                                     android:textSize="11sp"
-                                    android:textColor="#9E9E9E" />
+                                    android:textColor="@color/text_medium" />
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
@@ -753,7 +797,7 @@
                     android:layout_marginBottom="12dp"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="0dp"
-                    app:cardBackgroundColor="#FFFFFF">
+                    app:cardBackgroundColor="@color/white">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -778,7 +822,7 @@
                                 android:layout_margin="8dp"
                                 android:text="S/ 280,000"
                                 android:textSize="12sp"
-                                android:textColor="#FFFFFF"
+                                android:textColor="@color/white"
                                 android:fontFamily="sans-serif-medium"
                                 android:paddingStart="6dp"
                                 android:paddingEnd="6dp"
@@ -791,7 +835,8 @@
                                 android:layout_height="26dp"
                                 android:layout_gravity="top|end"
                                 android:layout_margin="6dp"
-                                android:src="@android:drawable/btn_star_big_off"
+                                android:src="@drawable/ic_star_filled"
+                                android:tint="@color/text_medium"
                                 android:background="@android:color/transparent"
                                 android:contentDescription="Guardado" />
                         </FrameLayout>
@@ -807,28 +852,35 @@
                                 android:layout_height="wrap_content"
                                 android:text="Catalina Sky"
                                 android:textSize="13sp"
-                                android:textColor="#1A1A2E"
+                                android:textColor="@color/text_primary"
                                 android:fontFamily="sans-serif-medium" />
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
+                                android:gravity="center_vertical"
                                 android:layout_marginTop="2dp">
+
+                                <ImageView
+                                    android:layout_width="11dp"
+                                    android:layout_height="11dp"
+                                    android:src="@drawable/ic_star_filled"
+                                    android:tint="@color/star_yellow" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="★ 4.9"
+                                    android:text=" 4.9"
                                     android:textSize="11sp"
-                                    android:textColor="#FFC107" />
+                                    android:textColor="@color/star_yellow" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text=" Jakarta"
                                     android:textSize="11sp"
-                                    android:textColor="#9E9E9E" />
+                                    android:textColor="@color/text_medium" />
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
@@ -850,11 +902,10 @@
                     android:layout_height="wrap_content"
                     android:text="Todos los Proyectos"
                     android:textSize="16sp"
-                    android:textColor="#1A1A2E"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="sans-serif-medium" />
             </RelativeLayout>
 
-            <!-- RecyclerView con listado de proyectos con data estática -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvProyectos"
                 android:layout_width="match_parent"
@@ -871,7 +922,7 @@
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:layout_gravity="bottom"
-        android:background="#FFFFFF"
+        android:background="@color/white"
         app:menu="@menu/menu_bottom_nav"
         app:itemIconTint="@drawable/selector_bottom_nav"
         app:itemTextColor="@drawable/selector_bottom_nav"

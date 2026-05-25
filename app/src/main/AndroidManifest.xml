@@ -23,15 +23,21 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="TU_API_KEY_AQUI" />
 
-        <!-- Login / Launcher -->
+        <!-- Splash / Launcher -->
         <activity
-            android:name=".activities.access.LoginActivity"
-            android:exported="true">
+            android:name=".activities.access.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.BitBusters">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Login -->
+        <activity
+            android:name=".activities.access.LoginActivity"
+            android:exported="false" />
 
         <!-- Access / Auth -->
         <activity android:name=".activities.access.MainActivity" android:exported="false" />

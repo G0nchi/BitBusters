@@ -5,12 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F0F4F8">
+    android:background="@color/neutral_canvas">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="#F0F4F8"
+        android:background="@color/neutral_canvas"
         android:paddingStart="16dp"
         android:paddingEnd="16dp">
 
@@ -20,7 +20,7 @@
             android:layout_height="36dp"
             android:layout_centerVertical="true"
             android:layout_alignParentStart="true"
-            android:src="@android:drawable/ic_menu_revert"
+            android:src="@drawable/ic_arrow_back"
             android:background="@drawable/bg_circle_outline"
             android:contentDescription="Volver" />
 
@@ -30,7 +30,7 @@
             android:layout_centerInParent="true"
             android:text="Mis Citas"
             android:textSize="18sp"
-            android:textColor="#1A1A2E"
+            android:textColor="@color/text_primary"
             android:fontFamily="sans-serif-medium" />
     </RelativeLayout>
 
@@ -40,7 +40,7 @@
         android:orientation="horizontal"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:background="#F0F4F8">
+        android:background="@color/neutral_canvas">
 
         <TextView
             android:id="@+id/tabTodas"
@@ -48,7 +48,7 @@
             android:layout_height="match_parent"
             android:text="Todas"
             android:textSize="14sp"
-            android:textColor="#1A7EBD"
+            android:textColor="@color/brand_deep_blue"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:paddingEnd="16dp"
@@ -60,7 +60,7 @@
             android:layout_height="match_parent"
             android:text="Proximas"
             android:textSize="14sp"
-            android:textColor="#9E9E9E"
+            android:textColor="@color/text_medium"
             android:gravity="center"
             android:paddingEnd="16dp" />
 
@@ -70,7 +70,7 @@
             android:layout_height="match_parent"
             android:text="Historial"
             android:textSize="14sp"
-            android:textColor="#9E9E9E"
+            android:textColor="@color/text_medium"
             android:gravity="center" />
     </LinearLayout>
 
@@ -89,7 +89,7 @@
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
         android:layout_height="64dp"
-        android:background="#FFFFFF"
+        android:background="@color/white"
         app:menu="@menu/menu_bottom_nav"
         app:itemIconTint="@drawable/selector_bottom_nav"
         app:itemTextColor="@drawable/selector_bottom_nav"
