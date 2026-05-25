@@ -2,22 +2,25 @@ package com.example.bitbusters.activities.admin;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
-import com.example.bitbusters.R;
-import com.google.android.material.card.MaterialCardView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.bitbusters.adapters.AdminProyectoAdapter;
-import com.example.bitbusters.models.Proyecto;
-import com.example.bitbusters.data.ProjectSessionData;
+import com.example.bitbusters.R;
+import com.example.bitbusters.adapters.AdminProyectoListAdapter;
+import com.example.bitbusters.data.AdminProyectosRepository;
+import com.example.bitbusters.models.AdminProyecto;
 
+/**
+ * Lista de proyectos del Administrador.
+ * Lee de AdminProyectosRepository (fuente única de verdad) en onResume()
+ * para reflejar siempre los proyectos más recientes.
+ */
 public class AdminProyectosActivity extends AdminMainActivity {
 
-    private RecyclerView rvProyectos;
-    private AdminProyectoAdapter adapter;
+    private RecyclerView          rvProyectos;
+    private AdminProyectoListAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,27 +32,45 @@ public class AdminProyectosActivity extends AdminMainActivity {
         setupRecyclerView();
     }
 
+    /**
+     * Se llama cada vez que la Activity vuelve al frente (ej: al regresar de
+     * AdminCrearProyectoActivity). Refresca la lista con los datos más actuales.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (adapter != null) {
+            adapter.setData(AdminProyectosRepository.getTodos());
+        }
+    }
+
     private void setupCreateProjectButton() {
         Button btnCreateProject = findViewById(R.id.btnCreateProject);
         if (btnCreateProject != null) {
-            btnCreateProject.setOnClickListener(v -> {
-                startActivity(new Intent(AdminProyectosActivity.this, AdminCrearProyectoActivity.class));
-            });
+            btnCreateProject.setOnClickListener(v ->
+                    startActivity(new Intent(AdminProyectosActivity.this,
+                            AdminCrearProyectoActivity.class))
+            );
         }
     }
 
     private void setupRecyclerView() {
         rvProyectos = findViewById(R.id.rvProyectos);
-        if (rvProyectos != null) {
-            rvProyectos.setLayoutManager(new LinearLayoutManager(this));
-            adapter = new AdminProyectoAdapter(getProyectosList(), proyecto -> {
-                startActivity(new Intent(AdminProyectosActivity.this, AdminDetallesProyectoActivity.class));
-            });
-            rvProyectos.setAdapter(adapter);
-        }
-    }
+        if (rvProyectos == null) return;
 
-    private java.util.List<Proyecto> getProyectosList() {
-        return ProjectSessionData.getProyectos();
+        rvProyectos.setLayoutManager(new LinearLayoutManager(this));
+
+        // Usar AdminProyectoListAdapter con datos del repositorio
+        adapter = new AdminProyectoListAdapter(
+                AdminProyectosRepository.getTodos(),
+                proyecto -> {
+                    // Al tocar un proyecto → abrir detalle con su ID
+                    Intent intent = new Intent(AdminProyectosActivity.this,
+                            AdminDetallesProyectoActivity.class);
+                    intent.putExtra("proyecto_id", proyecto.getId());
+                    startActivity(intent);
+                }
+        );
+        rvProyectos.setAdapter(adapter);
     }
 }

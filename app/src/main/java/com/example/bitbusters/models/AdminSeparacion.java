@@ -23,4 +23,12 @@ public class AdminSeparacion {
     public String getFecha() { return fecha; }
     public String getCliente() { return cliente; }
     public String getEstado() { return estado; }
+
+    /**
+     * Actualiza el estado de la separación.
+     * Usado por SeparacionesRepository.actualizarEstado() al aprobar o rechazar.
+     *
+     * @param nuevoEstado "Pendiente", "Aprobada" o "Rechazada"
+     */
+    public void setEstado(String nuevoEstado) { this.estado = nuevoEstado; }
 }

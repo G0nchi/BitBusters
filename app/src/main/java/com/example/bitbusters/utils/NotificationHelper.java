@@ -15,17 +15,33 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.example.bitbusters.data.AdminNotificacionesRepository;
+import com.example.bitbusters.models.AdminNotificacion;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 /**
  * Helper centralizado para notificaciones locales (Lab 5).
- * Encapsula: creación de canal, solicitud de permiso y lanzamiento de notificaciones.
+ * Encapsula: creación de canales, solicitud de permiso y lanzamiento de notificaciones.
+ *
+ * Canales disponibles:
+ *   - bitbusters_channel       → notificaciones del cliente (canal original)
+ *   - bitbusters_admin_channel → notificaciones del administrador (Lab 5, Parte 2)
  */
 public class NotificationHelper {
 
-    // Canal único de la app
+    // ── Canal del cliente (original — no modificar) ─────────────────────────
     public static final String CHANNEL_ID    = "bitbusters_channel";
     private static final String CHANNEL_NAME = "Notificaciones BitBusters";
 
-    // IDs únicos para cada notificación del proyecto
+    // ── Canal del administrador (Lab 5, Parte 2) ────────────────────────────
+    /** ID del canal exclusivo para notificaciones del Administrador de Inmobiliaria. */
+    public static final String ADMIN_CHANNEL_ID    = "bitbusters_admin_channel";
+    private static final String ADMIN_CHANNEL_NAME = "Notificaciones Admin";
+
+    // ── IDs de notificaciones del cliente (originales) ──────────────────────
     public static final int NOTIF_CITA_CONFIRMADA = 1;
     public static final int NOTIF_SEPARACION       = 2;
     public static final int NOTIF_METODO_PAGO      = 3;
@@ -42,10 +58,12 @@ public class NotificationHelper {
     // Código de solicitud para el diálogo de permiso
     public static final int REQUEST_CODE_NOTIF = 101;
 
+    // ── Creación de canales ─────────────────────────────────────────────────
+
     /**
-     * Crea el canal de notificaciones con IMPORTANCE_HIGH.
+     * Crea el canal de notificaciones del CLIENTE con IMPORTANCE_HIGH.
      * Solo tiene efecto en Android 8.0+ (API 26+); es seguro llamarlo varias veces.
-     * Llamar desde onCreate() de cualquier Activity que necesite notificaciones.
+     * Llamar desde onCreate() de cualquier Activity del cliente que use notificaciones.
      */
     public static void crearCanal(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -63,8 +81,31 @@ public class NotificationHelper {
     }
 
     /**
+     * Crea el canal de notificaciones del ADMINISTRADOR con IMPORTANCE_HIGH.
+     * Separado del canal del cliente para permitir configuración independiente.
+     * Solo tiene efecto en Android 8.0+ (API 26+); es seguro llamarlo varias veces.
+     * Llamar desde onCreate() de AdminMainActivity (punto de entrada del admin).
+     */
+    public static void crearCanalAdmin(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel canal = new NotificationChannel(
+                    ADMIN_CHANNEL_ID,
+                    ADMIN_CHANNEL_NAME,
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            canal.setDescription("Canal de alertas del Administrador de Inmobiliaria");
+            NotificationManager manager = context.getSystemService(NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(canal);
+            }
+        }
+    }
+
+    // ── Solicitud de permiso ────────────────────────────────────────────────
+
+    /**
      * Solicita el permiso POST_NOTIFICATIONS en Android 13+ (API 33+).
-     * Llamar desde onCreate() de la Activity principal (HomeActivity).
+     * Llamar desde onCreate() de la Activity principal de cada rol.
      */
     public static void solicitarPermiso(Activity activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -79,14 +120,16 @@ public class NotificationHelper {
         }
     }
 
+    // ── Lanzamiento de notificaciones ───────────────────────────────────────
+
     /**
-     * Lanza una notificación local reutilizable.
+     * Lanza una notificación local usando el canal del CLIENTE.
      *
-     * @param context  contexto de la Activity que lanza la notificación
-     * @param titulo   título visible en la barra de notificaciones
-     * @param mensaje  cuerpo del mensaje de la notificación
-     * @param notifId  ID único para identificar/actualizar esta notificación
-     * @param destino  Intent de la Activity a abrir al tocar la notificación
+     * @param context  Contexto de la Activity que lanza la notificación.
+     * @param titulo   Título visible en la barra de notificaciones.
+     * @param mensaje  Cuerpo del mensaje de la notificación.
+     * @param notifId  ID único para identificar/actualizar esta notificación.
+     * @param destino  Intent de la Activity a abrir al tocar la notificación.
      */
     public static void lanzarNotificacion(Context context, String titulo, String mensaje,
                                           int notifId, Intent destino) {

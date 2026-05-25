@@ -10,42 +10,59 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
-import com.example.bitbusters.models.Notification;
+import com.example.bitbusters.models.AdminNotificacion;
 
 import java.util.List;
 
-public class AdminNotificationsAdapter extends RecyclerView.Adapter<AdminNotificationsAdapter.AdminNotificationViewHolder> {
+/**
+ * Adapter para el RecyclerView de AdminNotificacionesActivity.
+ * Muestra la lista de notificaciones lanzadas por el Administrador en esta sesión.
+ * Usa el modelo AdminNotificacion (Parte 5 — Lab 5) en lugar del genérico Notification.
+ */
+public class AdminNotificationsAdapter
+        extends RecyclerView.Adapter<AdminNotificationsAdapter.AdminNotificationViewHolder> {
 
-    private List<Notification> notificationList;
-    private OnNotificationClickListener listener;
+    private List<AdminNotificacion> notificationList;
+    private final OnNotificationClickListener listener;
 
+    /** Interfaz de callback para el click en una notificación. */
     public interface OnNotificationClickListener {
-        void onNotificationClick(Notification notification);
+        void onNotificationClick(AdminNotificacion notificacion);
     }
 
-    public AdminNotificationsAdapter(List<Notification> notificationList, OnNotificationClickListener listener) {
+    public AdminNotificationsAdapter(List<AdminNotificacion> notificationList,
+                                     OnNotificationClickListener listener) {
         this.notificationList = notificationList;
-        this.listener = listener;
+        this.listener         = listener;
     }
 
     @NonNull
     @Override
     public AdminNotificationViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_notification, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_notification, parent, false);
         return new AdminNotificationViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull AdminNotificationViewHolder holder, int position) {
-        Notification notification = notificationList.get(position);
+        AdminNotificacion notif = notificationList.get(position);
 
-        holder.tvName.setText(notification.getName());
-        holder.tvMessage.setText(notification.getMessage());
-        holder.tvTime.setText(notification.getTime());
+        // titulo → campo "nombre" del layout item_notification
+        holder.tvName.setText(notif.getTitulo());
+        // mensaje → campo "message"
+        holder.tvMessage.setText(notif.getMensaje());
+        // timestamp → campo "time"
+        holder.tvTime.setText(notif.getTimestamp());
+
+        // Ícono genérico de notificación del sistema
+        if (holder.imgAvatar != null) {
+            holder.imgAvatar.setImageResource(android.R.drawable.ic_dialog_info);
+        }
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onNotificationClick(notification);
+                listener.onNotificationClick(notif);
             }
         });
     }
@@ -55,20 +72,30 @@ public class AdminNotificationsAdapter extends RecyclerView.Adapter<AdminNotific
         return notificationList != null ? notificationList.size() : 0;
     }
 
-    public void setData(List<Notification> nuevaLista) {
+    /**
+     * Reemplaza la lista actual y notifica al RecyclerView.
+     * Llamar desde AdminNotificacionesActivity.onResume() para refrescar.
+     *
+     * @param nuevaLista Lista actualizada de AdminNotificacion.
+     */
+    public void setData(List<AdminNotificacion> nuevaLista) {
         this.notificationList = nuevaLista;
         notifyDataSetChanged();
     }
 
+    // ── ViewHolder ───────────────────────────────────────────────────────────
+
     public static class AdminNotificationViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvMessage, tvTime;
-        ImageView imgAvatar;
+        TextView  tvName;     // título de la notificación
+        TextView  tvMessage;  // mensaje/cuerpo
+        TextView  tvTime;     // timestamp
+        ImageView imgAvatar;  // ícono (usa ic_dialog_info)
 
         public AdminNotificationViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvName = itemView.findViewById(R.id.tvName);
+            tvName    = itemView.findViewById(R.id.tvName);
             tvMessage = itemView.findViewById(R.id.tvMessage);
-            tvTime = itemView.findViewById(R.id.tvTime);
+            tvTime    = itemView.findViewById(R.id.tvTime);
             imgAvatar = itemView.findViewById(R.id.imgAvatar);
         }
     }
