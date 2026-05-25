@@ -38,12 +38,13 @@ import java.util.Locale;
 
 public class SuperadminApprovalsActivity extends AppCompatActivity {
 
-    private static final int PAGE_SIZE = 4;
+    private static final int PAGE_SIZE = 6;
     private static final String TAG = "SA_APPROVALS";
 
     private RecyclerView approvalsRecyclerView;
     private ApprovalsAdapter approvalsAdapter;
     private EditText searchApprovalsInput;
+    private String currentQuery = "";
 
     private TextView filterDateButton;
     private TextView filterLocationButton;
@@ -179,7 +180,8 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                applySearchAndRender(s == null ? "" : s.toString(), true);
+                currentQuery = s == null ? "" : s.toString();
+                applySearchAndRender(currentQuery, true);
             }
         });
     }
@@ -211,19 +213,31 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
 
         filteredApprovals.clear();
         for (ApprovalItem item : allApprovals) {
-            boolean matchesName = query.isEmpty() || normalize(item.name).contains(query);
+            String name = normalize(item.name);
+            boolean matchesQuery = query.isEmpty() || name.contains(query);
             boolean matchesLocation = selectedLocation.isEmpty() || selectedLocation.equals(item.location);
             boolean matchesCompany = selectedCompany.isEmpty() || selectedCompany.equals(item.company);
             boolean matchesDate = matchesDateFilter(item.date);
 
-            if (matchesName && matchesLocation && matchesCompany && matchesDate) {
+            if (matchesQuery && matchesLocation && matchesCompany && matchesDate) {
                 filteredApprovals.add(item);
             }
         }
 
         renderedApprovalsCount = 0;
         visibleApprovals.clear();
+        if (filteredApprovals.isEmpty()) {
+            if (approvalsAdapter != null) {
+                approvalsAdapter.submitList(visibleApprovals);
+            }
+            Log.d(TAG, "applySearchAndRender -> filtered=0, rendered=0");
+            if (resetScrollPosition && approvalsRecyclerView != null) {
+                approvalsRecyclerView.scrollToPosition(0);
+            }
+            return;
+        }
         loadMoreApprovals();
+        ensureScrollableContent();
         Log.d(TAG, "applySearchAndRender -> filtered=" + filteredApprovals.size() + ", rendered=" + renderedApprovalsCount);
 
         if (resetScrollPosition && approvalsRecyclerView != null) {
@@ -246,6 +260,18 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
             approvalsAdapter.submitList(visibleApprovals);
         }
         isLoadingMore = false;
+    }
+
+    private void ensureScrollableContent() {
+        if (approvalsRecyclerView == null) {
+            return;
+        }
+        approvalsRecyclerView.post(() -> {
+            while (!approvalsRecyclerView.canScrollVertically(1)
+                    && renderedApprovalsCount < filteredApprovals.size()) {
+                loadMoreApprovals();
+            }
+        });
     }
 
     private boolean matchesDateFilter(String itemDate) {
@@ -286,7 +312,7 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
             selectedDateFilter = item.getItemId();
             updateFilterButtonLabels();
             updateFilterButtonStyles();
-            applySearchAndRender(getSearchText(), true);
+            applySearchAndRender(currentQuery, true);
             return true;
         });
         menu.show();
@@ -318,7 +344,7 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
             }
             updateFilterButtonLabels();
             updateFilterButtonStyles();
-            applySearchAndRender(getSearchText(), true);
+            applySearchAndRender(currentQuery, true);
             return true;
         });
         menu.show();
@@ -350,7 +376,7 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
             }
             updateFilterButtonLabels();
             updateFilterButtonStyles();
-            applySearchAndRender(getSearchText(), true);
+            applySearchAndRender(currentQuery, true);
             return true;
         });
         menu.show();
@@ -402,13 +428,6 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
                 this,
                 selected ? R.color.white : R.color.overlay_white_30
         ));
-    }
-
-    private String getSearchText() {
-        if (searchApprovalsInput == null || searchApprovalsInput.getText() == null) {
-            return "";
-        }
-        return searchApprovalsInput.getText().toString();
     }
 
     private View createApprovalCard(ApprovalItem item, boolean withTopMargin) {
