@@ -37,15 +37,11 @@ import java.util.Locale;
 public class SuperadminLogsActivity extends AppCompatActivity {
 
     private static final String TYPE_RESERVATION = "RESERVATION";
-    private static final String TYPE_PAYMENT = "PAYMENT";
-    private static final String TYPE_APPOINTMENT = "APPOINTMENT";
     private static final String TYPE_ENABLEMENT = "ENABLEMENT";
     private static final String TAG_ALL = "ALL";
     private static final String TAG_STATUS_CONFIRMED = "status:confirmado";
     private static final String TAG_STATUS_SUSPENDED = "status:suspendido";
     private static final String TAG_STATUS_FAILED = "status:fallido";
-    private static final String TAG_MODULE_PAYMENTS = "modulo:pagos";
-    private static final String TAG_MODULE_APPOINTMENTS = "modulo:citas";
     private static final String TAG_COMPANY_NORTH = "empresa:norte";
     private static final String TAG_COMPANY_SUR = "empresa:sur";
     private static final String STATUS_CONFIRMED = "CONFIRMED";
@@ -61,8 +57,6 @@ public class SuperadminLogsActivity extends AppCompatActivity {
 
     private TextView filterAllLogsChip;
     private TextView filterReservationsLogsChip;
-    private TextView filterPaymentsLogsChip;
-    private TextView filterAppointmentsLogsChip;
     private TextView filterEnablementsLogsChip;
     private View logsFiltersButton;
     private TextView logsActiveTagText;
@@ -119,8 +113,6 @@ public class SuperadminLogsActivity extends AppCompatActivity {
 
         filterAllLogsChip = findViewById(R.id.filterAllLogsChip);
         filterReservationsLogsChip = findViewById(R.id.filterReservationsLogsChip);
-        filterPaymentsLogsChip = findViewById(R.id.filterPaymentsLogsChip);
-        filterAppointmentsLogsChip = findViewById(R.id.filterAppointmentsLogsChip);
         filterEnablementsLogsChip = findViewById(R.id.filterEnablementsLogsChip);
         logsFiltersButton = findViewById(R.id.logsFiltersButton);
         logsActiveTagText = findViewById(R.id.logsActiveTagText);
@@ -156,22 +148,6 @@ public class SuperadminLogsActivity extends AppCompatActivity {
         if (filterReservationsLogsChip != null) {
             filterReservationsLogsChip.setOnClickListener(v -> {
                 selectedTypeFilter = TYPE_RESERVATION;
-                expandedLogId = -1;
-                updateChipStyles();
-                applyFiltersAndRender(getSearchText());
-            });
-        }
-        if (filterPaymentsLogsChip != null) {
-            filterPaymentsLogsChip.setOnClickListener(v -> {
-                selectedTypeFilter = TYPE_PAYMENT;
-                expandedLogId = -1;
-                updateChipStyles();
-                applyFiltersAndRender(getSearchText());
-            });
-        }
-        if (filterAppointmentsLogsChip != null) {
-            filterAppointmentsLogsChip.setOnClickListener(v -> {
-                selectedTypeFilter = TYPE_APPOINTMENT;
                 expandedLogId = -1;
                 updateChipStyles();
                 applyFiltersAndRender(getSearchText());
@@ -246,17 +222,17 @@ public class SuperadminLogsActivity extends AppCompatActivity {
         allLogs.clear();
         allLogs.addAll(Arrays.asList(
                 new LogItem(1, TYPE_RESERVATION, STATUS_CONFIRMED, "14:50 hrs", "Reserva registrada en proyecto Catalina Sky", "asesor.norte@inmo.com", "Accion Especifica", "Se registro separacion de unidad D-1204", "Recurso Afectado", "Reserva #R-2143 - S/ 5,000", "Empresa: Inmobiliaria Norte | Cliente: DNI 74211233", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", TAG_COMPANY_NORTH)),
-                new LogItem(2, TYPE_PAYMENT, STATUS_CONFIRMED, "14:32 hrs", "Pago de separacion aprobado", "pasarela-pagos@inmoapp", "Accion Especifica", "Checkout validado y cobro confirmado", "Recurso Afectado", "Pago #P-8831 - S/ 5,000", "Reserva #R-2143 | Metodo: Tarjeta debito", tags(TAG_STATUS_CONFIRMED, TAG_MODULE_PAYMENTS, TAG_COMPANY_NORTH)),
-                new LogItem(3, TYPE_APPOINTMENT, STATUS_CONFIRMED, "14:15 hrs", "Asistencia a cita confirmada", "cliente@correo.com", "Accion Especifica", "Cliente asistio y asesor cerro visita", "Recurso Afectado", "Cita #C-9921 - 21/04 16:00", "Proyecto: Condominio Pueblo Libre", tags(TAG_STATUS_CONFIRMED, TAG_MODULE_APPOINTMENTS, "empresa:centro")),
+                new LogItem(2, TYPE_RESERVATION, STATUS_CONFIRMED, "14:32 hrs", "Pago de separacion aprobado", "pasarela-pagos@inmoapp", "Accion Especifica", "Checkout validado y cobro confirmado", "Recurso Afectado", "Pago #P-8831 - S/ 5,000", "Reserva #R-2143 | Metodo: Tarjeta debito", tags(TAG_STATUS_CONFIRMED, TAG_COMPANY_NORTH)),
+                new LogItem(3, TYPE_RESERVATION, STATUS_CONFIRMED, "14:15 hrs", "Asistencia a cita confirmada", "cliente@correo.com", "Accion Especifica", "Cliente asistio y asesor cerro visita", "Recurso Afectado", "Cita #C-9921 - 21/04 16:00", "Proyecto: Condominio Pueblo Libre", tags(TAG_STATUS_CONFIRMED, "empresa:centro")),
                 new LogItem(4, TYPE_ENABLEMENT, STATUS_CONFIRMED, "13:59 hrs", "Asesor habilitado por superadmin", "superadmin@inmoapp.com", "Accion Especifica", "Cambio de estado a habilitado", "Detalle del Cambio", "Asesor ID 145: Pendiente -> Activo", "Empresa: Inmobiliaria Centro", tags(TAG_STATUS_CONFIRMED, "modulo:habilitaciones", "empresa:centro")),
-                new LogItem(5, TYPE_PAYMENT, STATUS_FAILED, "13:44 hrs", "Pago rechazado por banco emisor", "pasarela-pagos@inmoapp", "Accion Especifica", "Intento de cobro fallido", "Recurso Afectado", "Pago #P-8824 - S/ 4,500", "Reserva #R-2138 | Motivo: Fondos insuficientes", tags(TAG_STATUS_FAILED, TAG_MODULE_PAYMENTS, "empresa:este")),
-                new LogItem(6, TYPE_PAYMENT, STATUS_SUSPENDED, "13:38 hrs", "Pago suspendido por validacion antifraude", "pasarela-pagos@inmoapp", "Accion Especifica", "Operacion retenida para revision manual", "Recurso Afectado", "Pago #P-8821 - S/ 8,300", "Reserva #R-2136 | Riesgo: Alto | SLA: 2h", tags(TAG_STATUS_SUSPENDED, TAG_MODULE_PAYMENTS, TAG_COMPANY_SUR)),
+                new LogItem(5, TYPE_RESERVATION, STATUS_FAILED, "13:44 hrs", "Pago rechazado por banco emisor", "pasarela-pagos@inmoapp", "Accion Especifica", "Intento de cobro fallido", "Recurso Afectado", "Pago #P-8824 - S/ 4,500", "Reserva #R-2138 | Motivo: Fondos insuficientes", tags(TAG_STATUS_FAILED, "empresa:este")),
+                new LogItem(6, TYPE_RESERVATION, STATUS_SUSPENDED, "13:38 hrs", "Pago suspendido por validacion antifraude", "pasarela-pagos@inmoapp", "Accion Especifica", "Operacion retenida para revision manual", "Recurso Afectado", "Pago #P-8821 - S/ 8,300", "Reserva #R-2136 | Riesgo: Alto | SLA: 2h", tags(TAG_STATUS_SUSPENDED, TAG_COMPANY_SUR)),
                 new LogItem(7, TYPE_RESERVATION, STATUS_FAILED, "13:28 hrs", "Reserva cancelada por vencimiento", "sistema@inmoapp", "Accion Especifica", "Expiracion por falta de pago en 10 min", "Recurso Afectado", "Reserva #R-2133", "Empresa: Inmobiliaria Sur | Estado final: Cancelada", tags(TAG_STATUS_FAILED, "modulo:reservas", TAG_COMPANY_SUR)),
-                new LogItem(8, TYPE_APPOINTMENT, STATUS_FAILED, "12:57 hrs", "Bloqueo por cruce de horario de cita", "cliente2@correo.com", "Accion Especifica", "Se rechazo agenda por superposicion", "Detalle del Cambio", "Cliente ID 588 sin cambio de agenda", "Proyecto: Catalina Sky | Franja: 18:00", tags(TAG_STATUS_FAILED, TAG_MODULE_APPOINTMENTS, TAG_COMPANY_NORTH)),
-                new LogItem(9, TYPE_APPOINTMENT, STATUS_CONFIRMED, "12:41 hrs", "Asistencia a cita confirmada", "asesor.este@inmo.com", "Accion Especifica", "Check-in exitoso de cliente en sala de ventas", "Recurso Afectado", "Cita #C-9877 - 21/04 12:30", "Proyecto: Torres del Sol | Duracion: 42 min", tags(TAG_STATUS_CONFIRMED, TAG_MODULE_APPOINTMENTS, "empresa:este")),
+                new LogItem(8, TYPE_RESERVATION, STATUS_FAILED, "12:57 hrs", "Bloqueo por cruce de horario de cita", "cliente2@correo.com", "Accion Especifica", "Se rechazo agenda por superposicion", "Detalle del Cambio", "Cliente ID 588 sin cambio de agenda", "Proyecto: Catalina Sky | Franja: 18:00", tags(TAG_STATUS_FAILED, TAG_COMPANY_NORTH)),
+                new LogItem(9, TYPE_RESERVATION, STATUS_CONFIRMED, "12:41 hrs", "Asistencia a cita confirmada", "asesor.este@inmo.com", "Accion Especifica", "Check-in exitoso de cliente en sala de ventas", "Recurso Afectado", "Cita #C-9877 - 21/04 12:30", "Proyecto: Torres del Sol | Duracion: 42 min", tags(TAG_STATUS_CONFIRMED, "empresa:este")),
                 new LogItem(10, TYPE_ENABLEMENT, STATUS_SUSPENDED, "12:30 hrs", "Administrador suspendido temporalmente", "superadmin@inmoapp.com", "Accion Especifica", "Bloqueo temporal de cuenta", "Detalle del Cambio", "Admin ID 33: Activo -> Suspendido", "Empresa: Inmobiliaria Este | Motivo: Auditoria", tags(TAG_STATUS_SUSPENDED, "modulo:habilitaciones", "empresa:este")),
                 new LogItem(11, TYPE_RESERVATION, STATUS_CONFIRMED, "11:45 hrs", "Nueva separacion con valoracion del asesor", "asesor.sur@inmo.com", "Accion Especifica", "Cliente dejo valoracion y observacion", "Recurso Afectado", "Reserva #R-2125 - Valoracion: 4/5", "Comentario: Buena atencion, resolver dudas de entrega", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", TAG_COMPANY_SUR)),
-                new LogItem(12, TYPE_PAYMENT, STATUS_CONFIRMED, "11:20 hrs", "Pago de separacion aprobado", "pasarela-pagos@inmoapp", "Accion Especifica", "Cobro exitoso en checkout", "Recurso Afectado", "Pago #P-8801 - S/ 6,200", "Reserva #R-2119 | Empresa: Inmobiliaria Norte", tags(TAG_STATUS_CONFIRMED, TAG_MODULE_PAYMENTS, TAG_COMPANY_NORTH)),
+                new LogItem(12, TYPE_RESERVATION, STATUS_CONFIRMED, "11:20 hrs", "Pago de separacion aprobado", "pasarela-pagos@inmoapp", "Accion Especifica", "Cobro exitoso en checkout", "Recurso Afectado", "Pago #P-8801 - S/ 6,200", "Reserva #R-2119 | Empresa: Inmobiliaria Norte", tags(TAG_STATUS_CONFIRMED, TAG_COMPANY_NORTH)),
                 new LogItem(13, TYPE_RESERVATION, STATUS_CONFIRMED, "11:05 hrs", "Reserva preliminar creada", "asesor.centro@inmo.com", "Accion Especifica", "Separacion inicial de unidad en preventa", "Recurso Afectado", "Reserva #R-2114 - S/ 4,500", "Empresa: Inmobiliaria Centro | Proyecto: Torre Pacifico", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", "empresa:centro")),
                 new LogItem(14, TYPE_RESERVATION, STATUS_FAILED, "10:58 hrs", "Reserva rechazada por documento invalido", "sistema@inmoapp", "Accion Especifica", "Validacion documental fallida", "Recurso Afectado", "Reserva #R-2112", "Cliente: DNI no vigente | Empresa: Inmobiliaria Norte", tags(TAG_STATUS_FAILED, "modulo:reservas", TAG_COMPANY_NORTH)),
                 new LogItem(15, TYPE_RESERVATION, STATUS_SUSPENDED, "10:44 hrs", "Reserva pausada por verificacion manual", "superadmin@inmoapp.com", "Accion Especifica", "Caso enviado a revision de compliance", "Detalle del Cambio", "Reserva #R-2109: Activa -> En revision", "Empresa: Inmobiliaria Sur | SLA: 4h", tags(TAG_STATUS_SUSPENDED, "modulo:reservas", TAG_COMPANY_SUR)),
@@ -587,14 +563,8 @@ public class SuperadminLogsActivity extends AppCompatActivity {
     }
 
     private int colorForType(String type) {
-        if (TYPE_PAYMENT.equals(type)) {
-            return 0xFF16A34A;
-        }
         if (TYPE_RESERVATION.equals(type)) {
             return 0xFF2563EB;
-        }
-        if (TYPE_APPOINTMENT.equals(type)) {
-            return 0xFFF59E0B;
         }
         return 0xFF7C3AED;
     }
@@ -613,12 +583,6 @@ public class SuperadminLogsActivity extends AppCompatActivity {
         if (TYPE_RESERVATION.equals(type)) {
             return getString(R.string.sa_logs_filter_reservations);
         }
-        if (TYPE_PAYMENT.equals(type)) {
-            return getString(R.string.sa_logs_filter_payments);
-        }
-        if (TYPE_APPOINTMENT.equals(type)) {
-            return getString(R.string.sa_logs_filter_appointments);
-        }
         return getString(R.string.sa_logs_filter_enablements);
     }
 
@@ -635,8 +599,6 @@ public class SuperadminLogsActivity extends AppCompatActivity {
     private void updateChipStyles() {
         styleChip(filterAllLogsChip, "ALL".equals(selectedTypeFilter));
         styleChip(filterReservationsLogsChip, TYPE_RESERVATION.equals(selectedTypeFilter));
-        styleChip(filterPaymentsLogsChip, TYPE_PAYMENT.equals(selectedTypeFilter));
-        styleChip(filterAppointmentsLogsChip, TYPE_APPOINTMENT.equals(selectedTypeFilter));
         styleChip(filterEnablementsLogsChip, TYPE_ENABLEMENT.equals(selectedTypeFilter));
     }
 
@@ -649,10 +611,8 @@ public class SuperadminLogsActivity extends AppCompatActivity {
         popupMenu.getMenu().add(0, 2, 1, getString(R.string.sa_logs_tag_status_confirmed));
         popupMenu.getMenu().add(0, 3, 2, getString(R.string.sa_logs_tag_status_suspended));
         popupMenu.getMenu().add(0, 4, 3, getString(R.string.sa_logs_tag_status_failed));
-        popupMenu.getMenu().add(0, 5, 4, getString(R.string.sa_logs_tag_module_payments));
-        popupMenu.getMenu().add(0, 6, 5, getString(R.string.sa_logs_tag_module_appointments));
-        popupMenu.getMenu().add(0, 7, 6, getString(R.string.sa_logs_tag_company_north));
-        popupMenu.getMenu().add(0, 8, 7, getString(R.string.sa_logs_tag_company_sur));
+        popupMenu.getMenu().add(0, 5, 4, getString(R.string.sa_logs_tag_company_north));
+        popupMenu.getMenu().add(0, 6, 5, getString(R.string.sa_logs_tag_company_sur));
 
         popupMenu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
@@ -669,15 +629,9 @@ public class SuperadminLogsActivity extends AppCompatActivity {
                     selectedTagFilter = TAG_STATUS_FAILED;
                     break;
                 case 5:
-                    selectedTagFilter = TAG_MODULE_PAYMENTS;
-                    break;
-                case 6:
-                    selectedTagFilter = TAG_MODULE_APPOINTMENTS;
-                    break;
-                case 7:
                     selectedTagFilter = TAG_COMPANY_NORTH;
                     break;
-                case 8:
+                case 6:
                     selectedTagFilter = TAG_COMPANY_SUR;
                     break;
                 default:
@@ -700,12 +654,6 @@ public class SuperadminLogsActivity extends AppCompatActivity {
         }
         if (TAG_STATUS_FAILED.equals(tag)) {
             return getString(R.string.sa_logs_tag_status_failed);
-        }
-        if (TAG_MODULE_PAYMENTS.equals(tag)) {
-            return getString(R.string.sa_logs_tag_module_payments);
-        }
-        if (TAG_MODULE_APPOINTMENTS.equals(tag)) {
-            return getString(R.string.sa_logs_tag_module_appointments);
         }
         if (TAG_COMPANY_NORTH.equals(tag)) {
             return getString(R.string.sa_logs_tag_company_north);
