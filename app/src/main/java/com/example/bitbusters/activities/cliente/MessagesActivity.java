@@ -21,7 +21,8 @@ public class MessagesActivity extends AppCompatActivity {
 
     private RecyclerView recyclerViewChats;
     private ChatsAdapter chatsAdapter;
-    private final List<Object> chats = new ArrayList<>();
+    private final List<Object> chatItems = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,7 +30,7 @@ public class MessagesActivity extends AppCompatActivity {
 
         TabLayout tabLayout = findViewById(R.id.tabLayout);
         recyclerViewChats = findViewById(R.id.recyclerViewChats);
-        chats.addAll(ClientDataRepository.getChats());
+        chatItems.addAll(ClientDataRepository.getChats());
 
         setupRecyclerView();
         setupSwipeToDelete();
@@ -43,7 +44,7 @@ public class MessagesActivity extends AppCompatActivity {
 
         // Botón eliminar todos los chats
         findViewById(R.id.btnDelete).setOnClickListener(v -> {
-            chats.clear();
+            chatItems.clear();
             chatsAdapter.notifyDataSetChanged();
         });
 
@@ -63,7 +64,7 @@ public class MessagesActivity extends AppCompatActivity {
 
     private void setupRecyclerView() {
         recyclerViewChats.setLayoutManager(new LinearLayoutManager(this));
-        chatsAdapter = new ChatsAdapter(chats, chat -> abrirChat(chat.getName()));
+        chatsAdapter = new ChatsAdapter(chatItems, chat -> abrirChat(chat.getName()));
         recyclerViewChats.setAdapter(chatsAdapter);
     }
 
@@ -76,7 +77,9 @@ public class MessagesActivity extends AppCompatActivity {
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
-                chatsAdapter.removeItem(position); // usa el método del adapter
+                if (position >= 0 && position < chatItems.size()) {
+                    chatsAdapter.removeItem(position);
+                }
             }
         };
         new ItemTouchHelper(callback).attachToRecyclerView(recyclerViewChats);
