@@ -1,10 +1,13 @@
 package com.example.bitbusters.activities.cliente;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.bitbusters.R;
 import com.example.bitbusters.utils.ImageUrls;
@@ -23,8 +26,14 @@ public class ProjectDetailActivity extends AppCompatActivity {
         // Crear el canal de notificaciones (necesario para lanzar la notificación de separación)
         NotificationHelper.crearCanal(this);
 
-        // Recibir datos del proyecto desde HomeActivity
-        String nombreProyecto = getIntent().getStringExtra(EXTRA_PROYECTO);
+        // Resolver nombre del proyecto: extra normal o deep link (QR)
+        String nombreProyecto = resolverNombreProyecto();
+        if (nombreProyecto == null || nombreProyecto.isEmpty()) {
+            Toast.makeText(this, "Proyecto no encontrado", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         if (nombreProyecto != null) {
             ((TextView) findViewById(R.id.tvNombreProyecto)).setText(nombreProyecto);
             
@@ -260,6 +269,40 @@ public class ProjectDetailActivity extends AppCompatActivity {
 
         bsd.setContentView(root);
         bsd.show();
+    }
+
+    /** Lee el nombre del proyecto desde extra (navegación normal) o URI deep link (QR). */
+    private String resolverNombreProyecto() {
+        // Fuente 1: extra enviado por HomeActivity
+        String nombre = getIntent().getStringExtra(EXTRA_PROYECTO);
+        if (nombre != null && !nombre.isEmpty()) {
+            Log.d("DetalleProyecto", "Proyecto cargado desde extra: " + nombre);
+            return nombre;
+        }
+        // Fuente 2: deep link (inmobiliaria://proyecto/{id})
+        Uri uri = getIntent().getData();
+        if (uri != null) {
+            Log.d("DeepLink", "URI recibida: " + uri);
+            String segmento = uri.getLastPathSegment();
+            if (segmento != null && !segmento.isEmpty()) {
+                nombre = mapearIdANombre(segmento);
+                Log.d("DetalleProyecto", "Proyecto cargado desde deep link, id=" + segmento + " → " + nombre);
+                return nombre;
+            }
+        }
+        return null;
+    }
+
+    /** Mapea un id numérico del QR al nombre de proyecto conocido por la app. */
+    private String mapearIdANombre(String id) {
+        switch (id) {
+            case "1": return "Catalina Ventor";
+            case "2": return "Residencial Park";
+            case "3": return "Torre Miramar";
+            case "4": return "Condominio Las Lomas";
+            case "5": return "Catalina Sky";
+            default: return id; // el QR ya contiene directamente el nombre
+        }
     }
 
     private int obtenerImagenProyecto(String nombreProyecto) {

@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.widget.LinearLayout;
 import com.example.bitbusters.R;
+import com.example.bitbusters.activities.common.EscanearQRActivity;
 import com.example.bitbusters.adapters.ProyectoAdapter;
 import com.example.bitbusters.data.ProjectSessionData;
 import com.example.bitbusters.models.Proyecto;
@@ -133,6 +134,17 @@ public class HomeActivity extends AppCompatActivity {
         // Búsqueda
         findViewById(R.id.etBuscar).setOnClickListener(v ->
                 startActivity(new Intent(this, SearchActivity.class)));
+
+        // FAB Escanear QR
+        com.google.android.material.floatingactionbutton.FloatingActionButton fabQR =
+                findViewById(R.id.fabEscanearQR);
+        if (fabQR != null) {
+            fabQR.setOnClickListener(v -> {
+                Intent intent = new Intent(this, EscanearQRActivity.class);
+                intent.putExtra(EscanearQRActivity.EXTRA_ROL, EscanearQRActivity.ROL_CLIENTE);
+                startActivity(intent);
+            });
+        }
 
         // Bottom Navigation
         LinearLayout navSearch   = findViewById(R.id.navSearch);

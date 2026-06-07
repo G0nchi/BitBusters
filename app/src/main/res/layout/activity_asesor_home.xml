@@ -124,6 +124,19 @@
 
                     </FrameLayout>
 
+                    <!-- Botón escanear QR -->
+                    <ImageView
+                        android:id="@+id/img_qr_scan"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginRight="16dp"
+                        android:src="@drawable/ic_qr_code"
+                        android:tint="@color/white"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Escanear QR" />
+
                     <!-- Avatar JG (Dropdown Anchor) -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/imgPerfilAsesor"
