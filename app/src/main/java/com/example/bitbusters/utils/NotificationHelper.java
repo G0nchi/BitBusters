@@ -55,6 +55,11 @@ public class NotificationHelper {
     public static final int NOTIF_SA_NUEVO_USUARIO    = 21;
     public static final int NOTIF_SA_LOG_CRITICO      = 22;
 
+    // ── IDs de notificaciones del administrador (Lab 5, Parte 2) ───────────
+    public static final int NOTIF_ADMIN_PROYECTO_GUARDADO    = 2001;
+    public static final int NOTIF_ADMIN_SEPARACION_APROBADA  = 2002;
+    public static final int NOTIF_ADMIN_NUEVA_SEPARACION     = 2003;
+
     // Código de solicitud para el diálogo de permiso
     public static final int REQUEST_CODE_NOTIF = 101;
 
@@ -162,6 +167,52 @@ public class NotificationHelper {
                 .setAutoCancel(true);
 
         NotificationManagerCompat.from(context).notify(notifId, builder.build());
+    }
+
+    /**
+     * Lanza una notificación local usando el canal del ADMINISTRADOR y registra el evento
+     * en el repositorio de notificaciones para el historial (Lab 5, Parte 2 y 5).
+     *
+     * @param context  Contexto de la Activity que lanza la notificación.
+     * @param titulo   Título visible en la barra de notificaciones.
+     * @param mensaje  Cuerpo del mensaje de la notificación.
+     * @param notifId  ID único para identificar/actualizar esta notificación.
+     * @param destino  Intent de la Activity a abrir al tocar la notificación.
+     */
+    public static void lanzarNotificacionAdmin(Context context, String titulo, String mensaje,
+                                               int notifId, Intent destino) {
+        // 1. Verificar permiso en Android 13+ antes de lanzar
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+        }
+
+        // 2. Configurar el Intent de destino
+        destino.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context,
+                notifId,
+                destino,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        // 3. Construir la notificación usando ADMIN_CHANNEL_ID
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, ADMIN_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notifications)
+                .setContentTitle(titulo)
+                .setContentText(mensaje)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+
+        NotificationManagerCompat.from(context).notify(notifId, builder.build());
+
+        // 4. Registrar en el repositorio para el historial del administrador (Lab 5, Parte 5)
+        String timestamp = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
+        AdminNotificacion adminNotif = new AdminNotificacion(titulo, mensaje, timestamp);
+        AdminNotificacionesRepository.agregar(adminNotif);
     }
 
     /**

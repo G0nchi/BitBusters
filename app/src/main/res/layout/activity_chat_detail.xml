@@ -46,7 +46,7 @@
                 android:layout_height="wrap_content"
                 android:text="En linea"
                 android:textSize="12sp"
-                android:textColor="@color/brand_green" />
+                android:textColor="@color/status_success" />
         </LinearLayout>
 
         <ImageButton

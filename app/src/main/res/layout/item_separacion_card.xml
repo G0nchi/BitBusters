@@ -22,7 +22,7 @@
             android:id="@+id/v_placeholder"
             android:layout_width="70dp"
             android:layout_height="70dp"
-            android:background="#B8C8D4"
+            android:background="@color/slate_300"
             android:layout_marginEnd="12dp"/>
 
         <!-- Info del lado derecho -->

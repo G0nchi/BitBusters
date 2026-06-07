@@ -464,7 +464,7 @@
                                 android:layout_height="20dp"
                                 android:layout_marginStart="8dp"
                                 android:src="@drawable/ic_chevron_right_16"
-                                android:tint="#CBD5E1" />
+                                android:tint="@color/slate_300" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -514,7 +514,7 @@
                                 android:layout_height="20dp"
                                 android:layout_marginStart="8dp"
                                 android:src="@drawable/ic_chevron_right_16"
-                                android:tint="#CBD5E1" />
+                                android:tint="@color/slate_300" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -564,7 +564,7 @@
                                 android:layout_height="20dp"
                                 android:layout_marginStart="8dp"
                                 android:src="@drawable/ic_chevron_right_16"
-                                android:tint="#CBD5E1" />
+                                android:tint="@color/slate_300" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -614,7 +614,7 @@
                                 android:layout_height="20dp"
                                 android:layout_marginStart="8dp"
                                 android:src="@drawable/ic_chevron_right_16"
-                                android:tint="#CBD5E1" />
+                                android:tint="@color/slate_300" />
                         </LinearLayout>
                     </LinearLayout>
 

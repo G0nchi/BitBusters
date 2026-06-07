@@ -122,7 +122,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="12sp"
-                    android:textColor="#9E9E9E"
+                    android:textColor="@color/nav_inactive"
                     android:fontFamily="@font/lato_family"/>
             </LinearLayout>
 
@@ -152,7 +152,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/precio_base"
                         android:textSize="10sp"
-                        android:textColor="#9E9E9E"
+                        android:textColor="@color/nav_inactive"
                         android:fontFamily="@font/lato_family"/>
                 </LinearLayout>
 

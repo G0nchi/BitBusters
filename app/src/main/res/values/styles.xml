@@ -156,6 +156,47 @@
         <item name="android:textStyle">normal</item>
     </style>
 
+    <!-- AppButton aliases (semantic names for design system) -->
+    <style name="AppButton.Primary" parent="Widget.BitBusters.PrimaryButton" />
+    <style name="AppButton.Secondary" parent="Widget.BitBusters.SecondaryButton" />
+    <style name="AppButton.Outline" parent="Widget.BitBusters.OutlinedButton" />
+
+    <!-- AppText styles -->
+    <style name="AppText" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:fontFamily">@font/lato_family</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="AppText.Title" parent="TextAppearance.BitBusters.GreetingTitle" />
+    <style name="AppText.Subtitle" parent="TextAppearance.BitBusters.SectionTitle" />
+    <style name="AppText.Body" parent="TextAppearance.BitBusters.Body" />
+    <style name="AppText.Caption">
+        <item name="android:fontFamily">@font/lato_family</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <!-- AppCard: standard card style (use on MaterialCardView via style attribute is not supported,
+         but cornerRadius and elevation values are centralized here as reference) -->
+    <style name="AppCard" parent="Widget.MaterialComponents.CardView">
+        <item name="cardCornerRadius">@dimen/radius_card</item>
+        <item name="cardElevation">@dimen/elevation_card</item>
+        <item name="contentPadding">@dimen/padding_card</item>
+    </style>
+
+    <!-- AppToolbar: header toolbar style -->
+    <style name="AppToolbar" parent="Widget.MaterialComponents.Toolbar">
+        <item name="android:background">@color/brand_deep_blue</item>
+        <item name="titleTextColor">@color/white</item>
+        <item name="android:fontFamily">@font/lato_family</item>
+    </style>
+
+    <!-- AppTextInput: outlined input field -->
+    <style name="AppTextInput" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/border_light</item>
+        <item name="android:fontFamily">@font/lato_family</item>
+    </style>
+
     <!-- Danger button for delete actions -->
     <style name="Widget.BitBusters.DangerButton" parent="Widget.Material3.Button">
         <item name="android:fontFamily">@font/lato_family</item>

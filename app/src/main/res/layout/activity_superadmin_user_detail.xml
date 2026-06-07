@@ -96,7 +96,7 @@
                         android:paddingEnd="10dp"
                         android:paddingBottom="4dp"
                         android:text="@string/sa_status_active"
-                        android:textColor="#16A34A"
+                        android:textColor="@color/status_success"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -108,7 +108,7 @@
                         android:background="@drawable/sa_disable_user_button_bg"
                         android:gravity="center"
                         android:text="@string/sa_disable_user"
-                        android:textColor="#EF4444"
+                        android:textColor="@color/status_error"
                         android:textSize="16sp" />
                 </LinearLayout>
 

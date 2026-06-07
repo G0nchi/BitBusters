@@ -156,7 +156,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/sa_review_alert"
-                        android:textColor="#B45309"
+                        android:textColor="@color/amber_600"
                         android:textSize="16sp" />
 
                     <TextView
@@ -164,7 +164,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:text="@string/sa_review_alert_sub"
-                        android:textColor="#B45309"
+                        android:textColor="@color/amber_600"
                         android:textSize="11sp" />
                 </LinearLayout>
             </LinearLayout>

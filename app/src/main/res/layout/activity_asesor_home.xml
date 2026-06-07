@@ -33,12 +33,12 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Header blanco -->
+            <!-- Header azul — alineado con el diseño del Cliente -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="@color/neutral_surface"
+                android:background="@color/brand_deep_blue"
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"
                 android:paddingTop="44dp"
@@ -58,7 +58,7 @@
                         android:layout_height="wrap_content"
                         app:cardCornerRadius="100dp"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="@color/neutral_soft_1">
+                        app:cardBackgroundColor="@color/overlay_white_30">
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -72,14 +72,14 @@
                                 android:layout_width="12dp"
                                 android:layout_height="12dp"
                                 android:src="@drawable/ic_location_pin"
-                                android:tint="@color/brand_lime"
+                                android:tint="@color/white"
                                 android:layout_marginRight="4dp"
                                 android:contentDescription="@null"/>
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/asesor_location"
-                                android:textColor="@color/text_primary"
+                                android:textColor="@color/white"
                                 android:textSize="12sp"
                                 android:fontFamily="@font/lato_family"/>
                         </LinearLayout>
@@ -101,7 +101,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_bell"
-                            android:tint="@color/neutral_dark"
+                            android:tint="@color/white"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackgroundBorderless"
@@ -152,6 +152,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/asesor_greeting"
+                    android:textColor="@color/white"
                     style="@style/TextAppearance.BitBusters.GreetingTitle"/>
 
                 <!-- Rol -->
@@ -160,7 +161,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/asesor_role"
                     android:textSize="13sp"
-                    android:textColor="#9E9E9E"
+                    android:textColor="@color/overlay_white_30"
                     android:fontFamily="@font/lato_family"
                     android:layout_marginTop="2dp"/>
             </LinearLayout>
@@ -226,8 +227,8 @@
                         android:layout_marginRight="8dp"
                         android:clickable="true"
                         android:focusable="true"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="2dp"
+                        app:cardCornerRadius="@dimen/radius_card"
+                        app:cardElevation="@dimen/elevation_card"
                         app:cardBackgroundColor="@color/neutral_surface">
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -272,8 +273,8 @@
                         android:layout_marginRight="4dp"
                         android:clickable="true"
                         android:focusable="true"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="2dp"
+                        app:cardCornerRadius="@dimen/radius_card"
+                        app:cardElevation="@dimen/elevation_card"
                         app:cardBackgroundColor="@color/neutral_surface">
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -317,8 +318,8 @@
                         android:layout_marginLeft="8dp"
                         android:clickable="true"
                         android:focusable="true"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="2dp"
+                        app:cardCornerRadius="@dimen/radius_card"
+                        app:cardElevation="@dimen/elevation_card"
                         app:cardBackgroundColor="@color/neutral_surface">
                         <LinearLayout
                             android:layout_width="match_parent"

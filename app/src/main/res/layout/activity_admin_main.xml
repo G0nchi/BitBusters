@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_main">
+    android:background="@color/neutral_canvas">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -30,7 +30,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Inmobiliaria XYZ"
-                    android:textColor="@android:color/white"
+                    android:textColor="@color/white"
                     android:textSize="14sp"
                     android:clickable="true"
                     android:focusable="true" />
@@ -50,7 +50,7 @@
                         android:contentDescription="Notificaciones"
                         android:padding="8dp"
                         android:src="@drawable/ic_notifications"
-                        android:tint="@android:color/white" />
+                        android:tint="@color/white" />
 
                     <TextView
                         android:id="@+id/tvAvatar"
@@ -60,7 +60,7 @@
                         android:backgroundTint="@color/brand_lime"
                         android:background="@drawable/onboarding_skip_bg"
                         android:text="JG"
-                        android:textColor="@android:color/white"
+                        android:textColor="@color/white"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -71,7 +71,7 @@
                     android:layout_below="@id/tvRealEstateName"
                     android:layout_marginTop="14dp"
                     android:text="Hola, Juan"
-                    android:textColor="@android:color/white"
+                    android:textColor="@color/white"
                     android:textSize="24sp"
                     android:textStyle="bold" />
             </RelativeLayout>
@@ -273,7 +273,7 @@
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:background="#E6E6E6" />
+                            android:background="@color/border_light" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -301,7 +301,7 @@
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:background="#E6E6E6" />
+                            android:background="@color/border_light" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -427,9 +427,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="@android:color/white"
-        app:itemIconTint="@color/neutral_dark"
-        app:itemTextColor="@color/neutral_dark"
+        android:background="@drawable/bottom_nav_bg"
+        app:itemIconTint="@color/nav_icon_color"
+        app:itemTextColor="@color/nav_text_color"
         app:menu="@menu/menu_bottom_nav_admin" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -3,6 +3,18 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <!-- Semantic aliases (design system tokens) -->
+    <color name="colorPrimary">#234F68</color>
+    <color name="colorPrimaryDark">#204D6C</color>
+    <color name="colorAccent">#8BC83F</color>
+    <color name="colorBackground">#FFEDEDED</color>
+    <color name="colorSurface">#FFFFFFFF</color>
+    <color name="colorTextPrimary">#292929</color>
+    <color name="colorTextSecondary">#53587A</color>
+    <color name="colorBorder">#E5E7EB</color>
+    <color name="colorError">#DC2626</color>
+    <color name="colorSuccess">#16A34A</color>
+
     <!-- Brand palette for reusable views -->
     <color name="brand_deep_blue">#234F68</color>
     <color name="brand_blue_dark">#204D6C</color>
@@ -97,4 +109,12 @@
     <color name="orange">#FF9800</color>
     <color name="purple">#9C27B0</color>
     <color name="coral">#FF6F61</color>
+
+    <!-- SuperAdmin / data visualization -->
+    <color name="amber_600">#B45309</color>
+    <color name="amber_500">#D97706</color>
+    <color name="slate_200">#E2E8F0</color>
+    <color name="blue_100">#DDE7EF</color>
+    <color name="slate_250">#C5CEDA</color>
+    <color name="success_bg_light">#F0FAF0</color>
 </resources>
