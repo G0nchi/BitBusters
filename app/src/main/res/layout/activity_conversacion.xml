@@ -67,7 +67,7 @@
                     android:layout_width="12dp"
                     android:layout_height="12dp"
                     android:src="@drawable/ic_nav_home"
-                    android:tint="#AACDE0"
+                    android:tint="@color/overlay_white_30"
                     android:layout_marginEnd="4dp"
                     android:contentDescription="@null"/>
                 <TextView
@@ -75,7 +75,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Torres del Sol · Dpto 302"
-                    android:textColor="#AACDE0"
+                    android:textColor="@color/overlay_white_30"
                     android:textSize="12sp"
                     android:fontFamily="@font/lato_regular"
                     android:maxLines="1"

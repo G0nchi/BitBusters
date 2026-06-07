@@ -216,7 +216,7 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
         );
     }
 
-    // ── Filtros ──────────────────────────────────────────────────────────────
+    // ── Filtros ────────────────────────────────────────────────────────────
 
     private void filtrarPorEstado(String estado) {
         currentEstadoFilter = estado;

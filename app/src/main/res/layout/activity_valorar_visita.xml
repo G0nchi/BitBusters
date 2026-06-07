@@ -38,7 +38,7 @@
                     android:text="@string/valorar_title" android:textColor="@color/white"
                     android:textSize="20sp" android:fontFamily="@font/lato_bold"/>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="@string/valorar_subtitle" android:textColor="#AACDE0"
+                    android:text="@string/valorar_subtitle" android:textColor="@color/overlay_white_30"
                     android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
             </LinearLayout>
         </LinearLayout>
