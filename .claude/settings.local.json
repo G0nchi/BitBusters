@@ -9,5 +9,8 @@
       "Bash(Sort-Object)",
       "Bash(Get-ChildItem *)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "firebase"
+  ]
 }
