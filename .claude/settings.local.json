@@ -12,5 +12,8 @@
       "Bash(xargs grep -l \"class.*Admin\\\\|class.*Asesor\\\\|class.*Cliente\")",
       "Bash(xargs grep -l \"latitud\\\\|longitud\\\\|latitude\\\\|longitude\")"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "firebase"
+  ]
 }
