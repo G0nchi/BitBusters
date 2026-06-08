@@ -326,6 +326,18 @@
                         android:gravity="center_vertical"
                         android:layout_marginBottom="12dp">
 
+                        <!-- Vista previa de la imagen seleccionada (oculta hasta seleccionar) -->
+                        <ImageView
+                            android:id="@+id/imgTipologiaPreview"
+                            android:layout_width="0dp"
+                            android:layout_height="100dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:scaleType="centerCrop"
+                            android:background="@drawable/dashed_border_bg"
+                            android:contentDescription="Vista previa"
+                            android:visibility="gone" />
+
                         <FrameLayout
                             android:layout_width="0dp"
                             android:layout_height="100dp"

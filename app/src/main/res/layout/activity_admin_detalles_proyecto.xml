@@ -474,4 +474,18 @@
         android:tint="@color/brand_deep_blue"
         android:elevation="8dp" />
 
+    <!-- Botón flotante QR en esquina inferior derecha -->
+    <ImageButton
+        android:id="@+id/btnQrProject"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:background="@drawable/circle_white_bg"
+        android:contentDescription="Ver código QR"
+        android:padding="12dp"
+        android:src="@drawable/ic_qr_code"
+        android:tint="@color/brand_deep_blue"
+        android:elevation="8dp" />
+
 </FrameLayout>

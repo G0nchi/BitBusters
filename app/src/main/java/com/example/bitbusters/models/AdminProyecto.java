@@ -24,12 +24,14 @@ public class AdminProyecto {
     private List<String>    asesores;     // nombres de asesores asignados
     private List<String>    imagenesUri;  // URIs de las imágenes del proyecto
     private String          fechaCreacion;// timestamp ej: "01/01/2025"
+    private String          qrCode;       // ruta local del Bitmap QR generado
 
     /** Constructor vacío — inicializa las listas para evitar NPE */
     public AdminProyecto() {
         this.tipologias  = new ArrayList<>();
         this.asesores    = new ArrayList<>();
         this.imagenesUri = new ArrayList<>();
+        this.qrCode      = "";
     }
 
     /**
@@ -73,6 +75,7 @@ public class AdminProyecto {
     public String getFechaEntrega()    { return fechaEntrega    != null ? fechaEntrega    : ""; }
     public String getEstado()          { return estado          != null ? estado          : ""; }
     public String getFechaCreacion()   { return fechaCreacion   != null ? fechaCreacion   : ""; }
+    public String getQrCode()          { return qrCode          != null ? qrCode          : ""; }
 
     public List<Tipologia> getTipologias()  { return tipologias  != null ? tipologias  : new ArrayList<>(); }
     public List<String>    getAsesores()    { return asesores    != null ? asesores    : new ArrayList<>(); }
@@ -95,4 +98,5 @@ public class AdminProyecto {
     public void setAsesores(List<String> asesores)          { this.asesores        = asesores; }
     public void setImagenesUri(List<String> imagenesUri)    { this.imagenesUri     = imagenesUri; }
     public void setFechaCreacion(String fechaCreacion)      { this.fechaCreacion   = fechaCreacion; }
+    public void setQrCode(String qrCode)                    { this.qrCode          = qrCode; }
 }

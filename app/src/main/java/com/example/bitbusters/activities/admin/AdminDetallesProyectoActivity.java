@@ -1,15 +1,23 @@
 package com.example.bitbusters.activities.admin;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+
+import java.io.File;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -18,6 +26,9 @@ import com.example.bitbusters.R;
 import com.example.bitbusters.data.AdminProyectosRepository;
 import com.example.bitbusters.models.AdminProyecto;
 import com.example.bitbusters.models.Tipologia;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.zxing.BarcodeFormat;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 import java.util.List;
 import java.util.Locale;
@@ -171,7 +182,7 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
         }
 
         for (Tipologia tip : lista) {
-            // Fila: datos izquierda + precio derecha
+            // Fila: miniatura + datos izquierda + precio derecha
             LinearLayout fila = new LinearLayout(this);
             fila.setOrientation(LinearLayout.HORIZONTAL);
             fila.setGravity(android.view.Gravity.CENTER_VERTICAL);
@@ -181,6 +192,26 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
                             LinearLayout.LayoutParams.WRAP_CONTENT);
             filaParams.bottomMargin = dpToPx(10);
             fila.setLayoutParams(filaParams);
+
+            // Miniatura de la tipología (si tiene imagen guardada)
+            String tipImagePath = tip.getImageUri();
+            if (!tipImagePath.isEmpty()) {
+                ImageView imgTip = new ImageView(this);
+                int imgSize = dpToPx(52);
+                LinearLayout.LayoutParams imgParams =
+                        new LinearLayout.LayoutParams(imgSize, imgSize);
+                imgParams.setMarginEnd(dpToPx(10));
+                imgTip.setLayoutParams(imgParams);
+                imgTip.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                imgTip.setClipToOutline(true);
+                GradientDrawable imgBg = new GradientDrawable();
+                imgBg.setShape(GradientDrawable.RECTANGLE);
+                imgBg.setCornerRadius(dpToPx(6));
+                imgBg.setColor(0xFFE0E0E0);
+                imgTip.setBackground(imgBg);
+                Glide.with(this).load(new File(tipImagePath)).centerCrop().into(imgTip);
+                fila.addView(imgTip);
+            }
 
             // Columna izquierda
             LinearLayout colIzq = new LinearLayout(this);
@@ -261,7 +292,12 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
             bg.setColor(0xFFE0E0E0);
             imgView.setBackground(bg);
 
-            Glide.with(this).load(Uri.parse(uriStr)).centerCrop().into(imgView);
+            // Cargar desde ruta local o URL (File para rutas absolutas, String para URLs)
+            if (uriStr.startsWith("/")) {
+                Glide.with(this).load(new File(uriStr)).centerCrop().into(imgView);
+            } else {
+                Glide.with(this).load(uriStr).centerCrop().into(imgView);
+            }
             fotosContainerDetalle.addView(imgView);
         }
     }
@@ -338,10 +374,103 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
 
         ImageButton btnEdit = findViewById(R.id.btnEditProject);
         if (btnEdit != null) {
-            btnEdit.setOnClickListener(v ->
-                    startActivity(new Intent(this, AdminEditarProyectoActivity.class))
-            );
+            btnEdit.setOnClickListener(v -> {
+                Intent intent = new Intent(this, AdminEditarProyectoActivity.class);
+                intent.putExtra("proyecto_id", proyectoId);
+                startActivity(intent);
+            });
         }
+
+        ImageButton btnQr = findViewById(R.id.btnQrProject);
+        if (btnQr != null) {
+            btnQr.setOnClickListener(v -> mostrarDialogoQR());
+        }
+    }
+
+    // ── Diálogo QR ────────────────────────────────────────────────────────────
+
+    /**
+     * Genera el QR del proyecto (a partir del ID) y lo muestra en un BottomSheetDialog.
+     * Si el proyecto tenía QR guardado en disco, lo carga; de lo contrario lo genera al vuelo.
+     */
+    private void mostrarDialogoQR() {
+        if (proyectoId == null) return;
+
+        AdminProyecto proyecto = AdminProyectosRepository.getById(proyectoId);
+        if (proyecto == null) return;
+
+        Bitmap qrBitmap = null;
+
+        // Intentar cargar desde la ruta guardada
+        String qrPath = proyecto.getQrCode();
+        if (!qrPath.isEmpty()) {
+            qrBitmap = BitmapFactory.decodeFile(qrPath);
+        }
+
+        // Si no hay archivo guardado, generar al vuelo
+        if (qrBitmap == null) {
+            try {
+                BarcodeEncoder encoder = new BarcodeEncoder();
+                qrBitmap = encoder.encodeBitmap(
+                        "inmobiliaria://proyecto/" + proyecto.getId(),
+                        BarcodeFormat.QR_CODE, 512, 512);
+            } catch (Exception e) {
+                Toast.makeText(this, "Error generando el QR", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        // Construir el BottomSheetDialog
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setGravity(Gravity.CENTER_HORIZONTAL);
+        int pad = dpToPx(24);
+        layout.setPadding(pad, pad, pad, pad);
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText("Código QR del Proyecto");
+        tvTitle.setTextSize(18f);
+        tvTitle.setTypeface(null, Typeface.BOLD);
+        tvTitle.setGravity(Gravity.CENTER);
+        tvTitle.setTextColor(getColor(R.color.text_primary));
+        layout.addView(tvTitle);
+
+        TextView tvSubtitle = new TextView(this);
+        tvSubtitle.setText(proyecto.getNombre());
+        tvSubtitle.setTextSize(13f);
+        tvSubtitle.setGravity(Gravity.CENTER);
+        tvSubtitle.setTextColor(getColor(R.color.neutral_dark));
+        LinearLayout.LayoutParams subParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        subParams.topMargin = dpToPx(4);
+        subParams.bottomMargin = dpToPx(12);
+        tvSubtitle.setLayoutParams(subParams);
+        layout.addView(tvSubtitle);
+
+        ImageView imgQr = new ImageView(this);
+        int qrSize = dpToPx(260);
+        LinearLayout.LayoutParams qrParams = new LinearLayout.LayoutParams(qrSize, qrSize);
+        qrParams.gravity = Gravity.CENTER_HORIZONTAL;
+        imgQr.setLayoutParams(qrParams);
+        imgQr.setImageBitmap(qrBitmap);
+        imgQr.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        layout.addView(imgQr);
+
+        Button btnCerrar = new Button(this);
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnParams.topMargin = dpToPx(16);
+        btnCerrar.setLayoutParams(btnParams);
+        btnCerrar.setText("Cerrar");
+        btnCerrar.setOnClickListener(v2 -> dialog.dismiss());
+        layout.addView(btnCerrar);
+
+        dialog.setContentView(layout);
+        dialog.show();
     }
 
     // ── Utilidades ────────────────────────────────────────────────────────────
