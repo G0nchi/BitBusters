@@ -4,14 +4,17 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.bitbusters.R;
 import com.example.bitbusters.models.AdminProyecto;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -71,6 +74,26 @@ public class AdminProyectoListAdapter
                 holder.tvEstado.setBackgroundColor(Color.parseColor("#9E9E9E"));
         }
 
+        // Cargar primera imagen del proyecto o mostrar avatar de texto
+        List<String> imagenes = p.getImagenesUri();
+        if (imagenes != null && !imagenes.isEmpty()) {
+            String primera = imagenes.get(0);
+            if (!primera.isEmpty()) {
+                holder.tvAvatar.setVisibility(View.GONE);
+                holder.imgProyecto.setVisibility(View.VISIBLE);
+                Glide.with(holder.itemView.getContext())
+                        .load(primera.startsWith("/") ? new File(primera) : primera)
+                        .centerCrop()
+                        .into(holder.imgProyecto);
+            } else {
+                holder.imgProyecto.setVisibility(View.GONE);
+                holder.tvAvatar.setVisibility(View.VISIBLE);
+            }
+        } else {
+            holder.imgProyecto.setVisibility(View.GONE);
+            holder.tvAvatar.setVisibility(View.VISIBLE);
+        }
+
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onProyectoClick(p);
         });
@@ -94,14 +117,17 @@ public class AdminProyectoListAdapter
     // ── ViewHolder ────────────────────────────────────────────────────────────
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvNombre, tvDistrito, tvPrecio, tvEstado;
+        TextView  tvNombre, tvDistrito, tvPrecio, tvEstado, tvAvatar;
+        ImageView imgProyecto;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvNombre   = itemView.findViewById(R.id.tvNombreProyecto);
-            tvDistrito = itemView.findViewById(R.id.tvDistritoProyecto);
-            tvPrecio   = itemView.findViewById(R.id.tvPrecioProyecto);
-            tvEstado   = itemView.findViewById(R.id.tvEstadoProyecto);
+            tvNombre    = itemView.findViewById(R.id.tvNombreProyecto);
+            tvDistrito  = itemView.findViewById(R.id.tvDistritoProyecto);
+            tvPrecio    = itemView.findViewById(R.id.tvPrecioProyecto);
+            tvEstado    = itemView.findViewById(R.id.tvEstadoProyecto);
+            tvAvatar    = itemView.findViewById(R.id.tvAvatarProyecto);
+            imgProyecto = itemView.findViewById(R.id.imgProyecto);
         }
     }
 }

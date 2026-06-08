@@ -47,7 +47,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/sa_reports_period_month"
-                    android:textColor="#DDE7EF"
+                    android:textColor="@color/blue_100"
                     android:textSize="14sp" />
 
                 <ImageView
@@ -356,7 +356,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/sa_reports_alert_title"
-                            android:textColor="#B45309"
+                            android:textColor="@color/amber_600"
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
@@ -365,7 +365,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="@string/sa_reports_alert_body"
-                            android:textColor="#B45309"
+                            android:textColor="@color/amber_600"
                             android:textSize="11sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -573,7 +573,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="8dp"
                             android:layout_marginTop="4dp"
-                            android:background="#E2E8F0">
+                            android:background="@color/slate_200">
 
                             <View
                                 android:layout_width="0dp"
@@ -615,7 +615,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="8dp"
                             android:layout_marginTop="4dp"
-                            android:background="#E2E8F0">
+                            android:background="@color/slate_200">
 
                             <View
                                 android:layout_width="0dp"
@@ -657,13 +657,13 @@
                             android:layout_width="match_parent"
                             android:layout_height="8dp"
                             android:layout_marginTop="4dp"
-                            android:background="#E2E8F0">
+                            android:background="@color/slate_200">
 
                             <View
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
                                 android:layout_weight="17"
-                                android:background="#64748B" />
+                                android:background="@color/slate_500" />
 
                             <View
                                 android:layout_width="0dp"
@@ -699,13 +699,13 @@
                             android:layout_width="match_parent"
                             android:layout_height="8dp"
                             android:layout_marginTop="4dp"
-                            android:background="#E2E8F0">
+                            android:background="@color/slate_200">
 
                             <View
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
                                 android:layout_weight="8"
-                                android:background="#C5CEDA" />
+                                android:background="@color/slate_250" />
 
                             <View
                                 android:layout_width="0dp"

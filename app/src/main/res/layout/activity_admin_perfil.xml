@@ -28,7 +28,7 @@
                     android:id="@+id/btnBack"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:background="@android:color/white"
+                    android:background="@drawable/circle_white_bg"
                     android:contentDescription="Atrás"
                     android:padding="8dp"
                     android:src="@drawable/ic_back"
@@ -50,7 +50,7 @@
                     android:background="@drawable/onboarding_skip_bg"
                     android:backgroundTint="@color/brand_lime"
                     android:text="JG"
-                    android:textColor="@android:color/white"
+                    android:textColor="@color/white"
                     android:textSize="24sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="12dp" />
@@ -59,7 +59,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Juan Garcia"
-                    android:textColor="@android:color/white"
+                    android:textColor="@color/white"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="4dp" />
@@ -68,7 +68,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Administrador de Inmobiliaria"
-                    android:textColor="@android:color/white"
+                    android:textColor="@color/white"
                     android:textSize="12sp" />
 
             </LinearLayout>
@@ -370,19 +370,17 @@
                         android:background="@drawable/onboarding_skip_bg"
                         android:backgroundTint="@color/brand_deep_blue"
                         android:text="JG"
-                        android:textColor="@android:color/white"
+                        android:textColor="@color/white"
                         android:textSize="32sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="16dp" />
 
                     <Button
                         android:id="@+id/btnChangeFoto"
+                        style="@style/Widget.BitBusters.SecondaryButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Cambiar foto"
-                        android:backgroundTint="@android:color/transparent"
-                        android:textColor="@color/brand_deep_blue"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                        android:text="Cambiar foto" />
 
                 </LinearLayout>
 
@@ -395,7 +393,7 @@
                 android:layout_height="48dp"
                 android:text="Cerrar Sesión"
                 android:textSize="15sp"
-                android:textColor="#FF5252"
+                android:textColor="@color/status_error"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:background="@drawable/bg_circle_outline"

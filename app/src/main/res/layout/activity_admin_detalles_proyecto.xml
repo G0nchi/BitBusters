@@ -46,7 +46,7 @@
                         android:paddingBottom="4dp"
                         android:layout_marginBottom="8dp"
                         android:text="Preventa"
-                        android:textColor="@android:color/white"
+                        android:textColor="@color/white"
                         android:textSize="12sp"
                         android:textStyle="bold"
                         android:background="@drawable/onboarding_skip_bg"
@@ -58,7 +58,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Nombre del proyecto"
-                        android:textColor="@android:color/white"
+                        android:textColor="@color/white"
                         android:textSize="26sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="8dp" />
@@ -74,7 +74,7 @@
                             android:layout_width="16dp"
                             android:layout_height="16dp"
                             android:src="@drawable/ic_location"
-                            android:tint="@android:color/white"
+                            android:tint="@color/white"
                             android:layout_marginEnd="4dp"
                             android:contentDescription="Ubicación" />
 
@@ -83,7 +83,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Dirección, Distrito"
-                            android:textColor="@android:color/white"
+                            android:textColor="@color/white"
                             android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -471,6 +471,20 @@
         android:contentDescription="Editar"
         android:padding="8dp"
         android:src="@drawable/ic_edit"
+        android:tint="@color/brand_deep_blue"
+        android:elevation="8dp" />
+
+    <!-- Botón flotante QR en esquina inferior derecha -->
+    <ImageButton
+        android:id="@+id/btnQrProject"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:background="@drawable/circle_white_bg"
+        android:contentDescription="Ver código QR"
+        android:padding="12dp"
+        android:src="@drawable/ic_qr_code"
         android:tint="@color/brand_deep_blue"
         android:elevation="8dp" />
 

@@ -42,6 +42,15 @@ import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
+import android.graphics.Bitmap;
+
+import com.google.zxing.BarcodeFormat;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -407,11 +416,31 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
         card.setRadius(dpToPx(8));
         card.setCardElevation(dpToPx(1));
 
-        // Fila interior: datos + botón X
+        // Fila interior: miniatura + datos + botón X
         LinearLayout fila = new LinearLayout(this);
         fila.setOrientation(LinearLayout.HORIZONTAL);
         fila.setGravity(android.view.Gravity.CENTER_VERTICAL);
         fila.setPadding(dpToPx(12), dpToPx(10), dpToPx(12), dpToPx(10));
+
+        // Miniatura de la tipología (si tiene imagen guardada)
+        String tipImagePath = tip.getImageUri();
+        if (!tipImagePath.isEmpty()) {
+            ImageView imgTip = new ImageView(this);
+            int imgSize = dpToPx(52);
+            LinearLayout.LayoutParams imgParams =
+                    new LinearLayout.LayoutParams(imgSize, imgSize);
+            imgParams.setMarginEnd(dpToPx(10));
+            imgTip.setLayoutParams(imgParams);
+            imgTip.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imgTip.setClipToOutline(true);
+            GradientDrawable imgBg = new GradientDrawable();
+            imgBg.setShape(GradientDrawable.RECTANGLE);
+            imgBg.setCornerRadius(dpToPx(6));
+            imgBg.setColor(0xFFE0E0E0);
+            imgTip.setBackground(imgBg);
+            Glide.with(this).load(new File(tipImagePath)).centerCrop().into(imgTip);
+            fila.addView(imgTip);
+        }
 
         // Columna izquierda: nombre + detalles
         LinearLayout colDatos = new LinearLayout(this);
@@ -732,15 +761,22 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
         // Generar ID único
         String nuevoId = UUID.randomUUID().toString();
 
-        // Convertir las URIs a Strings para almacenar
+        // Copiar cada imagen del proyecto a almacenamiento interno y guardar la ruta local.
+        // TODO-Firebase: reemplazar copiarImagenProyecto() por FirebaseStorage.upload()
+        //                y guardar la URL de descarga devuelta.
         List<String> uriStrings = new ArrayList<>();
         for (Uri uri : imagenesSeleccionadas) {
-            uriStrings.add(uri.toString());
+            String localPath = copiarImagenProyecto(uri);
+            uriStrings.add(localPath.isEmpty() ? uri.toString() : localPath);
         }
 
         // Timestamp de creación
         String fechaCreacion = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 .format(Calendar.getInstance().getTime());
+
+        // Generar QR del proyecto y guardar en almacenamiento interno
+        String qrPath = generarYGuardarQR(nuevoId,
+                "inmobiliaria://proyecto/" + nuevoId);
 
         // Construir el objeto AdminProyecto
         AdminProyecto proyecto = new AdminProyecto(
@@ -760,9 +796,11 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
                 uriStrings,
                 fechaCreacion
         );
+        proyecto.setQrCode(qrPath != null ? qrPath : "");
 
-        // Agregar al repositorio compartido
+        // Agregar al repositorio compartido y persistir en disco
         AdminProyectosRepository.agregar(proyecto);
+        AdminProyectosRepository.guardar(this);
 
         // ── Lab 5 (Parte 1): Incrementar contador en SharedPreferences ─────────
         AdminPreferencesManager.incrementarProyectosCount(this);
@@ -897,6 +935,56 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
     }
 
     // ── Utilidades ────────────────────────────────────────────────────────────
+
+    /**
+     * Copia una imagen de galería (content://) a almacenamiento interno del app.
+     * Devuelve la ruta absoluta del archivo destino, o "" si falla.
+     *
+     * TODO-Firebase: reemplazar por FirebaseStorage.getInstance()
+     *     .getReference("proyecto_images/{uuid}").putFile(uri)
+     *     y devolver la URL de descarga.
+     */
+    private String copiarImagenProyecto(Uri uri) {
+        try {
+            File dir = new File(getFilesDir(), "proyecto_images");
+            if (!dir.exists()) dir.mkdirs();
+            File dest = new File(dir, "img_" + UUID.randomUUID() + ".jpg");
+            try (InputStream in  = getContentResolver().openInputStream(uri);
+                 OutputStream out = new FileOutputStream(dest)) {
+                if (in == null) return "";
+                byte[] buf = new byte[4096];
+                int len;
+                while ((len = in.read(buf)) > 0) out.write(buf, 0, len);
+            }
+            return dest.getAbsolutePath();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    /**
+     * Genera un QR con el contenido indicado, lo guarda en almacenamiento interno
+     * y devuelve la ruta absoluta del archivo PNG.
+     *
+     * @return ruta absoluta, o null si falló la generación.
+     */
+    private String generarYGuardarQR(String proyectoId, String contenido) {
+        try {
+            BarcodeEncoder encoder = new BarcodeEncoder();
+            Bitmap bitmap = encoder.encodeBitmap(contenido, BarcodeFormat.QR_CODE, 512, 512);
+
+            File dir = new File(getFilesDir(), "qr_proyectos");
+            if (!dir.exists()) dir.mkdirs();
+            File qrFile = new File(dir, "qr_" + proyectoId + ".png");
+
+            try (FileOutputStream fos = new FileOutputStream(qrFile)) {
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            }
+            return qrFile.getAbsolutePath();
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     /** Convierte dp a px usando la densidad real del dispositivo. */
     private int dpToPx(int dp) {

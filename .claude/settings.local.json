@@ -7,7 +7,14 @@
       "Bash(Get-ChildItem -Path \"D:\\\\2026.1\\\\IoT\\\\Proyecto\\\\BitBusters\" -Recurse -Directory)",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Sort-Object)",
-      "Bash(Get-ChildItem *)"
+      "Bash(Get-ChildItem *)",
+      "Bash(Select-Object -First 50)",
+      "Bash(xargs grep -l \"class.*Admin\\\\|class.*Asesor\\\\|class.*Cliente\")",
+      "Bash(xargs grep -l \"latitud\\\\|longitud\\\\|latitude\\\\|longitude\")",
+      "Bash(xargs -I {} basename {})"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "firebase"
+  ]
 }

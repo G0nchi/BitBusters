@@ -1,7 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-
-    // Firebase (Clase 09.1 / BaaS): procesa app/google-services.json e inicializa FirebaseApp.
     id 'com.google.gms.google-services'
 }
 
@@ -39,6 +37,11 @@ android {
 }
 
 dependencies {
+    // Firebase BOM
+    implementation platform('com.google.firebase:firebase-bom:34.14.0')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+
     implementation libs.appcompat
     implementation libs.material
     implementation libs.activity
@@ -52,6 +55,7 @@ dependencies {
     implementation 'de.hdodenhof:circleimageview:3.1.0'  // para fotos circulares
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     implementation 'com.google.android.gms:play-services-maps:18.2.0'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
     implementation 'com.google.code.gson:gson:2.10.1'
 
     // Room Database (Clase 07 Extra)
@@ -75,17 +79,8 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
 
-    // ── Firebase BaaS (Clase 09.1 / 09.2 / 10) ──────────────────────────────
-    // El BoM (Bill of Materials) fija versiones compatibles entre sí; no se
-    // especifica versión en cada artefacto individual.
-    implementation platform('com.google.firebase:firebase-bom:33.1.0')
-    // Firebase Authentication (Clase 10): login/registro con email+password,
-    // FirebaseAuth.getCurrentUser(), etc. — reemplaza la validación hardcodeada
-    // de LoginActivity.
-    implementation 'com.google.firebase:firebase-auth'
-    // Cloud Firestore (Clase 09.2): backend para ChatRepository/FirestoreChatRepository,
-    // citas, separaciones, etc.
-    implementation 'com.google.firebase:firebase-firestore'
+    // QR Code Scanner (Lab 6)
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
 
 }
 
