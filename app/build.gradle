@@ -49,6 +49,7 @@ dependencies {
     implementation 'de.hdodenhof:circleimageview:3.1.0'  // para fotos circulares
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     implementation 'com.google.android.gms:play-services-maps:18.2.0'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
     implementation 'com.google.code.gson:gson:2.10.1'
 
     // Room Database (Clase 07 Extra)
