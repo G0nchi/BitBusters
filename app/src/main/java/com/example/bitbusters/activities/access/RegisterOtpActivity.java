@@ -3,6 +3,7 @@ package com.example.bitbusters.activities.access;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.bitbusters.utils.ImmersiveMode;
@@ -34,6 +35,13 @@ public class RegisterOtpActivity extends AppCompatActivity {
         otpDigit2 = findViewById(R.id.otpDigit2);
         otpDigit3 = findViewById(R.id.otpDigit3);
         otpDigit4 = findViewById(R.id.otpDigit4);
+
+        // Mostrar el correo real ingresado en RegisterAccountActivity (antes era placeholder hardcodeado)
+        TextView otpEmail = findViewById(R.id.otpEmail);
+        if (otpEmail != null) {
+            String email = getIntent().getStringExtra(RegisterAccountActivity.EXTRA_EMAIL);
+            if (email != null && !email.isEmpty()) otpEmail.setText(email);
+        }
 
         MaterialButton backButton = findViewById(R.id.backButton);
         MaterialButton verifyButton = findViewById(R.id.verifyButton);

@@ -1,10 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
 
-    // Firebase (Clase 09.1): IMPORTANTE — descomentar esta línea recién cuando
-    // hayas colocado tu archivo real `app/google-services.json` (ver FIREBASE_SETUP.md).
-    // Si se aplica sin ese archivo, el build falla con "File google-services.json is missing".
-    // id 'com.google.gms.google-services'
+    // Firebase (Clase 09.1 / BaaS): procesa app/google-services.json e inicializa FirebaseApp.
+    id 'com.google.gms.google-services'
 }
 
 android {
