@@ -8,7 +8,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.bitbusters.utils.ImmersiveMode;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -20,28 +19,35 @@ import com.example.bitbusters.activities.asesor.AsesorHomeActivity;
 import com.example.bitbusters.activities.cliente.HomeActivity;
 import com.example.bitbusters.activities.superadmin.SuperadminControlCenterActivity;
 import com.example.bitbusters.utils.AdminPreferencesManager;
+import com.example.bitbusters.utils.ImmersiveMode;
 import com.example.bitbusters.utils.PreferencesManager;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private static final String SUPERADMIN_USER = "superadmin";
-    private static final String SUPERADMIN_PASSWORD = "superadmin";
-    private static final String CLIENT_USER = "cliente";
-    private static final String CLIENT_PASSWORD = "cliente";
-    private static final String ADMIN_USER = "administrador";
-    private static final String ADMIN_PASSWORD = "administrador";
-    private static final String ASESOR_USER = "asesor";
-    private static final String ASESOR_PASSWORD = "asesor";
+    private FirebaseAuth mAuth;
     private boolean passwordVisible = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ImmersiveMode.apply(this);
+
+        mAuth = FirebaseAuth.getInstance();
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            navigateByRole(currentUser.getUid());
+            return;
+        }
+
         setContentView(R.layout.activity_login);
 
         MaterialButton backButton = findViewById(R.id.backButton);
@@ -52,15 +58,9 @@ public class LoginActivity extends AppCompatActivity {
         TextView registerLink = findViewById(R.id.registerLink);
         ImageView togglePassword = findViewById(R.id.togglePassword);
 
-        if (backButton != null) {
-            backButton.setOnClickListener(v -> finish());
-        }
-        if (forgotPassword != null) {
-            forgotPassword.setOnClickListener(v -> openIfAvailable(ForgotPasswordActivity.class));
-        }
-        if (registerLink != null) {
-            registerLink.setOnClickListener(v -> openIfAvailable(RegisterAccountActivity.class));
-        }
+        if (backButton != null) backButton.setOnClickListener(v -> finish());
+        if (forgotPassword != null) forgotPassword.setOnClickListener(v -> openIfAvailable(ForgotPasswordActivity.class));
+        if (registerLink != null) registerLink.setOnClickListener(v -> openIfAvailable(RegisterAccountActivity.class));
 
         if (togglePassword != null && passwordInput != null) {
             togglePassword.setOnClickListener(v -> {
@@ -78,9 +78,7 @@ public class LoginActivity extends AppCompatActivity {
             });
         }
 
-        if (loginButton != null) {
-            loginButton.setOnClickListener(v -> validateLoginByRole(emailInput, passwordInput));
-        }
+        if (loginButton != null) loginButton.setOnClickListener(v -> signIn(emailInput, passwordInput));
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -89,68 +87,74 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    private void signIn(EditText emailInput, EditText passwordInput) {
+        String email = emailInput != null && emailInput.getText() != null
+                ? emailInput.getText().toString().trim() : "";
+        String password = passwordInput != null && passwordInput.getText() != null
+                ? passwordInput.getText().toString().trim() : "";
+
+        if (email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, R.string.login_error_invalid_credentials, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        navigateByRole(mAuth.getCurrentUser().getUid());
+                    } else {
+                        if (emailInput != null) emailInput.setError(getString(R.string.login_error_invalid_credentials));
+                        Toast.makeText(this, R.string.login_error_invalid_credentials, Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void navigateByRole(String uid) {
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String role = doc.getString("role");
+                    String nombre = doc.getString("nombre");
+                    String fechaHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
+
+                    Intent intent;
+                    switch (role != null ? role : "cliente") {
+                        case "superadmin":
+                            PreferencesManager.guardarNombreSuperadmin(this, nombre != null ? nombre : "Superadmin");
+                            PreferencesManager.guardarUltimoAccesoSuperadmin(this, fechaHora);
+                            intent = new Intent(this, SuperadminControlCenterActivity.class);
+                            break;
+                        case "admin":
+                            AdminPreferencesManager.guardarNombre(this, nombre != null ? nombre : "Admin");
+                            AdminPreferencesManager.guardarUltimoAcceso(this, fechaHora);
+                            intent = new Intent(this, AdminMainActivity.class);
+                            break;
+                        case "asesor":
+                            intent = new Intent(this, AsesorHomeActivity.class);
+                            break;
+                        default:
+                            PreferencesManager.guardarNombre(this, nombre != null ? nombre : "Cliente");
+                            PreferencesManager.guardarUltimoAcceso(this, fechaHora);
+                            intent = new Intent(this, HomeActivity.class);
+                            break;
+                    }
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error al obtener datos del usuario", Toast.LENGTH_SHORT).show();
+                    mAuth.signOut();
+                });
+    }
+
     private void openIfAvailable(Class<?> destination) {
         try {
-            Intent intent = new Intent(this, destination);
-            startActivity(intent);
+            startActivity(new Intent(this, destination));
         } catch (Exception e) {
             Toast.makeText(this, R.string.generic_navigation_error, Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private void validateLoginByRole(EditText emailInput, EditText passwordInput) {
-        String user = emailInput != null && emailInput.getText() != null
-                ? emailInput.getText().toString().trim()
-                : "";
-        String password = passwordInput != null && passwordInput.getText() != null
-                ? passwordInput.getText().toString().trim()
-                : "";
-
-        if (SUPERADMIN_USER.equals(user) && SUPERADMIN_PASSWORD.equals(password)) {
-            PreferencesManager.guardarNombreSuperadmin(this, "Superadmin");
-            String fechaHoraSA = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-                    .format(new Date());
-            PreferencesManager.guardarUltimoAccesoSuperadmin(this, fechaHoraSA);
-            startActivity(new Intent(this, SuperadminControlCenterActivity.class));
-            finish();
-            return;
-        }
-
-        if (CLIENT_USER.equals(user) && CLIENT_PASSWORD.equals(password)) {
-            // Guardar nombre y fecha/hora del login en SharedPreferences
-            PreferencesManager.guardarNombre(this, "Jonathan");
-            String fechaHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-                    .format(new Date());
-            PreferencesManager.guardarUltimoAcceso(this, fechaHora);
-            startActivity(new Intent(this, HomeActivity.class));
-            finish();
-            return;
-        }
-
-        if (ADMIN_USER.equals(user) && ADMIN_PASSWORD.equals(password)) {
-            // Guardar datos del admin en SharedPreferences separadas (Lab 5)
-            AdminPreferencesManager.guardarNombre(this, "Juan García");
-            AdminPreferencesManager.guardarInmobiliaria(this, "Inmobiliaria BitBuilders");
-            String fechaHoraAdmin = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-                    .format(new Date());
-            AdminPreferencesManager.guardarUltimoAcceso(this, fechaHoraAdmin);
-            startActivity(new Intent(this, AdminMainActivity.class));
-            finish();
-            return;
-        }
-
-        if (ASESOR_USER.equals(user) && ASESOR_PASSWORD.equals(password)) {
-            startActivity(new Intent(this, AsesorHomeActivity.class));
-            finish();
-            return;
-        }
-
-        if (emailInput != null) {
-            emailInput.setError(getString(R.string.login_error_invalid_credentials));
-        }
-        if (passwordInput != null) {
-            passwordInput.setError(getString(R.string.login_error_invalid_credentials));
-        }
-        Toast.makeText(this, R.string.login_error_invalid_credentials, Toast.LENGTH_SHORT).show();
     }
 }

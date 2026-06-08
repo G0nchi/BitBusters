@@ -72,6 +72,7 @@ public class AsesorHomeActivity extends AppCompatActivity {
 
     private void logout() {
         AsesorStorage.clearAll(this);
+        com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

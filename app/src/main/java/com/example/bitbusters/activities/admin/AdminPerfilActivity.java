@@ -32,6 +32,7 @@ public class AdminPerfilActivity extends AppCompatActivity {
         TextView btnLogout = findViewById(R.id.btnLogout);
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {
+                com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
                 Intent intent = new Intent(AdminPerfilActivity.this, LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
