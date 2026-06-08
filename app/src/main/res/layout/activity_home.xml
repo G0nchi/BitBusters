@@ -1014,4 +1014,18 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- FAB Escanear QR -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabEscanearQR"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="80dp"
+        android:src="@drawable/ic_qr_code"
+        app:tint="@color/white"
+        app:backgroundTint="@color/colorPrimary"
+        app:fabSize="normal"
+        android:contentDescription="Escanear QR" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

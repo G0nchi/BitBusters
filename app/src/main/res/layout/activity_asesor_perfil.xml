@@ -72,7 +72,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/perfil_role"
-                    android:textColor="#B0C8DB"
+                    android:textColor="@color/overlay_white_30"
                     android:textSize="13sp"
                     android:fontFamily="@font/lato_regular"
                     android:layout_marginTop="2dp"/>
@@ -107,7 +107,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="12dp"
-            app:cardBackgroundColor="#1A3D54"
+            app:cardBackgroundColor="@color/brand_blue_dark"
             app:strokeWidth="0dp"
             app:cardElevation="0dp">
             <LinearLayout
@@ -135,7 +135,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/perfil_stat_sep"
-                        android:textColor="#B0C8DB"
+                        android:textColor="@color/overlay_white_30"
                         android:textSize="11sp"
                         android:fontFamily="@font/lato_regular"/>
                 </LinearLayout>
@@ -143,7 +143,7 @@
                 <View
                     android:layout_width="1dp"
                     android:layout_height="32dp"
-                    android:background="#2D4F66"
+                    android:background="@color/brand_blue"
                     android:layout_gravity="center_vertical"/>
 
                 <!-- Stat: Citas -->
@@ -164,7 +164,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/perfil_stat_citas"
-                        android:textColor="#B0C8DB"
+                        android:textColor="@color/overlay_white_30"
                         android:textSize="11sp"
                         android:fontFamily="@font/lato_regular"/>
                 </LinearLayout>
@@ -172,7 +172,7 @@
                 <View
                     android:layout_width="1dp"
                     android:layout_height="32dp"
-                    android:background="#2D4F66"
+                    android:background="@color/brand_blue"
                     android:layout_gravity="center_vertical"/>
 
                 <!-- Stat: Ventas -->
@@ -193,7 +193,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/perfil_stat_ventas"
-                        android:textColor="#B0C8DB"
+                        android:textColor="@color/overlay_white_30"
                         android:textSize="11sp"
                         android:fontFamily="@font/lato_regular"/>
                 </LinearLayout>

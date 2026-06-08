@@ -7,7 +7,7 @@
     android:layout_margin="6dp"
     app:cardCornerRadius="14dp"
     app:cardElevation="0dp"
-    app:cardBackgroundColor="#FFFFFF">
+    app:cardBackgroundColor="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -35,7 +35,7 @@
                 android:layout_margin="8dp"
                 android:text="S/. 235/mes"
                 android:textSize="10sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/white"
                 android:fontFamily="sans-serif-medium"
                 android:paddingStart="6dp"
                 android:paddingEnd="6dp"
@@ -68,7 +68,7 @@
                 android:layout_height="wrap_content"
                 android:text="Casa Linda"
                 android:textSize="13sp"
-                android:textColor="#1A1A2E"
+                android:textColor="@color/neutral_dark"
                 android:fontFamily="sans-serif-medium" />
 
             <LinearLayout
@@ -83,7 +83,7 @@
                     android:layout_height="wrap_content"
                     android:text="★ 4.7"
                     android:textSize="11sp"
-                    android:textColor="#FFC107" />
+                    android:textColor="@color/star_yellow" />
 
                 <TextView
                     android:id="@+id/tvUbicacion"
@@ -91,7 +91,7 @@
                     android:layout_height="wrap_content"
                     android:text="  📍 La Perla, Callao"
                     android:textSize="10sp"
-                    android:textColor="#9E9E9E"
+                    android:textColor="@color/nav_inactive"
                     android:maxLines="1"
                     android:ellipsize="end" />
             </LinearLayout>

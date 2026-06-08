@@ -89,7 +89,7 @@
                         android:paddingEnd="10dp"
                         android:paddingBottom="4dp"
                         android:text="@string/sa_pending_approval"
-                        android:textColor="#D97706"
+                        android:textColor="@color/amber_500"
                         android:textSize="12sp" />
                 </LinearLayout>
 

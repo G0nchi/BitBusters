@@ -9,7 +9,7 @@
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="14dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="#FFFFFF">
+    app:cardBackgroundColor="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -40,7 +40,7 @@
                 android:layout_height="wrap_content"
                 android:text="Nombre Proyecto"
                 android:textSize="14sp"
-                android:textColor="#1A1A2E"
+                android:textColor="@color/neutral_dark"
                 android:fontFamily="sans-serif-medium"
                 android:maxLines="2"
                 android:ellipsize="end" />
@@ -52,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:text="S/. 000,000"
                 android:textSize="12sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/white"
                 android:fontFamily="sans-serif-medium"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
@@ -68,7 +68,7 @@
                 android:layout_height="wrap_content"
                 android:text="★ 0.0"
                 android:textSize="12sp"
-                android:textColor="#FFC107"
+                android:textColor="@color/star_yellow"
                 android:layout_marginTop="6dp" />
 
             <!-- Ubicación con pin -->
@@ -78,7 +78,7 @@
                 android:layout_height="wrap_content"
                 android:text="📍 Ubicación"
                 android:textSize="11sp"
-                android:textColor="#9E9E9E"
+                android:textColor="@color/nav_inactive"
                 android:layout_marginTop="2dp"
                 android:maxLines="1"
                 android:ellipsize="end" />

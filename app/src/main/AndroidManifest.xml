@@ -8,6 +8,9 @@
     <!-- Permiso para notificaciones locales (requerido desde Android 13 / API 33) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Cámara para escaneo QR (Lab 6) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -22,7 +25,7 @@
         <!-- API Key de Google Maps -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="TU_API_KEY_AQUI" />
+            android:value="@string/google_maps_key" />
 
         <!-- Splash / Launcher -->
         <activity
@@ -79,10 +82,21 @@
         <activity android:name=".activities.asesor.ReagendarCitaActivity"          android:exported="false" />
         <activity android:name=".activities.asesor.VerDetalleCitaActivity"         android:exported="false" />
 
+        <!-- Common Activities -->
+        <activity android:name=".activities.common.EscanearQRActivity" android:exported="false"
+            android:screenOrientation="portrait" />
+
         <!-- Cliente Activities -->
         <activity android:name=".activities.cliente.HomeActivity" android:exported="false" />
         <activity android:name=".activities.cliente.SearchActivity" android:exported="false" />
-        <activity android:name=".activities.cliente.ProjectDetailActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.ProjectDetailActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="inmobiliaria" android:host="proyecto" />
+            </intent-filter>
+        </activity>
         <activity android:name=".activities.cliente.AgendaCitaActivity" android:exported="false" />
         <activity android:name=".activities.cliente.MisCitasActivity" android:exported="false" />
         <activity android:name=".activities.cliente.PaymentMethodActivity" android:exported="false" />
