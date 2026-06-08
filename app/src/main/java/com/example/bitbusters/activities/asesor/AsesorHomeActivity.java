@@ -17,6 +17,7 @@ import android.util.Log;
 
 import com.example.bitbusters.R;
 import com.example.bitbusters.activities.access.LoginActivity;
+import com.example.bitbusters.activities.common.EscanearQRActivity;
 import com.example.bitbusters.databinding.ActivityAsesorHomeBinding;
 import com.example.bitbusters.models.ProyectoApi;
 import com.example.bitbusters.utils.ApiClient;
@@ -183,6 +184,14 @@ public class AsesorHomeActivity extends AppCompatActivity {
         if (binding.imgCampana != null) {
             binding.imgCampana.setOnClickListener(v ->
                 startActivity(new Intent(this, AsesorNotificacionesActivity.class)));
+        }
+
+        if (binding.imgQrScan != null) {
+            binding.imgQrScan.setOnClickListener(v -> {
+                Intent intent = new Intent(this, EscanearQRActivity.class);
+                intent.putExtra(EscanearQRActivity.EXTRA_ROL, EscanearQRActivity.ROL_ASESOR);
+                startActivity(intent);
+            });
         }
     }
 

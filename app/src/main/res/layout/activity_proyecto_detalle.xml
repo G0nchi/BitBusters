@@ -132,7 +132,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/detail_tipo"
                     android:textSize="12sp"
-                    android:textColor="#9E9E9E"
+                    android:textColor="@color/text_placeholder"
                     android:fontFamily="@font/lato_family"
                     android:layout_marginBottom="4dp"/>
 
@@ -183,7 +183,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/precio_base"
                     android:textSize="11sp"
-                    android:textColor="#9E9E9E"
+                    android:textColor="@color/text_placeholder"
                     android:fontFamily="@font/lato_family"
                     android:layout_marginBottom="20dp"/>
 
@@ -269,7 +269,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/contact_role"
                                 android:textSize="12sp"
-                                android:textColor="#9E9E9E"
+                                android:textColor="@color/text_placeholder"
                                 android:fontFamily="@font/lato_family"/>
                             <TextView
                                 android:layout_width="wrap_content"
@@ -352,7 +352,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/caract_camas"
                                 android:textSize="11sp"
-                                android:textColor="#9E9E9E"
+                                android:textColor="@color/text_placeholder"
                                 android:fontFamily="@font/lato_family"/>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -391,7 +391,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/caract_banios"
                                 android:textSize="11sp"
-                                android:textColor="#9E9E9E"
+                                android:textColor="@color/text_placeholder"
                                 android:fontFamily="@font/lato_family"/>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -429,7 +429,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/caract_dormitorios"
                                 android:textSize="11sp"
-                                android:textColor="#9E9E9E"
+                                android:textColor="@color/text_placeholder"
                                 android:fontFamily="@font/lato_family"/>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -498,7 +498,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ubicacion_distancia"
                                 android:textSize="11sp"
-                                android:textColor="#9E9E9E"
+                                android:textColor="@color/text_placeholder"
                                 android:fontFamily="@font/lato_family"/>
                         </LinearLayout>
                     </FrameLayout>

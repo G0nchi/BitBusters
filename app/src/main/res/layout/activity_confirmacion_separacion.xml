@@ -47,7 +47,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Torres del Sol — Dpto 302"
-                    android:textColor="#AACDE0"
+                    android:textColor="@color/overlay_white_30"
                     android:textSize="13sp"
                     android:fontFamily="@font/lato_regular"/>
             </LinearLayout>
@@ -69,7 +69,7 @@
                         android:src="@drawable/ic_check_circle" android:padding="4dp" android:contentDescription="@null"/>
                 </com.google.android.material.card.MaterialCardView>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="@string/sep_step_datos" android:textColor="#AACDE0"
+                    android:text="@string/sep_step_datos" android:textColor="@color/overlay_white_30"
                     android:textSize="13sp" android:layout_marginLeft="6dp" android:fontFamily="@font/lato_regular"/>
             </LinearLayout>
             <View android:layout_width="0dp" android:layout_height="1dp"
@@ -83,7 +83,7 @@
                         android:src="@drawable/ic_check_circle" android:padding="4dp" android:contentDescription="@null"/>
                 </com.google.android.material.card.MaterialCardView>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="@string/sep_step_pago" android:textColor="#AACDE0"
+                    android:text="@string/sep_step_pago" android:textColor="@color/overlay_white_30"
                     android:textSize="13sp" android:layout_marginLeft="6dp" android:fontFamily="@font/lato_regular"/>
             </LinearLayout>
             <View android:layout_width="0dp" android:layout_height="1dp"
@@ -121,7 +121,7 @@
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 app:cardCornerRadius="40dp"
-                app:cardBackgroundColor="#DFFBEC"
+                app:cardBackgroundColor="@color/badge_confirmada_bg"
                 app:strokeWidth="0dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="20dp">
@@ -168,7 +168,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
                 app:cardCornerRadius="12dp"
-                app:cardBackgroundColor="#1C3D52"
+                app:cardBackgroundColor="@color/brand_deep_blue"
                 app:strokeWidth="0dp">
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -181,7 +181,7 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:orientation="horizontal" android:layout_marginBottom="6dp">
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:text="Proyecto" android:textColor="#AACDE0"
+                            android:layout_weight="1" android:text="Proyecto" android:textColor="@color/overlay_white_30"
                             android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="Torres del Sol" android:textColor="@color/white"
@@ -190,7 +190,7 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:orientation="horizontal" android:layout_marginBottom="6dp">
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:text="Unidad" android:textColor="#AACDE0"
+                            android:layout_weight="1" android:text="Unidad" android:textColor="@color/overlay_white_30"
                             android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="Dpto 302 - Piso 3 · 78 m²" android:textColor="@color/white"
@@ -199,7 +199,7 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:orientation="horizontal" android:layout_marginBottom="6dp">
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:text="Cliente" android:textColor="#AACDE0"
+                            android:layout_weight="1" android:text="Cliente" android:textColor="@color/overlay_white_30"
                             android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="Carlos Mendoza" android:textColor="@color/white"
@@ -208,7 +208,7 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:orientation="horizontal" android:layout_marginBottom="6dp">
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:text="Método de pago" android:textColor="#AACDE0"
+                            android:layout_weight="1" android:text="Método de pago" android:textColor="@color/overlay_white_30"
                             android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="Transferencia bancaria" android:textColor="@color/white"
@@ -217,7 +217,7 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:orientation="horizontal" android:layout_marginBottom="6dp">
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:text="N° operación" android:textColor="#AACDE0"
+                            android:layout_weight="1" android:text="N° operación" android:textColor="@color/overlay_white_30"
                             android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="00123456789" android:textColor="@color/white"
@@ -226,7 +226,7 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:orientation="horizontal" android:layout_marginBottom="6dp">
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:text="Válida hasta" android:textColor="#AACDE0"
+                            android:layout_weight="1" android:text="Válida hasta" android:textColor="@color/overlay_white_30"
                             android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="09 Abr, 2025 · 10:47 AM" android:textColor="@color/brand_lime"
@@ -235,7 +235,7 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:orientation="horizontal">
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:text="Monto registrado" android:textColor="#AACDE0"
+                            android:layout_weight="1" android:text="Monto registrado" android:textColor="@color/overlay_white_30"
                             android:textSize="13sp" android:fontFamily="@font/lato_regular"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="S/ 3,200" android:textColor="@color/brand_lime"

@@ -9,7 +9,7 @@
     android:layout_marginBottom="10dp"
     app:cardCornerRadius="14dp"
     app:cardElevation="0dp"
-    app:cardBackgroundColor="#FFFFFF">
+    app:cardBackgroundColor="@color/white">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -49,7 +49,7 @@
                 android:layout_height="wrap_content"
                 android:text="Nombre"
                 android:textSize="14sp"
-                android:textColor="#1A1A2E"
+                android:textColor="@color/neutral_dark"
                 android:fontFamily="sans-serif-medium" />
 
             <TextView
@@ -58,7 +58,7 @@
                 android:layout_height="wrap_content"
                 android:text="Mensaje de notificación"
                 android:textSize="12sp"
-                android:textColor="#6B6B6B" />
+                android:textColor="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/tvTime"
@@ -66,7 +66,7 @@
                 android:layout_height="wrap_content"
                 android:text="hace 1 hora"
                 android:textSize="11sp"
-                android:textColor="#BDBDBD"
+                android:textColor="@color/nav_inactive"
                 android:layout_marginTop="4dp" />
         </LinearLayout>
     </RelativeLayout>

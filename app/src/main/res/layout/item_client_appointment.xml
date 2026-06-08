@@ -6,7 +6,7 @@
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="16dp"
     app:cardElevation="0dp"
-    app:cardBackgroundColor="#FFFFFF">
+    app:cardBackgroundColor="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -25,7 +25,7 @@
                 android:layout_height="wrap_content"
                 android:text="Vista Marina Residencial"
                 android:textSize="14sp"
-                android:textColor="#1A1A2E"
+                android:textColor="@color/neutral_dark"
                 android:fontFamily="sans-serif-medium" />
 
             <TextView
@@ -35,7 +35,7 @@
                 android:layout_alignParentEnd="true"
                 android:text="Confirmada"
                 android:textSize="11sp"
-                android:textColor="#2E7D32"
+                android:textColor="@color/status_success"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:paddingTop="4dp"
@@ -50,7 +50,7 @@
                 android:layout_marginTop="4dp"
                 android:text="San Miguel, Lima"
                 android:textSize="12sp"
-                android:textColor="#9E9E9E" />
+                android:textColor="@color/nav_inactive" />
         </RelativeLayout>
 
         <LinearLayout
@@ -66,7 +66,7 @@
                 android:layout_weight="1"
                 android:text="14 abr"
                 android:textSize="13sp"
-                android:textColor="#1A1A2E" />
+                android:textColor="@color/neutral_dark" />
 
             <TextView
                 android:id="@+id/tvAppointmentTime"
@@ -74,7 +74,7 @@
                 android:layout_height="wrap_content"
                 android:text="10:00 AM"
                 android:textSize="13sp"
-                android:textColor="#1A1A2E" />
+                android:textColor="@color/neutral_dark" />
         </LinearLayout>
 
         <TextView
@@ -83,7 +83,7 @@
             android:layout_height="wrap_content"
             android:text="Asesor: Juan Garcia"
             android:textSize="12sp"
-            android:textColor="#6B6B6B"
+            android:textColor="@color/text_secondary"
             android:layout_marginBottom="10dp" />
 
         <LinearLayout
@@ -99,7 +99,7 @@
                 android:layout_marginEnd="8dp"
                 android:text="Reagendar"
                 android:textSize="13sp"
-                android:textColor="#1A1A2E"
+                android:textColor="@color/neutral_dark"
                 android:gravity="center"
                 android:background="@drawable/bg_btn_comprar" />
 
@@ -110,7 +110,7 @@
                 android:layout_weight="1"
                 android:text="Cancelar"
                 android:textSize="13sp"
-                android:textColor="#E53935"
+                android:textColor="@color/status_error"
                 android:gravity="center"
                 android:background="@drawable/bg_badge_cancelar" />
         </LinearLayout>
