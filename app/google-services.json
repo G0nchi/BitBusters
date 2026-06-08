@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "459896898569",
+    "project_id": "bitbusters-8a5f3",
+    "storage_bucket": "bitbusters-8a5f3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:459896898569:android:1834b9f9563fbd7404e4d8",
+        "android_client_info": {
+          "package_name": "com.example.bitbusters"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0igre6Nn_e1MbjFFTgtUxaDe5p1PyBWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
