@@ -7,6 +7,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import com.example.bitbusters.models.CitaEstadoEntity;
+import com.example.bitbusters.models.ComentarioEntity;
 import com.example.bitbusters.models.DeletedChatEntity;
 import com.example.bitbusters.models.NotificacionEntity;
 
@@ -23,9 +24,10 @@ import com.example.bitbusters.models.NotificacionEntity;
     entities = {
         NotificacionEntity.class,
         CitaEstadoEntity.class,
-        DeletedChatEntity.class
+        DeletedChatEntity.class,
+        ComentarioEntity.class
     },
-    version  = 1,
+    version  = 2,
     exportSchema = false
 )
 public abstract class AsesorDatabase extends RoomDatabase {
@@ -33,6 +35,7 @@ public abstract class AsesorDatabase extends RoomDatabase {
     public abstract NotificacionDao notificacionDao();
     public abstract CitaEstadoDao   citaEstadoDao();
     public abstract DeletedChatDao  deletedChatDao();
+    public abstract ComentarioDao   comentarioDao();
 
     // ── Singleton thread-safe ─────────────────────────────────────────────────
 

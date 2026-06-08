@@ -25,7 +25,7 @@
         <!-- API Key de Google Maps -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="TU_API_KEY_AQUI" />
+            android:value="@string/google_maps_key" />
 
         <!-- Splash / Launcher -->
         <activity
