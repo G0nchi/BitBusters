@@ -5,8 +5,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,15 +17,28 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.content.ContextCompat;
 
+import com.bumptech.glide.Glide;
 import com.example.bitbusters.R;
 import com.example.bitbusters.data.AdminProyectoSessionData;
 import com.example.bitbusters.models.Tipologia;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.UUID;
+
 /**
- * Activity para que el admin agregue una tipología de departamento al proyecto
- * que está creando. Al guardar, agrega la tipología a la sesión
- * (AdminProyectoSessionData.getInstance().tipologias) y regresa al formulario.
+ * Activity para que el admin agregue una tipología al proyecto que está creando/editando.
+ *
+ * Imagen: al seleccionar una imagen desde la galería, se copia a almacenamiento interno
+ * (getFilesDir/tipologia_images/) para garantizar persistencia. La ruta local se guarda
+ * en Tipologia.imageUri.
+ *
+ * TODO-Firebase: en copiarImagenAStorage(), reemplazar la copia local por
+ * FirebaseStorage.getInstance().getReference("tipologias/{id}").putFile(uri)
+ * y guardar la URL de descarga devuelta por getDownloadUrl().
  */
 public class AdminAgregarTipologiaActivity extends AppCompatActivity {
 
@@ -33,11 +48,12 @@ public class AdminAgregarTipologiaActivity extends AppCompatActivity {
     private Button btnGuardarTipologia, btnCancelarTipologia;
     private ImageButton btnBackTipologia;
     private LinearLayout btnAddImage;
+    private ImageView imgTipologiaPreview;
     private TextView tvPreviewTitle, tvPreviewDetails, tvPreviewPrice;
 
-    private int selectedDormitorios = 0;
-    private int selectedBanos       = 0;
-    private Uri imageUri             = null; // URI de la imagen seleccionada (opcional)
+    private int    selectedDormitorios = 0;
+    private int    selectedBanos       = 0;
+    private String localImagePath      = ""; // ruta en almacenamiento interno
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,54 +66,48 @@ public class AdminAgregarTipologiaActivity extends AppCompatActivity {
     }
 
     private void initializeViews() {
-        etNombreTipologia = findViewById(R.id.etNombreTipologia);
-        etMetraje         = findViewById(R.id.etMetraje);
-        etPrecio          = findViewById(R.id.etPrecio);
-        etDescripcion     = findViewById(R.id.etDescripcion);
+        etNombreTipologia    = findViewById(R.id.etNombreTipologia);
+        etMetraje            = findViewById(R.id.etMetraje);
+        etPrecio             = findViewById(R.id.etPrecio);
+        etDescripcion        = findViewById(R.id.etDescripcion);
 
-        btnDorm1 = findViewById(R.id.btnDorm1);
-        btnDorm2 = findViewById(R.id.btnDorm2);
-        btnDorm3 = findViewById(R.id.btnDorm3);
+        btnDorm1             = findViewById(R.id.btnDorm1);
+        btnDorm2             = findViewById(R.id.btnDorm2);
+        btnDorm3             = findViewById(R.id.btnDorm3);
 
-        btnBano1 = findViewById(R.id.btnBano1);
-        btnBano2 = findViewById(R.id.btnBano2);
-        btnBano3 = findViewById(R.id.btnBano3);
+        btnBano1             = findViewById(R.id.btnBano1);
+        btnBano2             = findViewById(R.id.btnBano2);
+        btnBano3             = findViewById(R.id.btnBano3);
 
         btnGuardarTipologia  = findViewById(R.id.btnGuardarTipologia);
         btnCancelarTipologia = findViewById(R.id.btnCancelarTipologia);
         btnBackTipologia     = findViewById(R.id.btnBackTipologia);
         btnAddImage          = findViewById(R.id.btnAddImage);
+        imgTipologiaPreview  = findViewById(R.id.imgTipologiaPreview);
 
-        tvPreviewTitle   = findViewById(R.id.tvPreviewTitle);
-        tvPreviewDetails = findViewById(R.id.tvPreviewDetails);
-        tvPreviewPrice   = findViewById(R.id.tvPreviewPrice);
+        tvPreviewTitle       = findViewById(R.id.tvPreviewTitle);
+        tvPreviewDetails     = findViewById(R.id.tvPreviewDetails);
+        tvPreviewPrice       = findViewById(R.id.tvPreviewPrice);
     }
 
     private void setupListeners() {
-        // Actualizar vista previa en tiempo real
         etNombreTipologia.addTextChangedListener(previewUpdateWatcher);
         etMetraje.addTextChangedListener(previewUpdateWatcher);
         etPrecio.addTextChangedListener(previewUpdateWatcher);
 
-        // Selección de dormitorios
         btnDorm1.setOnClickListener(v -> selectDormitorios(1, btnDorm1));
         btnDorm2.setOnClickListener(v -> selectDormitorios(2, btnDorm2));
         btnDorm3.setOnClickListener(v -> selectDormitorios(3, btnDorm3));
 
-        // Selección de baños
         btnBano1.setOnClickListener(v -> selectBanos(1, btnBano1));
         btnBano2.setOnClickListener(v -> selectBanos(2, btnBano2));
         btnBano3.setOnClickListener(v -> selectBanos(3, btnBano3));
 
-        // Imagen opcional de la tipología
         if (btnAddImage != null) {
             btnAddImage.setOnClickListener(v -> openGallery());
         }
 
-        // Guardar tipología → agregar a sesión y volver
         btnGuardarTipologia.setOnClickListener(v -> saveTypology());
-
-        // Cancelar → volver sin guardar
         btnCancelarTipologia.setOnClickListener(v -> finish());
         btnBackTipologia.setOnClickListener(v -> finish());
     }
@@ -110,31 +120,21 @@ public class AdminAgregarTipologiaActivity extends AppCompatActivity {
 
     private void selectDormitorios(int dormi, Button selectedButton) {
         selectedDormitorios = dormi;
-
-        // Resetear todos al estilo outline
         resetButtonStyle(btnDorm1);
         resetButtonStyle(btnDorm2);
         resetButtonStyle(btnDorm3);
-
-        // Marcar el seleccionado
         selectedButton.setBackgroundColor(ContextCompat.getColor(this, R.color.brand_deep_blue));
         selectedButton.setTextColor(ContextCompat.getColor(this, android.R.color.white));
-
         updatePreview();
     }
 
     private void selectBanos(int banos, Button selectedButton) {
         selectedBanos = banos;
-
-        // Resetear todos al estilo outline
         resetButtonStyle(btnBano1);
         resetButtonStyle(btnBano2);
         resetButtonStyle(btnBano3);
-
-        // Marcar el seleccionado
         selectedButton.setBackgroundColor(ContextCompat.getColor(this, R.color.brand_deep_blue));
         selectedButton.setTextColor(ContextCompat.getColor(this, android.R.color.white));
-
         updatePreview();
     }
 
@@ -148,48 +148,80 @@ public class AdminAgregarTipologiaActivity extends AppCompatActivity {
         String metraje = etMetraje.getText().toString().trim();
         String precio  = etPrecio.getText().toString().trim();
 
-        // Título
-        String title = (nombre.isEmpty() ? "Tipo A" : nombre)
-                + " – " + selectedDormitorios + " dorm.";
-        tvPreviewTitle.setText(title);
-
-        // Detalles
-        String details = (metraje.isEmpty() ? "0" : metraje)
-                + " m² · " + selectedBanos + " baño" + (selectedBanos > 1 ? "s" : "");
-        tvPreviewDetails.setText(details);
-
-        // Precio
+        tvPreviewTitle.setText((nombre.isEmpty() ? "Tipo A" : nombre)
+                + " – " + selectedDormitorios + " dorm.");
+        tvPreviewDetails.setText((metraje.isEmpty() ? "0" : metraje)
+                + " m² · " + selectedBanos + " baño" + (selectedBanos > 1 ? "s" : ""));
         tvPreviewPrice.setText("S/" + (precio.isEmpty() ? "0" : precio));
     }
 
     private void openGallery() {
-        Intent intent = new Intent();
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent, "Seleccionar imagen"), 1001);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1001 && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            imageUri = data.getData();
+        if (requestCode == 1001 && resultCode == RESULT_OK
+                && data != null && data.getData() != null) {
+            Uri uri = data.getData();
+
+            // TODO-Firebase: aquí llamarías a FirebaseStorage.upload(uri) en lugar de copiarImagenAStorage.
+            //                El resultado sería una URL de descarga (String).
+            localImagePath = copiarImagenAStorage(uri);
+
+            // Mostrar vista previa
+            if (imgTipologiaPreview != null) {
+                imgTipologiaPreview.setVisibility(View.VISIBLE);
+                Glide.with(this)
+                        .load(localImagePath.isEmpty() ? uri : new File(localImagePath))
+                        .centerCrop()
+                        .into(imgTipologiaPreview);
+            }
         }
     }
 
-    // ── Parte 1: Guardar tipología en la sesión ──────────────────────────────
-
     /**
-     * Valida los campos, crea el objeto Tipologia y lo agrega a
-     * AdminProyectoSessionData.getInstance().tipologias, luego cierra esta Activity.
+     * Copia la imagen desde la URI de galería a almacenamiento interno del app
+     * y devuelve la ruta absoluta del archivo copiado.
+     *
+     * Ruta destino: getFilesDir()/tipologia_images/{uuid}.jpg
+     *
+     * TODO-Firebase: reemplazar este método por una subida a FirebaseStorage y
+     * devolver la URL de descarga en su lugar.
+     *
+     * @return ruta local absoluta, o "" si falla la copia.
      */
-    private void saveTypology() {
-        String nombre     = etNombreTipologia.getText() != null ? etNombreTipologia.getText().toString().trim() : "";
-        String metrajeStr = etMetraje.getText()         != null ? etMetraje.getText().toString().trim()         : "";
-        String precioStr  = etPrecio.getText()          != null ? etPrecio.getText().toString().trim()          : "";
-        String descripcion = etDescripcion.getText()    != null ? etDescripcion.getText().toString().trim()     : "";
+    private String copiarImagenAStorage(Uri uri) {
+        try {
+            File dir = new File(getFilesDir(), "tipologia_images");
+            if (!dir.exists()) dir.mkdirs();
+            File dest = new File(dir, "tip_" + UUID.randomUUID() + ".jpg");
+            try (InputStream in  = getContentResolver().openInputStream(uri);
+                 OutputStream out = new FileOutputStream(dest)) {
+                if (in == null) return "";
+                byte[] buf = new byte[4096];
+                int len;
+                while ((len = in.read(buf)) > 0) out.write(buf, 0, len);
+            }
+            return dest.getAbsolutePath();
+        } catch (Exception e) {
+            return "";
+        }
+    }
 
-        // Validar campos obligatorios
+    private void saveTypology() {
+        String nombre     = etNombreTipologia.getText() != null
+                ? etNombreTipologia.getText().toString().trim() : "";
+        String metrajeStr = etMetraje.getText() != null
+                ? etMetraje.getText().toString().trim() : "";
+        String precioStr  = etPrecio.getText() != null
+                ? etPrecio.getText().toString().trim() : "";
+        String descripcion = etDescripcion.getText() != null
+                ? etDescripcion.getText().toString().trim() : "";
+
         if (nombre.isEmpty()) {
             Toast.makeText(this, "Por favor ingresa el nombre de la tipología", Toast.LENGTH_SHORT).show();
             etNombreTipologia.requestFocus();
@@ -204,27 +236,25 @@ public class AdminAgregarTipologiaActivity extends AppCompatActivity {
             return;
         }
         if (metrajeStr.isEmpty()) {
-            Toast.makeText(this, "Por favor ingresa el metraje de la tipología", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Por favor ingresa el metraje", Toast.LENGTH_SHORT).show();
             etMetraje.requestFocus();
             return;
         }
         if (precioStr.isEmpty()) {
-            Toast.makeText(this, "Por favor ingresa el precio total de la tipología", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Por favor ingresa el precio total", Toast.LENGTH_SHORT).show();
             etPrecio.requestFocus();
             return;
         }
 
-        // Parsear valores numéricos
         double metraje, precio;
         try {
             metraje = Double.parseDouble(metrajeStr);
             precio  = Double.parseDouble(precioStr);
         } catch (NumberFormatException e) {
-            Toast.makeText(this, "El metraje y precio deben ser valores numéricos válidos", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "El metraje y precio deben ser valores numéricos", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Crear objeto Tipologia y agregar a la sesión compartida
         Tipologia tipologia = new Tipologia(
                 nombre,
                 selectedDormitorios,
@@ -232,11 +262,11 @@ public class AdminAgregarTipologiaActivity extends AppCompatActivity {
                 metraje,
                 precio,
                 descripcion,
-                imageUri != null ? imageUri.toString() : ""
+                localImagePath   // ruta local (o "" si no se seleccionó imagen)
         );
         AdminProyectoSessionData.getInstance().tipologias.add(tipologia);
 
         Toast.makeText(this, "Tipología \"" + nombre + "\" agregada", Toast.LENGTH_SHORT).show();
-        finish(); // volver a AdminCrearProyectoActivity
+        finish();
     }
 }
