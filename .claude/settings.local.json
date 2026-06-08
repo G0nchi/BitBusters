@@ -10,7 +10,8 @@
       "Bash(Get-ChildItem *)",
       "Bash(Select-Object -First 50)",
       "Bash(xargs grep -l \"class.*Admin\\\\|class.*Asesor\\\\|class.*Cliente\")",
-      "Bash(xargs grep -l \"latitud\\\\|longitud\\\\|latitude\\\\|longitude\")"
+      "Bash(xargs grep -l \"latitud\\\\|longitud\\\\|latitude\\\\|longitude\")",
+      "Bash(xargs -I {} basename {})"
     ]
   },
   "enabledMcpjsonServers": [
