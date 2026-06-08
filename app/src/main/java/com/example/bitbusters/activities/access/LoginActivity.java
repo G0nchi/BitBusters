@@ -3,6 +3,7 @@ package com.example.bitbusters.activities.access;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Patterns;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -20,8 +21,10 @@ import com.example.bitbusters.activities.asesor.AsesorHomeActivity;
 import com.example.bitbusters.activities.cliente.HomeActivity;
 import com.example.bitbusters.activities.superadmin.SuperadminControlCenterActivity;
 import com.example.bitbusters.utils.AdminPreferencesManager;
+import com.example.bitbusters.utils.AuthHelper;
 import com.example.bitbusters.utils.PreferencesManager;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseUser;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -34,9 +37,10 @@ public class LoginActivity extends AppCompatActivity {
     private static final String CLIENT_PASSWORD = "cliente";
     private static final String ADMIN_USER = "administrador";
     private static final String ADMIN_PASSWORD = "administrador";
-    private static final String ASESOR_USER = "asesor";
-    private static final String ASESOR_PASSWORD = "asesor";
     private boolean passwordVisible = false;
+
+    /** Texto original del botón de login, para restaurarlo tras un intento de Firebase Auth. */
+    private CharSequence loginButtonTextoOriginal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +83,8 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         if (loginButton != null) {
-            loginButton.setOnClickListener(v -> validateLoginByRole(emailInput, passwordInput));
+            loginButtonTextoOriginal = loginButton.getText();
+            loginButton.setOnClickListener(v -> validateLoginByRole(loginButton, emailInput, passwordInput));
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -98,7 +103,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void validateLoginByRole(EditText emailInput, EditText passwordInput) {
+    private void validateLoginByRole(MaterialButton loginButton, EditText emailInput, EditText passwordInput) {
         String user = emailInput != null && emailInput.getText() != null
                 ? emailInput.getText().toString().trim()
                 : "";
@@ -106,6 +111,7 @@ public class LoginActivity extends AppCompatActivity {
                 ? passwordInput.getText().toString().trim()
                 : "";
 
+        // ── Roles con credenciales mock locales (sin backend real todavía) ──
         if (SUPERADMIN_USER.equals(user) && SUPERADMIN_PASSWORD.equals(password)) {
             PreferencesManager.guardarNombreSuperadmin(this, "Superadmin");
             String fechaHoraSA = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
@@ -139,12 +145,58 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        if (ASESOR_USER.equals(user) && ASESOR_PASSWORD.equals(password)) {
-            startActivity(new Intent(this, AsesorHomeActivity.class));
-            finish();
+        // ── Rol Asesor: autenticación real con Firebase Authentication (Clase 10 — BaaS) ──
+        // Si el correo tiene formato válido, se intenta contra Firebase; cualquier
+        // otra entrada (que no calzó con los roles mock de arriba) se rechaza de
+        // inmediato sin gastar una llamada de red.
+        if (!user.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(user).matches() && !password.isEmpty()) {
+            iniciarSesionAsesorConFirebase(loginButton, emailInput, passwordInput, user, password);
             return;
         }
 
+        mostrarErrorCredenciales(emailInput, passwordInput);
+    }
+
+    /**
+     * Intenta autenticar al Asesor contra Firebase Authentication
+     * (FirebaseAuth.signInWithEmailAndPassword) usando {@link AuthHelper}.
+     *
+     * Requiere que el proyecto tenga `app/google-services.json` y el plugin de
+     * Google Services activo (ver FIREBASE_SETUP.md); de lo contrario Firebase
+     * devuelve un error de configuración que se muestra igualmente al usuario.
+     */
+    private void iniciarSesionAsesorConFirebase(MaterialButton loginButton, EditText emailInput,
+                                                 EditText passwordInput, String email, String password) {
+        if (loginButton != null) {
+            loginButton.setEnabled(false);
+            loginButton.setText(getString(R.string.login_validating));
+        }
+
+        AuthHelper.iniciarSesion(email, password, new AuthHelper.AuthCallback() {
+            @Override
+            public void onSuccess(FirebaseUser usuario) {
+                restaurarBotonLogin(loginButton);
+                startActivity(new Intent(LoginActivity.this, AsesorHomeActivity.class));
+                finish();
+            }
+
+            @Override
+            public void onError(String mensaje) {
+                restaurarBotonLogin(loginButton);
+                Toast.makeText(LoginActivity.this, mensaje, Toast.LENGTH_LONG).show();
+                mostrarErrorCredenciales(emailInput, passwordInput);
+            }
+        });
+    }
+
+    private void restaurarBotonLogin(MaterialButton loginButton) {
+        if (loginButton != null) {
+            loginButton.setEnabled(true);
+            loginButton.setText(loginButtonTextoOriginal != null ? loginButtonTextoOriginal : getString(R.string.login_button));
+        }
+    }
+
+    private void mostrarErrorCredenciales(EditText emailInput, EditText passwordInput) {
         if (emailInput != null) {
             emailInput.setError(getString(R.string.login_error_invalid_credentials));
         }

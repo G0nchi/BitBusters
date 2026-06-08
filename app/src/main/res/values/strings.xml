@@ -206,6 +206,7 @@
     <string name="login_button">Login</string>
     <string name="login_error_password">tu contraseña es incorrecta</string>
     <string name="login_error_invalid_credentials">Usuario o contraseña incorrectos.</string>
+    <string name="login_validating">Validando…</string>
     <string name="forgot_password_title">Recuperar contraseña</string>
     <string name="forgot_password_subtitle">Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.</string>
     <string name="forgot_password_email_hint">Correo electrónico</string>
@@ -251,6 +252,8 @@
     <string name="register_password_hint">Contraseña</string>
     <string name="register_password_repeat_hint">Repetir contraseña</string>
     <string name="register_submit">Registrarse</string>
+    <string name="register_creating_account">Creando cuenta…</string>
+    <string name="register_success">Cuenta creada correctamente. Ya puedes iniciar sesión.</string>
     <string name="generic_navigation_error">No se pudo abrir la siguiente pantalla.</string>
     <string name="back_button_content_description">Regresar</string>
 

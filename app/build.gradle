@@ -1,5 +1,10 @@
 plugins {
     alias(libs.plugins.android.application)
+
+    // Firebase (Clase 09.1): IMPORTANTE — descomentar esta línea recién cuando
+    // hayas colocado tu archivo real `app/google-services.json` (ver FIREBASE_SETUP.md).
+    // Si se aplica sin ese archivo, el build falla con "File google-services.json is missing".
+    // id 'com.google.gms.google-services'
 }
 
 android {
@@ -71,6 +76,18 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+
+    // ── Firebase BaaS (Clase 09.1 / 09.2 / 10) ──────────────────────────────
+    // El BoM (Bill of Materials) fija versiones compatibles entre sí; no se
+    // especifica versión en cada artefacto individual.
+    implementation platform('com.google.firebase:firebase-bom:33.1.0')
+    // Firebase Authentication (Clase 10): login/registro con email+password,
+    // FirebaseAuth.getCurrentUser(), etc. — reemplaza la validación hardcodeada
+    // de LoginActivity.
+    implementation 'com.google.firebase:firebase-auth'
+    // Cloud Firestore (Clase 09.2): backend para ChatRepository/FirestoreChatRepository,
+    // citas, separaciones, etc.
+    implementation 'com.google.firebase:firebase-firestore'
 
 }
 

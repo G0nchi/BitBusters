@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Firebase: archivo de configuración específico de cada proyecto Firebase
+# (cada integrante debe generar el suyo desde Firebase Console — ver FIREBASE_SETUP.md)
+/app/google-services.json

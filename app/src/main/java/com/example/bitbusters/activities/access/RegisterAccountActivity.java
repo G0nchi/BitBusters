@@ -18,6 +18,12 @@ import com.google.android.material.button.MaterialButton;
 
 public class RegisterAccountActivity extends AppCompatActivity {
 
+    /** Extra con el correo ingresado, propagado a través de RegisterOtp → RegisterPassword
+     *  para crear la cuenta en Firebase Authentication al finalizar el flujo (Clase 10). */
+    public static final String EXTRA_EMAIL = "extra_email";
+    /** Extra con el nombre completo, usado para fijar el displayName del FirebaseUser. */
+    public static final String EXTRA_FULL_NAME = "extra_full_name";
+
     private EditText fullNameInput, docNumberInput, birthDateInput, emailInput, phoneInput, addressInput;
     private AutoCompleteTextView docTypeInput;
 
@@ -46,7 +52,10 @@ public class RegisterAccountActivity extends AppCompatActivity {
         if (nextButton != null) {
             nextButton.setOnClickListener(v -> {
                 if (validateFields()) {
-                    startActivity(new Intent(this, RegisterOtpActivity.class));
+                    Intent intent = new Intent(this, RegisterOtpActivity.class);
+                    intent.putExtra(EXTRA_EMAIL, emailInput.getText().toString().trim());
+                    intent.putExtra(EXTRA_FULL_NAME, fullNameInput.getText().toString().trim());
+                    startActivity(intent);
                 }
             });
         }

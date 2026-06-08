@@ -1,4 +1,9 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     alias(libs.plugins.android.application) apply false
+
+    // Firebase (Clase 09.1 / 09.2 / 10): plugin que procesa app/google-services.json
+    // y genera los recursos necesarios para inicializar FirebaseApp en runtime.
+    // Se declara aquí con `apply false` y se aplica solo en :app (ver app/build.gradle).
+    id 'com.google.gms.google-services' version '4.4.2' apply false
 }
