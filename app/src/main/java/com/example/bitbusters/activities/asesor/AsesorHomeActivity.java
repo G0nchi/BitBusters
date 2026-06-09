@@ -23,6 +23,7 @@ import com.example.bitbusters.models.AsesorNotif;
 import com.example.bitbusters.models.ProyectoApi;
 import com.example.bitbusters.utils.ApiClient;
 import com.example.bitbusters.utils.AsesorNotificationHelper;
+import com.example.bitbusters.utils.AuthHelper;
 import com.example.bitbusters.utils.AsesorStorage;
 import com.example.bitbusters.utils.BitBustersApiService;
 import com.example.bitbusters.utils.NotificationHelper;
@@ -80,7 +81,7 @@ public class AsesorHomeActivity extends AppCompatActivity {
 
     private void logout() {
         AsesorStorage.clearAll(this);
-        com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
+        AuthHelper.cerrarSesion(); // cierra también la sesión de Firebase Authentication (Clase 10)
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

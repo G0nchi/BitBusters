@@ -60,6 +60,13 @@ public class RegisterOtpActivity extends AppCompatActivity {
 
         setupAutoAdvance();
 
+        // Mostrar el correo real ingresado en RegisterAccountActivity (antes era placeholder hardcodeado)
+        TextView otpEmail = findViewById(R.id.otpEmail);
+        if (otpEmail != null) {
+            String email = getIntent().getStringExtra(RegisterAccountActivity.EXTRA_EMAIL);
+            if (email != null && !email.isEmpty()) otpEmail.setText(email);
+        }
+
         MaterialButton backButton = findViewById(R.id.backButton);
         if (backButton != null) backButton.setOnClickListener(v -> finish());
         if (verifyButton != null) verifyButton.setOnClickListener(v -> verifyOtp());

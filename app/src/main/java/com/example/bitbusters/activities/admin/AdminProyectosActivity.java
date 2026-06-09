@@ -26,6 +26,8 @@ public class AdminProyectosActivity extends AdminMainActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_proyectos);
+        // Cargar proyectos guardados en disco (reemplaza los demo si hay guardados)
+        AdminProyectosRepository.cargar(this);
         setupHeaderListeners();
         setupBottomNavigation(R.id.nav_proyectos);
         setupCreateProjectButton();

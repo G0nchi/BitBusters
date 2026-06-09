@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        API Key de Google Maps SDK for Android.
+        Habilitada en Google Cloud Console con:
+          - Maps SDK for Android
+          - (Opcional) Places API, Directions API
+
+        IMPORTANTE: No subas este archivo a repositorios públicos.
+        Restringe la key en GCP a este package: com.example.bitbusters
+    -->
+    <string name="google_maps_key" templateMergeStrategy="preserve">AIzaSyDv_Av3_1p4mBkGlq2om3T5HLGfMHx0gB0</string>
+</resources>

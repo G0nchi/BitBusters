@@ -1,8 +1,17 @@
 package com.example.bitbusters.data;
 
+import android.content.Context;
+
 import com.example.bitbusters.models.AdminProyecto;
 import com.example.bitbusters.models.Tipologia;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,9 +63,70 @@ public class AdminProyectosRepository {
         return null;
     }
 
+    /**
+     * Reemplaza el proyecto con el mismo ID por la versión actualizada.
+     */
+    public static void actualizar(AdminProyecto actualizado) {
+        if (actualizado == null || actualizado.getId() == null) return;
+        for (int i = 0; i < proyectos.size(); i++) {
+            if (actualizado.getId().equals(proyectos.get(i).getId())) {
+                proyectos.set(i, actualizado);
+                return;
+            }
+        }
+    }
+
     /** Elimina todos los proyectos (útil para tests). */
     public static void limpiar() {
         proyectos.clear();
+    }
+
+    // ── Persistencia local (JSON) ────────────────────────────────────────────
+
+    private static final String ARCHIVO_PROYECTOS = "admin_proyectos.json";
+
+    /**
+     * Serializa la lista a JSON y la escribe en getFilesDir().
+     *
+     * TODO-Firebase: reemplazar por un batch write a Firestore y subida
+     * de imágenes a FirebaseStorage.
+     */
+    public static void guardar(Context ctx) {
+        try {
+            String json = new Gson().toJson(proyectos);
+            File file = new File(ctx.getFilesDir(), ARCHIVO_PROYECTOS);
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.write(json);
+            }
+        } catch (Exception ignored) {
+            // Lista en memoria sigue siendo válida aunque falle el guardado
+        }
+    }
+
+    /**
+     * Carga la lista desde el JSON guardado en disco.
+     * Si el archivo no existe o está corrupto, conserva los datos demo en memoria.
+     *
+     * TODO-Firebase: reemplazar por una query a Firestore.
+     */
+    public static void cargar(Context ctx) {
+        try {
+            File file = new File(ctx.getFilesDir(), ARCHIVO_PROYECTOS);
+            if (!file.exists()) return;
+            StringBuilder sb = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) sb.append(line);
+            }
+            Type type = new TypeToken<List<AdminProyecto>>() {}.getType();
+            List<AdminProyecto> guardados = new Gson().fromJson(sb.toString(), type);
+            if (guardados != null && !guardados.isEmpty()) {
+                proyectos.clear();
+                proyectos.addAll(guardados);
+            }
+        } catch (Exception ignored) {
+            // Si falla la carga, se conservan los datos demo iniciales
+        }
     }
 
     // ── Datos demo iniciales ─────────────────────────────────────────────────

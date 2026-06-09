@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:background="@color/neutral_canvas">
 
-    <!-- Fixed Header -->
+    <!-- Cabecera fija -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="80dp"
@@ -35,7 +35,7 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Scrollable Content -->
+    <!-- Contenido con scroll -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -47,7 +47,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Card: Información Básica -->
+            <!-- Card: Información básica -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -85,9 +85,9 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etNombreProyecto"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Edificio Los Álamos"
                             android:inputType="text" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -106,9 +106,9 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDescripcion"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Moderno edificio de 15 pisos ubicado en el corazón de Miraflores con vista panorámica al mar."
                             android:inputType="textMultiLine"
                             android:minLines="3" />
                     </com.google.android.material.textfield.TextInputLayout>
@@ -125,8 +125,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="12dp"
-                        android:spacing="8dp">
+                        android:layout_marginBottom="12dp">
 
                         <Button
                             android:id="@+id/btnStateInPlanos"
@@ -135,7 +134,6 @@
                             android:layout_weight="1"
                             android:text="En planos"
                             android:textSize="12sp"
-                            android:textColor="@color/brand_deep_blue"
                             android:layout_marginEnd="6dp"
                             android:background="@drawable/button_outline_state_bg" />
 
@@ -146,9 +144,8 @@
                             android:layout_weight="1"
                             android:text="Preventa"
                             android:textSize="12sp"
-                            android:textColor="@color/white"
                             android:layout_marginEnd="6dp"
-                            android:backgroundTint="@color/brand_deep_blue" />
+                            android:background="@drawable/button_outline_state_bg" />
 
                         <Button
                             android:id="@+id/btnStateEnVenta"
@@ -157,8 +154,6 @@
                             android:layout_weight="1"
                             android:text="En venta"
                             android:textSize="12sp"
-                            android:textColor="@color/brand_deep_blue"
-                            android:layout_marginEnd="0dp"
                             android:background="@drawable/button_outline_state_bg" />
                     </LinearLayout>
 
@@ -171,6 +166,7 @@
                         android:layout_marginBottom="4dp" />
 
                     <LinearLayout
+                        android:id="@+id/layoutFechaEntrega"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:orientation="horizontal"
@@ -178,7 +174,9 @@
                         android:paddingStart="12dp"
                         android:paddingEnd="12dp"
                         android:background="@drawable/button_outline_state_bg"
-                        android:layout_marginBottom="12dp">
+                        android:layout_marginBottom="4dp"
+                        android:clickable="true"
+                        android:focusable="true">
 
                         <ImageView
                             android:layout_width="20dp"
@@ -192,8 +190,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Diciembre 2026"
-                            android:textColor="@color/neutral_medium"
+                            android:hint="Seleccionar fecha"
+                            android:textColor="@color/neutral_dark"
                             android:textSize="14sp" />
 
                         <ImageView
@@ -205,7 +203,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card: Tipología de Departamentos -->
+            <!-- Card: Tipología de departamentos (dinámica) -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -228,89 +226,13 @@
                         android:textStyle="bold"
                         android:layout_marginBottom="12dp" />
 
-                    <!-- Tipo A -->
+                    <!-- Contenedor dinámico — se puebla desde Java -->
                     <LinearLayout
-                        android:id="@+id/tipologia1Container"
+                        android:id="@+id/tipologiasContainerEditar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Tipo A – 2 dorm."
-                                android:textColor="@color/brand_deep_blue"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="65 m² · 2 dormitorios · 1 baño"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-
-                        <ImageButton
-                            android:id="@+id/btnDeleteTipologia1"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="@android:color/transparent"
-                            android:contentDescription="Eliminar"
-                            android:padding="8dp"
-                            android:src="@drawable/ic_close"
-                            android:tint="@color/status_error" />
-                    </LinearLayout>
-
-                    <!-- Tipo B -->
-                    <LinearLayout
-                        android:id="@+id/tipologia2Container"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Tipo B – 3 dorm."
-                                android:textColor="@color/brand_deep_blue"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="90 m² · 3 dormitorios · 2 baños"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-
-                        <ImageButton
-                            android:id="@+id/btnDeleteTipologia2"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="@android:color/transparent"
-                            android:contentDescription="Eliminar"
-                            android:padding="8dp"
-                            android:src="@drawable/ic_close"
-                            android:tint="@color/status_error" />
-                    </LinearLayout>
+                        android:orientation="vertical"
+                        android:layout_marginBottom="8dp" />
 
                     <Button
                         android:id="@+id/btnAddTipologia"
@@ -324,7 +246,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card: Precios y Condiciones -->
+            <!-- Card: Precios y condiciones -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -362,10 +284,10 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etCostoSeparacion"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="5,000"
-                            android:inputType="number" />
+                            android:inputType="numberDecimal" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
@@ -382,15 +304,15 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etPrecioTotal"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="320,000"
-                            android:inputType="number" />
+                            android:inputType="numberDecimal" />
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card: Áreas Comunes -->
+            <!-- Card: Datos del servicio -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -407,85 +329,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Áreas comunes"
-                        android:textColor="@color/brand_deep_blue"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="12dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="12dp">
-
-                        <com.google.android.material.chip.Chip
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="🏊 Piscina"
-                            android:layout_marginEnd="8dp"
-                            style="@style/Widget.MaterialComponents.Chip.Choice" />
-
-                        <com.google.android.material.chip.Chip
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="🍖 Parrillas"
-                            android:layout_marginEnd="8dp"
-                            style="@style/Widget.MaterialComponents.Chip.Choice" />
-
-                        <com.google.android.material.chip.Chip
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="💻 Coworking"
-                            style="@style/Widget.MaterialComponents.Chip.Choice" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <com.google.android.material.chip.Chip
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="💪 Gym"
-                            android:layout_marginEnd="8dp"
-                            style="@style/Widget.MaterialComponents.Chip.Choice" />
-
-                        <com.google.android.material.chip.Chip
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="👶 Zona kids"
-                            android:layout_marginEnd="8dp"
-                            style="@style/Widget.MaterialComponents.Chip.Choice" />
-
-                        <com.google.android.material.chip.Chip
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="🅿️ Estacionamiento"
-                            style="@style/Widget.MaterialComponents.Chip.Choice" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Card: Datos del Servicio -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Datos del servicio (proyecto)"
+                        android:text="Datos del servicio"
                         android:textColor="@color/brand_deep_blue"
                         android:textSize="14sp"
                         android:textStyle="bold"
@@ -494,7 +338,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Nombre comercial del servicio *"
+                        android:text="Nombre comercial *"
                         android:textColor="@color/neutral_dark"
                         android:textSize="12sp"
                         android:layout_marginBottom="4dp" />
@@ -506,16 +350,16 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etNombreComercial"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Edificio Los Álamos"
                             android:inputType="text" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Precio publicado *"
+                        android:text="Precio publicado"
                         android:textColor="@color/neutral_dark"
                         android:textSize="12sp"
                         android:layout_marginBottom="4dp" />
@@ -526,9 +370,9 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etPrecioPublicado"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Desde S/ 320,000"
                             android:inputType="text" />
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -572,9 +416,9 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDireccion"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Av. Benavides 1520, Miraflores"
                             android:inputType="text" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -589,26 +433,99 @@
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDistrito"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Miraflores"
                             android:inputType="text" />
                     </com.google.android.material.textfield.TextInputLayout>
-
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="150dp"
-                        android:src="@drawable/ubicacion_proyecto"
-                        android:scaleType="centerCrop"
-                        android:contentDescription="Mapa" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card: Imágenes del Proyecto -->
+            <!-- Card: Imágenes del proyecto (dinámica) -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Imágenes del proyecto (mín. 2)"
+                            android:textColor="@color/brand_deep_blue"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvContadorImagenes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0 imágenes"
+                            android:textColor="@color/neutral_dark"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none"
+                        android:layout_marginBottom="8dp">
+
+                        <LinearLayout
+                            android:id="@+id/imagesContainer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="88dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical" />
+                    </HorizontalScrollView>
+
+                    <LinearLayout
+                        android:id="@+id/btnAddImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/dashed_border_bg"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="+"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="22sp"
+                            android:layout_marginEnd="6dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Agregar imágenes"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card: Asesores asignados (dinámica) -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -625,290 +542,19 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Imágenes del proyecto (mín. 2)"
+                        android:text="Asesores asignados"
                         android:textColor="@color/brand_deep_blue"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="12dp" />
 
+                    <!-- Contenedor dinámico — se puebla desde Java -->
                     <LinearLayout
-                        android:id="@+id/imagesContainer"
+                        android:id="@+id/asesoresContainerEditar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="12dp"
-                        android:gravity="center_vertical">
-
-                        <FrameLayout
-                            android:layout_width="0dp"
-                            android:layout_height="100dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="8dp">
-
-                            <ImageView
-                                android:id="@+id/imgProject1"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:src="@drawable/foto_proyecto_1"
-                                android:scaleType="centerCrop"
-                                android:contentDescription="Foto 1" />
-
-                            <ImageButton
-                                android:id="@+id/btnDeleteImg1"
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:layout_gravity="top|end"
-                                android:layout_margin="4dp"
-                                android:background="@drawable/circle_white_bg"
-                                android:contentDescription="Eliminar"
-                                android:padding="4dp"
-                                android:src="@drawable/ic_close"
-                                android:tint="@color/status_error"
-                                android:elevation="4dp" />
-                        </FrameLayout>
-
-                        <FrameLayout
-                            android:layout_width="0dp"
-                            android:layout_height="100dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="8dp">
-
-                            <ImageView
-                                android:id="@+id/imgProject2"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:src="@drawable/foto_proyecto_2"
-                                android:scaleType="centerCrop"
-                                android:contentDescription="Foto 2" />
-
-                            <ImageButton
-                                android:id="@+id/btnDeleteImg2"
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:layout_gravity="top|end"
-                                android:layout_margin="4dp"
-                                android:background="@drawable/circle_white_bg"
-                                android:contentDescription="Eliminar"
-                                android:padding="4dp"
-                                android:src="@drawable/ic_close"
-                                android:tint="@color/status_error"
-                                android:elevation="4dp" />
-                        </FrameLayout>
-
-                        <FrameLayout
-                            android:layout_width="0dp"
-                            android:layout_height="100dp"
-                            android:layout_weight="1">
-
-                            <LinearLayout
-                                android:id="@+id/btnAddImage"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:background="@drawable/dashed_border_bg"
-                                android:gravity="center"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="+"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="32sp" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Agregar" />
-                            </LinearLayout>
-                        </FrameLayout>
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Card: Asesores Asignados -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Asesores asignados al proyecto"
-                        android:textColor="@color/brand_deep_blue"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="12dp" />
-
-                    <LinearLayout
-                        android:id="@+id/asesor1Container"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp"
-                        android:padding="12dp"
-                        android:background="@color/neutral_soft_1">
-
-                        <TextView
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:gravity="center"
-                            android:background="@drawable/onboarding_skip_bg"
-                            android:backgroundTint="@color/brand_deep_blue"
-                            android:text="CR"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
-                            android:layout_marginEnd="12dp" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Carlos Ruiz"
-                                android:textStyle="bold"
-                                android:textColor="@color/text_primary"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Asesor activo · 3 separaciones"
-                                android:textColor="@color/neutral_dark"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-
-                        <ImageButton
-                            android:id="@+id/btnDeleteAsesor1"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="@android:color/transparent"
-                            android:contentDescription="Eliminar"
-                            android:padding="8dp"
-                            android:src="@drawable/ic_close"
-                            android:tint="@color/status_error" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/asesor2Container"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp"
-                        android:padding="12dp"
-                        android:background="@color/neutral_soft_1">
-
-                        <TextView
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:gravity="center"
-                            android:background="@drawable/onboarding_skip_bg"
-                            android:backgroundTint="@color/brand_lime"
-                            android:text="AT"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
-                            android:layout_marginEnd="12dp" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Ana Torres"
-                                android:textStyle="bold"
-                                android:textColor="@color/text_primary"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Asesora activa · 1 separación"
-                                android:textColor="@color/neutral_dark"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-
-                        <ImageButton
-                            android:id="@+id/btnDeleteAsesor2"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="@android:color/transparent"
-                            android:contentDescription="Eliminar"
-                            android:padding="8dp"
-                            android:src="@drawable/ic_close"
-                            android:tint="@color/status_error" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/asesor3Container"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp"
-                        android:padding="12dp"
-                        android:background="@color/neutral_soft_1">
-
-                        <TextView
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:gravity="center"
-                            android:background="@drawable/onboarding_skip_bg"
-                            android:backgroundTint="@color/brand_deep_blue"
-                            android:text="MP"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
-                            android:layout_marginEnd="12dp" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Mario Pérez"
-                                android:textStyle="bold"
-                                android:textColor="@color/text_primary"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Asesor activo · 2 separaciones"
-                                android:textColor="@color/neutral_dark"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-
-                        <ImageButton
-                            android:id="@+id/btnDeleteAsesor3"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="@android:color/transparent"
-                            android:contentDescription="Eliminar"
-                            android:padding="8dp"
-                            android:src="@drawable/ic_close"
-                            android:tint="@color/status_error" />
-                    </LinearLayout>
+                        android:orientation="vertical"
+                        android:layout_marginBottom="8dp" />
 
                     <Button
                         android:id="@+id/btnAddAdvisor"
@@ -922,7 +568,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Action Buttons -->
+            <!-- Botones de acción -->
             <Button
                 android:id="@+id/btnSaveChanges"
                 style="@style/Widget.BitBusters.PrimaryButton"
