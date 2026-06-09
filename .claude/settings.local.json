@@ -10,7 +10,7 @@
       "Bash(Get-ChildItem *)",
       "mcp__firebase__firestore_update_document",
       "mcp__firebase__firestore_add_document",
-      "mcp__firebase__firebase_get_project"
+      "mcp__firebase__firebase_get_project",
       "Bash(Select-Object -First 50)",
       "Bash(xargs grep -l \"class.*Admin\\\\|class.*Asesor\\\\|class.*Cliente\")",
       "Bash(xargs grep -l \"latitud\\\\|longitud\\\\|latitude\\\\|longitude\")",

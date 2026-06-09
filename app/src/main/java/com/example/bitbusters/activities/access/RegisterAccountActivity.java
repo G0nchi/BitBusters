@@ -77,20 +77,8 @@ public class RegisterAccountActivity extends AppCompatActivity {
         if (backButton != null) {
             backButton.setOnClickListener(v -> finish());
         }
-        if (nextButton != null) {
-            nextButton.setOnClickListener(v -> {
-                if (validateFields()) {
-                    Intent intent = new Intent(this, RegisterOtpActivity.class);
-                    intent.putExtra("fullName",   fullNameInput.getText().toString().trim());
-                    intent.putExtra("docType",    docTypeInput.getText().toString().trim());
-                    intent.putExtra("docNumber",  docNumberInput.getText().toString().trim());
-                    intent.putExtra("birthDate",  birthDateInput.getText().toString().trim());
-                    intent.putExtra("email",      emailInput.getText().toString().trim());
-                    intent.putExtra("phone",      phoneInput.getText().toString().trim());
-                    intent.putExtra("address",    addressInput.getText().toString().trim());
-                    startActivity(intent);
-                }
-            });
+        if (registerButton != null) {
+            registerButton.setOnClickListener(v -> attemptRegister());
         }
 
         if (rootLayout != null) {

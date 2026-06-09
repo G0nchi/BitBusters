@@ -11,9 +11,12 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bitbusters.R;
+import com.example.bitbusters.utils.AuthHelper;
 import com.example.bitbusters.utils.ImmersiveMode;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -24,6 +27,9 @@ public class RegisterPasswordActivity extends AppCompatActivity {
     private EditText passwordInput, repeatPasswordInput;
     private MaterialButton registerButton;
     private FirebaseAuth mAuth;
+    private String email;
+    private String fullName;
+    private String registerButtonTextoOriginal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
