@@ -25,6 +25,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -140,6 +141,13 @@ public class LoginActivity extends AppCompatActivity {
                             intent = new Intent(this, HomeActivity.class);
                             break;
                     }
+                    // Guardar FCM token en Firestore para notificaciones push
+                    FirebaseMessaging.getInstance().getToken()
+                            .addOnSuccessListener(token ->
+                                    FirebaseFirestore.getInstance()
+                                            .collection("users").document(uid)
+                                            .update("fcmToken", token));
+
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                     finish();

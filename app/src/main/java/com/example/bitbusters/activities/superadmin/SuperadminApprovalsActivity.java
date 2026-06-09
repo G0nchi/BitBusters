@@ -27,13 +27,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bitbusters.R;
 import com.example.bitbusters.utils.PreferencesManager;
 
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.text.Normalizer;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -74,16 +72,14 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
         setupSearchFilter();
         setupInfiniteScroll();
 
-        seedApprovals();
-
         // Restaurar filtros guardados en SharedPreferences
         selectedDateFilter = PreferencesManager.obtenerFiltroFecha(this);
         selectedLocation   = PreferencesManager.obtenerFiltroUbicacion(this);
         selectedCompany    = PreferencesManager.obtenerFiltroEmpresa(this);
-
         updateFilterButtonLabels();
         updateFilterButtonStyles();
-        applySearchAndRender("", true);
+
+        loadPendingAsesoresFromFirestore();
     }
 
     private void setupInfiniteScroll() {
@@ -193,26 +189,37 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
         });
     }
 
-    private void seedApprovals() {
-        allApprovals.clear();
-        allApprovals.addAll(Arrays.asList(
-                new ApprovalItem("JP", "Juan Perez", "Inmobiliaria Norte", "Bogota", "2026-04-03"),
-                new ApprovalItem("DT", "Diana Torres", "Inmobiliaria Sur", "Medellin", "2026-04-02"),
-                new ApprovalItem("CR", "Carlos Ruiz", "Inmobiliaria Este", "Cali", "2026-04-01"),
-                new ApprovalItem("MS", "Monica Silva", "Inmobiliaria Centro", "Bogota", "2026-03-30"),
-                new ApprovalItem("RD", "Roberto Diaz", "Inmobiliaria Norte", "Barranquilla", "2026-03-29"),
-                new ApprovalItem("AC", "Andrea Castillo", "Inmobiliaria Centro", "Bogota", "2026-03-28"),
-                new ApprovalItem("FM", "Felipe Moreno", "Inmobiliaria Sur", "Medellin", "2026-03-27"),
-                new ApprovalItem("DV", "Daniela Vega", "Inmobiliaria Este", "Cali", "2026-03-26"),
-                new ApprovalItem("LR", "Laura Romero", "Inmobiliaria Capital", "Bogota", "2026-03-25"),
-                new ApprovalItem("NC", "Nicolas Cardenas", "Inmobiliaria Norte", "Medellin", "2026-03-24"),
-                new ApprovalItem("PP", "Paula Paredes", "Inmobiliaria Sur", "Bogota", "2026-03-23"),
-                new ApprovalItem("HV", "Hector Vargas", "Inmobiliaria Centro", "Cali", "2026-03-22"),
-                new ApprovalItem("BG", "Brenda Gomez", "Inmobiliaria Este", "Barranquilla", "2026-03-21"),
-                new ApprovalItem("AM", "Alberto Mena", "Inmobiliaria Norte", "Bogota", "2026-03-20"),
-                new ApprovalItem("TC", "Tatiana Cruz", "Inmobiliaria Sur", "Medellin", "2026-03-19"),
-                new ApprovalItem("JL", "Jorge Luna", "Inmobiliaria Capital", "Bogota", "2026-03-18")
-        ));
+    private void loadPendingAsesoresFromFirestore() {
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .whereEqualTo("role", "asesor")
+            .whereEqualTo("status", "pending")
+            .get()
+            .addOnSuccessListener(snapshots -> {
+                allApprovals.clear();
+                for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                    String nombre = doc.getString("nombre");
+                    if (nombre == null) continue;
+                    String initials = computeInitials(nombre);
+                    String company  = doc.getString("inmobiliaria");
+                    if (company == null) company = "";
+                    String email    = doc.getString("email");
+                    if (email == null) email = "";
+                    allApprovals.add(new ApprovalItem(doc.getId(), initials, nombre, company, email));
+                }
+                applySearchAndRender(currentQuery, true);
+            })
+            .addOnFailureListener(e -> applySearchAndRender(currentQuery, true));
+    }
+
+    private String computeInitials(String nombre) {
+        String[] parts = nombre.trim().split("\\s+");
+        if (parts.length >= 2) {
+            return ("" + parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase(Locale.ROOT);
+        } else if (parts.length == 1 && !parts[0].isEmpty()) {
+            return String.valueOf(parts[0].charAt(0)).toUpperCase(Locale.ROOT);
+        }
+        return "?";
     }
 
     private void applySearchAndRender(String rawQuery, boolean resetScrollPosition) {
@@ -221,12 +228,10 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
         filteredApprovals.clear();
         for (ApprovalItem item : allApprovals) {
             String name = normalize(item.name);
-            boolean matchesQuery = query.isEmpty() || name.contains(query);
-            boolean matchesLocation = selectedLocation.isEmpty() || selectedLocation.equals(item.location);
+            boolean matchesQuery   = query.isEmpty() || name.contains(query);
             boolean matchesCompany = selectedCompany.isEmpty() || selectedCompany.equals(item.company);
-            boolean matchesDate = matchesDateFilter(item.date);
 
-            if (matchesQuery && matchesLocation && matchesCompany && matchesDate) {
+            if (matchesQuery && matchesCompany) {
                 filteredApprovals.add(item);
             }
         }
@@ -281,34 +286,6 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
         });
     }
 
-    private boolean matchesDateFilter(String itemDate) {
-        if (selectedDateFilter == 0) {
-            return true;
-        }
-
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        format.setLenient(false);
-
-        Date parsedDate;
-        try {
-            parsedDate = format.parse(itemDate);
-        } catch (ParseException e) {
-            return false;
-        }
-
-        if (parsedDate == null) {
-            return false;
-        }
-
-        Calendar boundary = Calendar.getInstance();
-        if (selectedDateFilter == 1) {
-            boundary.add(Calendar.DAY_OF_YEAR, -7);
-        } else {
-            boundary.add(Calendar.DAY_OF_YEAR, -30);
-        }
-        return !parsedDate.before(boundary.getTime());
-    }
-
     private void showDateFilterMenu(View anchor) {
         PopupMenu menu = new PopupMenu(this, anchor);
         menu.getMenu().add(0, 0, 0, getString(R.string.sa_filter_date_any));
@@ -329,27 +306,8 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
     private void showLocationFilterMenu(View anchor) {
         PopupMenu menu = new PopupMenu(this, anchor);
         menu.getMenu().add(0, 0, 0, getString(R.string.sa_filter_location_all));
-
-        List<String> locations = new ArrayList<>();
-        for (ApprovalItem item : allApprovals) {
-            if (!locations.contains(item.location)) {
-                locations.add(item.location);
-            }
-        }
-
-        for (int i = 0; i < locations.size(); i++) {
-            menu.getMenu().add(0, i + 1, i + 1, "Ubicacion: " + locations.get(i));
-        }
-
         menu.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == 0) {
-                selectedLocation = "";
-            } else {
-                int index = item.getItemId() - 1;
-                if (index >= 0 && index < locations.size()) {
-                    selectedLocation = locations.get(index);
-                }
-            }
+            selectedLocation = "";
             PreferencesManager.guardarFiltroUbicacion(this, selectedLocation);
             updateFilterButtonLabels();
             updateFilterButtonStyles();
@@ -447,7 +405,15 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
         card.setGravity(Gravity.CENTER_VERTICAL);
         card.setPadding(dp(12), 0, dp(12), 0);
         card.setBackgroundResource(R.drawable.sa_user_row_bg);
-        card.setOnClickListener(v -> open(SuperadminApprovalEvaluationActivity.class));
+        card.setOnClickListener(v -> {
+            Intent intent = new Intent(this, SuperadminApprovalEvaluationActivity.class);
+            intent.putExtra("uid",      item.uid);
+            intent.putExtra("initials", item.initials);
+            intent.putExtra("nombre",   item.name);
+            intent.putExtra("email",    item.email);
+            intent.putExtra("company",  item.company);
+            startActivity(intent);
+        });
 
         TextView initials = new TextView(this);
         LinearLayout.LayoutParams initialsParams = new LinearLayout.LayoutParams(dp(48), dp(48));
@@ -472,16 +438,16 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
         details.addView(name);
 
         TextView company = new TextView(this);
-        company.setText(item.company + " - " + item.location);
+        company.setText(item.company);
         company.setTextColor(ContextCompat.getColor(this, R.color.text_medium));
         company.setTextSize(12);
         details.addView(company);
 
-        TextView date = new TextView(this);
-        date.setText(getString(R.string.sa_approval_date_template, item.date));
-        date.setTextColor(ContextCompat.getColor(this, R.color.slate_400));
-        date.setTextSize(12);
-        details.addView(date);
+        TextView email = new TextView(this);
+        email.setText(item.email);
+        email.setTextColor(ContextCompat.getColor(this, R.color.slate_400));
+        email.setTextSize(12);
+        details.addView(email);
 
         card.addView(details);
 
@@ -536,18 +502,18 @@ public class SuperadminApprovalsActivity extends AppCompatActivity {
     }
 
     private static class ApprovalItem {
-        private final String initials;
-        private final String name;
-        private final String company;
-        private final String location;
-        private final String date;
+        final String uid;
+        final String initials;
+        final String name;
+        final String company;
+        final String email;
 
-        private ApprovalItem(String initials, String name, String company, String location, String date) {
+        ApprovalItem(String uid, String initials, String name, String company, String email) {
+            this.uid      = uid;
             this.initials = initials;
-            this.name = name;
-            this.company = company;
-            this.location = location;
-            this.date = date;
+            this.name     = name;
+            this.company  = company;
+            this.email    = email;
         }
     }
 

@@ -28,11 +28,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
 
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.WriteBatch;
+
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class SuperadminLogsActivity extends AppCompatActivity {
 
@@ -86,8 +94,7 @@ public class SuperadminLogsActivity extends AppCompatActivity {
         setupSearch();
         setupInfiniteScroll();
 
-        seedLogs();
-        applyFiltersAndRender("");
+        loadOrSeedLogsFromFirestore();
     }
 
     private void bindInsets() {
@@ -240,7 +247,53 @@ public class SuperadminLogsActivity extends AppCompatActivity {
         });
     }
 
-    private void seedLogs() {
+    private void loadOrSeedLogsFromFirestore() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("logs").orderBy("id", Query.Direction.ASCENDING).get()
+            .addOnSuccessListener(snapshots -> {
+                allLogs.clear();
+                if (!snapshots.isEmpty()) {
+                    Log.d(TAG, "Firestore: loaded " + snapshots.size() + " logs");
+                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                        int    id            = doc.getLong("id")          != null ? doc.getLong("id").intValue() : 0;
+                        String type          = doc.getString("type");
+                        String status        = doc.getString("status");
+                        String time          = doc.getString("time");
+                        String title         = doc.getString("title");
+                        String source        = doc.getString("source");
+                        String detailLabel   = doc.getString("detailLabel");
+                        String detailAction  = doc.getString("detailAction");
+                        String metaLabel     = doc.getString("metaLabel");
+                        String metaPrimary   = doc.getString("metaPrimary");
+                        String metaSecondary = doc.getString("metaSecondary");
+                        List<String> tags    = (List<String>) doc.get("tags");
+                        if (type == null) continue;
+                        allLogs.add(new LogItem(id, type,
+                            status        != null ? status        : STATUS_CONFIRMED,
+                            time          != null ? time          : "",
+                            title         != null ? title         : "",
+                            source        != null ? source        : "",
+                            detailLabel   != null ? detailLabel   : "",
+                            detailAction  != null ? detailAction  : "",
+                            metaLabel     != null ? metaLabel     : "",
+                            metaPrimary   != null ? metaPrimary   : "",
+                            metaSecondary != null ? metaSecondary : "",
+                            tags          != null ? tags          : new ArrayList<>()));
+                    }
+                } else {
+                    buildLocalSeedLogs();
+                    writeLogsToFirestoreAsync(db);
+                }
+                applyFiltersAndRender(getSearchText());
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Firestore fetch failed, falling back to local seed", e);
+                buildLocalSeedLogs();
+                applyFiltersAndRender(getSearchText());
+            });
+    }
+
+    private void buildLocalSeedLogs() {
         allLogs.clear();
         allLogs.addAll(Arrays.asList(
                 new LogItem(1, TYPE_RESERVATION, STATUS_CONFIRMED, "14:50 hrs", "Reserva registrada en proyecto Catalina Sky", "asesor.norte@inmo.com", "Accion Especifica", "Se registro separacion de unidad D-1204", "Recurso Afectado", "Reserva #R-2143 - S/ 5,000", "Empresa: Inmobiliaria Norte | Cliente: DNI 74211233", tags(TAG_STATUS_CONFIRMED, "modulo:reservas", TAG_COMPANY_NORTH)),
@@ -288,6 +341,33 @@ public class SuperadminLogsActivity extends AppCompatActivity {
                 new LogItem(39, TYPE_APPOINTMENT, STATUS_SUSPENDED, "12:20 hrs", "Cita suspendida por indisponibilidad del asesor", "admin.norte@inmo.com", "Accion Especifica", "Reprogramacion pendiente de confirmacion", "Recurso Afectado", "Cita #C-1028 - 21/04 12:00", "Proyecto: Residencial El Park | Cliente: ID 6612", tags(TAG_STATUS_SUSPENDED, "modulo:citas", TAG_COMPANY_NORTH)),
                 new LogItem(40, TYPE_APPOINTMENT, STATUS_CONFIRMED, "09:45 hrs", "Cita reprogramada a solicitud del cliente", "asesor.este@inmo.com", "Accion Especifica", "Nueva franja asignada sin conflicto de agenda", "Detalle del Cambio", "Cita #C-1019: 20/04 11:00 -> 22/04 09:00", "Proyecto: Torres del Sol | Cliente: ID 7731", tags(TAG_STATUS_CONFIRMED, "modulo:citas", "empresa:este"))
         ));
+    }
+
+    private void writeLogsToFirestoreAsync(FirebaseFirestore db) {
+        CollectionReference col = db.collection("logs");
+        int batchSize = 10;
+        for (int i = 0; i < allLogs.size(); i += batchSize) {
+            WriteBatch batch = db.batch();
+            int end = Math.min(i + batchSize, allLogs.size());
+            for (int j = i; j < end; j++) {
+                LogItem item = allLogs.get(j);
+                Map<String, Object> data = new HashMap<>();
+                data.put("id",           item.id);
+                data.put("type",         item.type);
+                data.put("status",       item.status);
+                data.put("time",         item.time);
+                data.put("title",        item.title);
+                data.put("source",       item.source);
+                data.put("detailLabel",  item.detailLabel);
+                data.put("detailAction", item.detailAction);
+                data.put("metaLabel",    item.metaLabel);
+                data.put("metaPrimary",  item.metaPrimary);
+                data.put("metaSecondary",item.metaSecondary);
+                data.put("tags",         item.tags);
+                batch.set(col.document(), data);
+            }
+            batch.commit();
+        }
     }
 
     private void applyFiltersAndRender(String rawQuery) {

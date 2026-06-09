@@ -316,6 +316,7 @@
 
     <string name="sa_user_detail_title">Detalles del Usuario</string>
     <string name="sa_disable_user">Desactivar Usuario</string>
+    <string name="sa_enable_user">Activar Usuario</string>
     <string name="sa_personal_info">Información Personal</string>
     <string name="sa_role">Rol</string>
     <string name="sa_email">Correo Electrónico</string>

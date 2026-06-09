@@ -2,6 +2,7 @@ package com.example.bitbusters.activities.asesor;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,13 +20,19 @@ import com.example.bitbusters.databinding.ActivityAsesorNotificacionesBinding;
 import com.example.bitbusters.models.AsesorNotif;
 import com.example.bitbusters.utils.AsesorStorage;
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class AsesorNotificacionesActivity extends AppCompatActivity {
 
+    private static final String TAG = "ASESOR_NOTIF";
+
     private ActivityAsesorNotificacionesBinding binding;
+    private NotifAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,29 +41,60 @@ public class AsesorNotificacionesActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         binding.btnBack.setOnClickListener(v -> finish());
         setupRecyclerView();
+        loadNotificationsFromFirestore();
     }
 
     private void setupRecyclerView() {
         binding.rvNotificaciones.setLayoutManager(new LinearLayoutManager(this));
-        binding.rvNotificaciones.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        binding.rvNotificaciones.setAdapter(new NotifAdapter(buildNotificaciones()));
+        binding.rvNotificaciones.addItemDecoration(
+                new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+        adapter = new NotifAdapter(new ArrayList<>());
+        binding.rvNotificaciones.setAdapter(adapter);
     }
 
-    private List<Notif> buildNotificaciones() {
-        List<AsesorNotif> stored = AsesorStorage.getNotificaciones(this);
-        if (stored.isEmpty()) {
-            stored = defaultNotificaciones();
-            AsesorStorage.saveNotificaciones(this, stored);
-        }
-        AsesorStorage.resetNotifCount(this);
-        List<Notif> result = new ArrayList<>();
-        for (AsesorNotif n : stored) {
-            result.add(toNotif(n));
-        }
-        return result;
+    private void loadNotificationsFromFirestore() {
+        FirebaseFirestore.getInstance()
+            .collection("notifications")
+            .whereEqualTo("role", "asesor")
+            .orderBy("order", Query.Direction.ASCENDING)
+            .get()
+            .addOnSuccessListener(snapshots -> {
+                List<AsesorNotif> list;
+                if (!snapshots.isEmpty()) {
+                    list = new ArrayList<>();
+                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                        String titulo     = doc.getString("titulo");
+                        String descripcion = doc.getString("descripcion");
+                        String tiempo     = doc.getString("tiempo");
+                        String tipo       = doc.getString("tipo");
+                        if (titulo != null && tipo != null) {
+                            list.add(new AsesorNotif(
+                                    titulo,
+                                    descripcion != null ? descripcion : "",
+                                    tiempo      != null ? tiempo      : "",
+                                    tipo));
+                        }
+                    }
+                } else {
+                    list = defaultNotificaciones();
+                }
+                AsesorStorage.saveNotificaciones(this, list);
+                AsesorStorage.resetNotifCount(this);
+                List<Notif> notifs = new ArrayList<>();
+                for (AsesorNotif n : list) notifs.add(toNotif(n));
+                adapter.setData(notifs);
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Firestore fetch failed, using defaults", e);
+                List<AsesorNotif> list = defaultNotificaciones();
+                AsesorStorage.saveNotificaciones(this, list);
+                AsesorStorage.resetNotifCount(this);
+                List<Notif> notifs = new ArrayList<>();
+                for (AsesorNotif n : list) notifs.add(toNotif(n));
+                adapter.setData(notifs);
+            });
     }
 
-    /** Convierte el tipo semántico en propiedades visuales del item. */
     private Notif toNotif(AsesorNotif n) {
         switch (n.tipo) {
             case AsesorNotif.TIPO_SEPARACION:
@@ -132,6 +170,12 @@ public class AsesorNotificacionesActivity extends AppCompatActivity {
         private final List<Notif> items;
 
         NotifAdapter(List<Notif> items) { this.items = items; }
+
+        void setData(List<Notif> newItems) {
+            items.clear();
+            items.addAll(newItems);
+            notifyDataSetChanged();
+        }
 
         @NonNull
         @Override
