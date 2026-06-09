@@ -47,6 +47,11 @@ public class NotificationsAdapter extends RecyclerView.Adapter<NotificationsAdap
         return notificationList.size();
     }
 
+    public void setData(List<Notification> newList) {
+        this.notificationList = newList;
+        notifyDataSetChanged();
+    }
+
     public void removeItem(int position) {
         notificationList.remove(position);
         notifyItemRemoved(position);

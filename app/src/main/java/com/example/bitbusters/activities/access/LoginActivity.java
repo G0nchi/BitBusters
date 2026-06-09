@@ -27,6 +27,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.example.bitbusters.utils.ImmersiveMode;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -129,27 +131,53 @@ public class LoginActivity extends AppCompatActivity {
                 .document(uid)
                 .get()
                 .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        // Documento encontrado en la colección "usuarios" (nuevo flujo)
-                        String rol = doc.getString("rol");
-                        String nombre = doc.getString("nombre");
-                        routeByRole(rol, nombre, uid);
-                    } else {
-                        // Fallback: buscar en "users" (roles admin/asesor/superadmin existentes)
-                        FirebaseFirestore.getInstance()
-                                .collection("users")
-                                .document(uid)
-                                .get()
-                                .addOnSuccessListener(doc2 -> {
-                                    String role = doc2.getString("role");
-                                    String nombre = doc2.getString("nombre");
-                                    routeByRole(role, nombre, uid);
-                                })
-                                .addOnFailureListener(e -> {
-                                    // Si falla también el fallback, tratar como cliente
-                                    routeByRole(null, null, uid);
-                                });
+                    String role   = doc.getString("role");
+                    String nombre = doc.getString("nombre");
+                    String status = doc.getString("status");
+                    String fechaHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
+
+                    if ("inactive".equals(status)) {
+                        mAuth.signOut();
+                        Toast.makeText(this, "Tu cuenta está desactivada. Contacta al soporte.", Toast.LENGTH_LONG).show();
+                        return;
                     }
+                    if ("pending".equals(status)) {
+                        mAuth.signOut();
+                        Toast.makeText(this, "Tu cuenta está pendiente de aprobación.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    Intent intent;
+                    switch (role != null ? role : "cliente") {
+                        case "superadmin":
+                            PreferencesManager.guardarNombreSuperadmin(this, nombre != null ? nombre : "Superadmin");
+                            PreferencesManager.guardarUltimoAccesoSuperadmin(this, fechaHora);
+                            intent = new Intent(this, SuperadminControlCenterActivity.class);
+                            break;
+                        case "admin":
+                            AdminPreferencesManager.guardarNombre(this, nombre != null ? nombre : "Admin");
+                            AdminPreferencesManager.guardarUltimoAcceso(this, fechaHora);
+                            intent = new Intent(this, AdminMainActivity.class);
+                            break;
+                        case "asesor":
+                            intent = new Intent(this, AsesorHomeActivity.class);
+                            break;
+                        default:
+                            PreferencesManager.guardarNombre(this, nombre != null ? nombre : "Cliente");
+                            PreferencesManager.guardarUltimoAcceso(this, fechaHora);
+                            intent = new Intent(this, HomeActivity.class);
+                            break;
+                    }
+                    // Guardar FCM token en Firestore para notificaciones push
+                    FirebaseMessaging.getInstance().getToken()
+                            .addOnSuccessListener(token ->
+                                    FirebaseFirestore.getInstance()
+                                            .collection("users").document(uid)
+                                            .update("fcmToken", token));
+
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error al obtener datos del usuario", Toast.LENGTH_SHORT).show();

@@ -77,14 +77,6 @@ public class RegisterAccountActivity extends AppCompatActivity {
         if (backButton != null) {
             backButton.setOnClickListener(v -> finish());
         }
-
-        // Link "¿Ya tienes cuenta? Inicia sesión"
-        TextView loginLink = findViewById(R.id.loginLink);
-        if (loginLink != null) {
-            loginLink.setOnClickListener(v -> finish());
-        }
-
-        // Botón Registrarme
         if (registerButton != null) {
             registerButton.setOnClickListener(v -> attemptRegister());
         }
