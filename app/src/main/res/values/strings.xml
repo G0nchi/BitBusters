@@ -203,7 +203,7 @@
     <string name="login_hide_password">Ocultar contraseña</string>
     <string name="login_no_account">¿No tienes cuenta? </string>
     <string name="login_register">Regístrate</string>
-    <string name="login_button">Login</string>
+    <string name="login_button">Iniciar Sesión</string>
     <string name="login_error_password">tu contraseña es incorrecta</string>
     <string name="login_error_invalid_credentials">Usuario o contraseña incorrectos.</string>
     <string name="login_validating">Validando…</string>
