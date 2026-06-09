@@ -116,9 +116,21 @@ public class LoginActivity extends AppCompatActivity {
                 .document(uid)
                 .get()
                 .addOnSuccessListener(doc -> {
-                    String role = doc.getString("role");
+                    String role   = doc.getString("role");
                     String nombre = doc.getString("nombre");
+                    String status = doc.getString("status");
                     String fechaHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
+
+                    if ("inactive".equals(status)) {
+                        mAuth.signOut();
+                        Toast.makeText(this, "Tu cuenta está desactivada. Contacta al soporte.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    if ("pending".equals(status)) {
+                        mAuth.signOut();
+                        Toast.makeText(this, "Tu cuenta está pendiente de aprobación.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
 
                     Intent intent;
                     switch (role != null ? role : "cliente") {
