@@ -35,6 +35,10 @@ import java.util.Locale;
  */
 public class RegisterAccountActivity extends AppCompatActivity {
 
+    /** Extras para compatibilidad con RegisterOtpActivity y RegisterPasswordActivity (flujo asesor). */
+    public static final String EXTRA_EMAIL     = "extra_email";
+    public static final String EXTRA_FULL_NAME = "extra_full_name";
+
     private EditText fullNameInput;
     private EditText emailInput;
     private EditText phoneInput;

@@ -3,6 +3,7 @@ package com.example.bitbusters.activities.access;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.bitbusters.utils.ImmersiveMode;
@@ -35,6 +36,13 @@ public class RegisterOtpActivity extends AppCompatActivity {
         otpDigit3 = findViewById(R.id.otpDigit3);
         otpDigit4 = findViewById(R.id.otpDigit4);
 
+        // Mostrar el correo real ingresado en RegisterAccountActivity (antes era placeholder hardcodeado)
+        TextView otpEmail = findViewById(R.id.otpEmail);
+        if (otpEmail != null) {
+            String email = getIntent().getStringExtra(RegisterAccountActivity.EXTRA_EMAIL);
+            if (email != null && !email.isEmpty()) otpEmail.setText(email);
+        }
+
         MaterialButton backButton = findViewById(R.id.backButton);
         MaterialButton verifyButton = findViewById(R.id.verifyButton);
 
@@ -44,7 +52,18 @@ public class RegisterOtpActivity extends AppCompatActivity {
         if (verifyButton != null) {
             verifyButton.setOnClickListener(v -> {
                 if (validateOtp()) {
-                    openIfAvailable(RegisterPasswordActivity.class);
+                    // Propaga correo y nombre recibidos de RegisterAccountActivity para que
+                    // RegisterPasswordActivity pueda crear la cuenta en Firebase Auth (Clase 10).
+                    Intent intent = new Intent(this, RegisterPasswordActivity.class);
+                    intent.putExtra(RegisterAccountActivity.EXTRA_EMAIL,
+                            getIntent().getStringExtra(RegisterAccountActivity.EXTRA_EMAIL));
+                    intent.putExtra(RegisterAccountActivity.EXTRA_FULL_NAME,
+                            getIntent().getStringExtra(RegisterAccountActivity.EXTRA_FULL_NAME));
+                    try {
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        Toast.makeText(this, R.string.generic_navigation_error, Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
         }
@@ -67,14 +86,5 @@ public class RegisterOtpActivity extends AppCompatActivity {
             return false;
         }
         return true;
-    }
-
-    private void openIfAvailable(Class<?> destination) {
-        try {
-            Intent intent = new Intent(this, destination);
-            startActivity(intent);
-        } catch (Exception e) {
-            Toast.makeText(this, R.string.generic_navigation_error, Toast.LENGTH_SHORT).show();
-        }
     }
 }
