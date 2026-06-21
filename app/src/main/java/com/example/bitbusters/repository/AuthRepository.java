@@ -1,6 +1,9 @@
 package com.example.bitbusters.repository;
 
+import androidx.annotation.NonNull;
+
 import com.example.bitbusters.models.Usuario;
+import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
@@ -8,143 +11,148 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
-/**
- * Repositorio de autenticación con Firebase Auth y Firestore.
- * Centraliza el registro de clientes y la consulta de perfil.
- */
 public class AuthRepository {
-
-    private static final String COLECCION_USUARIOS = "usuarios";
-    private static final String ROL_CLIENTE = "CLIENTE";
-
-    private final FirebaseAuth mAuth;
-    private final FirebaseFirestore db;
-
-    public AuthRepository() {
-        mAuth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
-    }
-
-    // ── Interfaz de callback ─────────────────────────────────────────────────
 
     public interface AuthCallback {
         void onSuccess(Usuario usuario);
         void onError(String mensaje);
     }
 
-    // ── Registro de cliente ──────────────────────────────────────────────────
+    private static final String COLLECTION_USUARIOS = "usuarios";
+    private static final String COLLECTION_USERS_LEGACY = "users";
 
-    /**
-     * Registra un nuevo cliente:
-     * 1. Verifica que el DNI no esté en uso en Firestore.
-     * 2. Crea la cuenta con Firebase Auth (email/password).
-     * 3. Guarda el perfil completo en Firestore (colección "usuarios", doc id = uid).
-     * 4. Si Firestore falla, elimina la cuenta de Auth para mantener consistencia.
-     */
+    private final FirebaseAuth firebaseAuth;
+    private final FirebaseFirestore firestore;
+
+    public AuthRepository() {
+        this(FirebaseAuth.getInstance(), FirebaseFirestore.getInstance());
+    }
+
+    public AuthRepository(FirebaseAuth firebaseAuth, FirebaseFirestore firestore) {
+        this.firebaseAuth = firebaseAuth;
+        this.firestore = firestore;
+    }
+
     public void registrarCliente(String nombre, String email, String password,
-                                  String telefono, String dni,
-                                  AuthCallback callback) {
+                                 String telefono, String dni,
+                                 AuthCallback callback) {
+        String emailNormalizado = email.trim().toLowerCase(Locale.ROOT);
+        String dniNormalizado = dni.trim();
 
-        // Paso 1: verificar unicidad del DNI en Firestore
-        db.collection(COLECCION_USUARIOS)
+        verificarDniUnico(dniNormalizado, callback, () ->
+                verificarEmailUnico(emailNormalizado, callback, () ->
+                        crearAuthYGuardarPerfil(nombre.trim(), emailNormalizado, password,
+                                telefono.trim(), dniNormalizado, callback)));
+    }
+
+    private void verificarDniUnico(String dni, AuthCallback callback, Runnable onOk) {
+        firestore.collection(COLLECTION_USUARIOS)
                 .whereEqualTo("dni", dni)
+                .limit(1)
                 .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    if (!querySnapshot.isEmpty()) {
-                        callback.onError("Ya existe una cuenta con este DNI");
+                .addOnSuccessListener(query -> {
+                    if (query.isEmpty()) {
+                        onOk.run();
+                    } else {
+                        callback.onError("El DNI ya está registrado");
+                    }
+                })
+                .addOnFailureListener(e -> callback.onError(mapearErrorGeneral(e)));
+    }
+
+    private void verificarEmailUnico(String email, AuthCallback callback, Runnable onOk) {
+        firestore.collection(COLLECTION_USUARIOS)
+                .whereEqualTo("email", email)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (query.isEmpty()) {
+                        onOk.run();
+                    } else {
+                        callback.onError("Ya existe una cuenta con este email");
+                    }
+                })
+                .addOnFailureListener(e -> callback.onError(mapearErrorGeneral(e)));
+    }
+
+    private void crearAuthYGuardarPerfil(String nombre, String email, String password,
+                                         String telefono, String dni,
+                                         AuthCallback callback) {
+        firebaseAuth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener(result -> {
+                    FirebaseUser authUser = result.getUser();
+                    if (authUser == null) {
+                        callback.onError("No se pudo crear la cuenta");
                         return;
                     }
-                    // DNI libre → crear cuenta en Auth
-                    crearCuentaAuth(nombre, email, password, telefono, dni, callback);
+
+                    String uid = authUser.getUid();
+                    Usuario usuario = new Usuario(
+                            uid,
+                            nombre,
+                            email,
+                            telefono,
+                            dni,
+                            "CLIENTE",
+                            null,
+                            Timestamp.now(),
+                            true
+                    );
+
+                    WriteBatch batch = firestore.batch();
+                    batch.set(firestore.collection(COLLECTION_USUARIOS).document(uid), usuario);
+
+                    // Compatibilidad con flujo de login actual (coleccion users + campo role).
+                    Map<String, Object> legacyUser = new HashMap<>();
+                    legacyUser.put("uid", uid);
+                    legacyUser.put("nombre", nombre);
+                    legacyUser.put("email", email);
+                    legacyUser.put("role", "cliente");
+                    legacyUser.put("activo", true);
+                    batch.set(firestore.collection(COLLECTION_USERS_LEGACY).document(uid),
+                            legacyUser,
+                            SetOptions.merge());
+
+                    batch.commit()
+                            .addOnSuccessListener(unused -> callback.onSuccess(usuario))
+                            .addOnFailureListener(e -> rollbackUsuarioAuth(authUser, callback));
                 })
-                .addOnFailureListener(e -> {
-                    callback.onError("Error al verificar el DNI. Revisa tu conexión.");
-                });
+                .addOnFailureListener(e -> callback.onError(mapearErrorAuth(e)));
     }
 
-    /** Crea la cuenta en Firebase Auth. */
-    private void crearCuentaAuth(String nombre, String email, String password,
-                                  String telefono, String dni,
-                                  AuthCallback callback) {
-        mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
-                        if (firebaseUser == null) {
-                            callback.onError("Error inesperado al crear la cuenta");
-                            return;
-                        }
-                        // Paso 3: guardar perfil en Firestore
-                        guardarPerfilFirestore(firebaseUser, nombre, email,
-                                telefono, dni, callback);
-                    } else {
-                        callback.onError(mapearErrorAuth(task.getException()));
-                    }
-                });
+    private void rollbackUsuarioAuth(@NonNull FirebaseUser authUser, AuthCallback callback) {
+        authUser.delete()
+                .addOnCompleteListener(task ->
+                        callback.onError("No se pudo guardar el perfil. Inténtalo de nuevo."));
     }
 
-    /** Guarda el perfil del usuario en Firestore. Si falla, hace rollback en Auth. */
-    private void guardarPerfilFirestore(FirebaseUser firebaseUser,
-                                        String nombre, String email,
-                                        String telefono, String dni,
-                                        AuthCallback callback) {
-        String uid = firebaseUser.getUid();
-
-        Usuario usuario = new Usuario(
-                uid, nombre, email, telefono, dni,
-                ROL_CLIENTE, null, Timestamp.now(), true
-        );
-
-        Map<String, Object> datos = new HashMap<>();
-        datos.put("uid", uid);
-        datos.put("nombre", nombre);
-        datos.put("email", email);
-        datos.put("telefono", telefono);
-        datos.put("dni", dni);
-        datos.put("rol", ROL_CLIENTE);
-        datos.put("fotoUrl", null);
-        datos.put("fechaRegistro", Timestamp.now());
-        datos.put("activo", true);
-
-        db.collection(COLECCION_USUARIOS)
-                .document(uid)
-                .set(datos)
-                .addOnSuccessListener(aVoid -> {
-                    callback.onSuccess(usuario);
-                })
-                .addOnFailureListener(e -> {
-                    // Rollback: eliminar usuario de Auth para mantener consistencia
-                    firebaseUser.delete().addOnCompleteListener(deleteTask -> {
-                        callback.onError(
-                                "Error al guardar el perfil. Inténtalo de nuevo.");
-                    });
-                });
-    }
-
-    /**
-     * Convierte las excepciones de Firebase Auth en mensajes amigables en español.
-     */
-    private String mapearErrorAuth(Exception exception) {
-        if (exception == null) {
-            return "Error desconocido al crear la cuenta";
-        }
-        if (exception instanceof FirebaseAuthUserCollisionException) {
+    private String mapearErrorAuth(Exception e) {
+        if (e instanceof FirebaseAuthUserCollisionException) {
             return "Ya existe una cuenta con este email";
         }
-        if (exception instanceof FirebaseAuthWeakPasswordException) {
+        if (e instanceof FirebaseAuthWeakPasswordException) {
             return "La contraseña es demasiado débil";
         }
-        if (exception instanceof FirebaseAuthInvalidCredentialsException) {
-            return "El formato del email es inválido";
+        if (e instanceof FirebaseAuthInvalidCredentialsException) {
+            return "Email inválido";
         }
-        String mensaje = exception.getMessage();
-        if (mensaje != null && mensaje.contains("NETWORK_ERROR")) {
+        if (e instanceof FirebaseNetworkException) {
             return "Sin conexión a internet, verifica tu red";
         }
-        return "Error al crear la cuenta. Inténtalo de nuevo.";
+        return "No se pudo registrar la cuenta. Inténtalo nuevamente";
+    }
+
+    private String mapearErrorGeneral(Exception e) {
+        if (e instanceof FirebaseNetworkException) {
+            return "Sin conexión a internet, verifica tu red";
+        }
+        return "No se pudo validar la información. Inténtalo nuevamente";
     }
 }
