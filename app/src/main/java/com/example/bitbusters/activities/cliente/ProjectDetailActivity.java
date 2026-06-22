@@ -24,10 +24,16 @@ import com.bumptech.glide.Glide;
 import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.ComentariosAdapter;
 import com.example.bitbusters.models.ComentarioEntity;
+import com.example.bitbusters.models.Proyecto;
+import com.example.bitbusters.repository.ChatRepository;
+import com.example.bitbusters.repository.ProyectoRepository;
 import com.example.bitbusters.repository.UbicacionRepository;
 import com.example.bitbusters.utils.AsesorDatabase;
 import com.example.bitbusters.utils.ImageUrls;
 import com.example.bitbusters.utils.NotificationHelper;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
@@ -44,16 +50,22 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 public class ProjectDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    private static final String EXTRA_PROYECTO   = "proyecto";
-    private static final String PREF_SEED_DONE   = "comentarios_seed_done";
-    private static final int    REQUEST_LOCATION  = 100;
+    private static final String EXTRA_PROYECTO = "proyecto";
+    private static final String PREF_SEED_DONE = "comentarios_seed_done";
+    private static final int    REQUEST_LOCATION = 100;
 
     // Proyecto
     private String nombreProyecto;
+    private Proyecto proyectoActual;
+    private ProyectoRepository proyectoRepository;
+
+    // Chat
+    private ChatRepository chatRepository;
 
     // Comentarios (Room)
     private AsesorDatabase   db;
@@ -74,6 +86,9 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
 
         NotificationHelper.crearCanal(this);
 
+        chatRepository = new ChatRepository();
+        proyectoRepository = new ProyectoRepository();
+
         nombreProyecto = resolverNombreProyecto();
         if (nombreProyecto == null || nombreProyecto.isEmpty()) {
             Toast.makeText(this, "Proyecto no encontrado", Toast.LENGTH_SHORT).show();
@@ -82,6 +97,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         }
 
         configurarUIProyecto();
+        cargarDatosProyecto();
         configurarNavegacion();
         configurarComentarios();
         cargarMapa(nombreProyecto);
@@ -98,14 +114,6 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
                     .load(obtenerImagenProyecto(nombreProyecto))
                     .centerCrop()
                     .into(imgHero);
-        }
-
-        ImageView imgAsesor = findViewById(R.id.imgAsesor);
-        if (imgAsesor != null) {
-            Glide.with(this)
-                    .load(ImageUrls.AVATAR_FABRI)
-                    .centerCrop()
-                    .into(imgAsesor);
         }
     }
 
@@ -129,12 +137,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         findViewById(R.id.btnComprar).setOnClickListener(v -> { /* TODO separación */ });
         findViewById(R.id.btnQR).setOnClickListener(v -> { /* TODO mostrar QR */ });
 
-        findViewById(R.id.btnChatAsesor).setOnClickListener(v -> {
-            Intent intent = new Intent(this, ChatDetailActivity.class);
-            intent.putExtra("contacto",
-                    ((TextView) findViewById(R.id.tvNombreAsesor)).getText().toString());
-            startActivity(intent);
-        });
+        findViewById(R.id.btnChatAsesor).setOnClickListener(v -> abrirChatConAsesor());
 
         View tvVerTodos = findViewById(R.id.tvVerTodosComentarios);
         if (tvVerTodos != null) {
@@ -570,5 +573,183 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
             case "Catalina Sky":       return ImageUrls.PROYECTO_CATALINA_SKY;
             default:                   return ImageUrls.HERO_TORRES_UNIDAS;
         }
+    }
+
+    // ── Datos dinámicos del proyecto ──────────────────────────────────────────────
+
+    private void cargarDatosProyecto() {
+        proyectoRepository.obtenerPorNombre(nombreProyecto, new ProyectoRepository.ProyectoCallback() {
+            @Override
+            public void onSuccess(Proyecto p) {
+                proyectoActual = p;
+                pintarDatosProyecto();
+                List<String> uidAsesores = p.getUidAsesores();
+                if (uidAsesores != null && !uidAsesores.isEmpty()) {
+                    cargarAsesor(uidAsesores.get(0));
+                }
+            }
+            @Override
+            public void onError(String mensaje) {
+                Log.e("DetalleProyecto", "Error cargando datos: " + mensaje);
+                Toast.makeText(ProjectDetailActivity.this,
+                        "No se pudo cargar el proyecto", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void pintarDatosProyecto() {
+        if (proyectoActual == null) return;
+
+        TextView tvNombre = findViewById(R.id.tvNombreProyecto);
+        if (tvNombre != null) tvNombre.setText(proyectoActual.getNombre());
+
+        TextView tvUbicacion = findViewById(R.id.tvUbicacion);
+        if (tvUbicacion != null) tvUbicacion.setText(proyectoActual.getUbicacion());
+
+        TextView tvPrecio = findViewById(R.id.tvPrecio);
+        if (tvPrecio != null) tvPrecio.setText(proyectoActual.getPrecio());
+
+        TextView tvRating = findViewById(R.id.tvRatingBadge);
+        if (tvRating != null) {
+            String r = proyectoActual.getRating();
+            tvRating.setText((r != null && !r.isEmpty()) ? "★ " + r : "");
+        }
+
+        TextView tvTipo = findViewById(R.id.tvTipoBadge);
+        if (tvTipo != null) tvTipo.setText(proyectoActual.getTipo());
+
+        String url = proyectoActual.getImageUrl();
+        ImageView imgHero = findViewById(R.id.imgHero);
+        if (imgHero != null && url != null && !url.isEmpty()) {
+            Glide.with(this).load(url).centerCrop().into(imgHero);
+        }
+
+        pintarTipologias();
+    }
+
+    private void pintarTipologias() {
+        if (proyectoActual == null) return;
+        List<Map<String, Object>> tipologias = proyectoActual.getTipologias();
+        if (tipologias == null || tipologias.isEmpty()) return;
+
+        Map<String, Object> primera = tipologias.get(0);
+
+        TextView tvDorm = findViewById(R.id.tvChipDormitorios);
+        if (tvDorm != null) {
+            Object dorm = primera.get("dormitorios");
+            tvDorm.setText(dorm != null ? "🛏 " + dorm + " Cuartos" : "");
+        }
+
+        TextView tvBanos = findViewById(R.id.tvChipBanos);
+        if (tvBanos != null) {
+            Object ban = primera.get("banos");
+            tvBanos.setText(ban != null ? "🚿 " + ban + " Baño" : "");
+        }
+
+        TextView tvMetraje = findViewById(R.id.tvChipMetraje);
+        if (tvMetraje != null) {
+            Object met = primera.get("metraje");
+            if (met instanceof Double) {
+                tvMetraje.setText(String.format(Locale.getDefault(), "📐 %.0f m²", (Double) met));
+            } else if (met != null) {
+                tvMetraje.setText("📐 " + met + " m²");
+            } else {
+                tvMetraje.setText("");
+            }
+        }
+    }
+
+    private void cargarAsesor(String uidAsesor) {
+        FirebaseFirestore.getInstance().collection("users").document(uidAsesor).get()
+            .addOnSuccessListener(doc -> {
+                if (!doc.exists()) return;
+                String nombreAsesor = doc.getString("nombre");
+                String fotoUrl = doc.getString("fotoUrl");
+
+                TextView tvNombreAsesor = findViewById(R.id.tvNombreAsesor);
+                if (tvNombreAsesor != null && nombreAsesor != null) {
+                    tvNombreAsesor.setText(nombreAsesor);
+                }
+
+                ImageView imgAsesor = findViewById(R.id.imgAsesor);
+                if (imgAsesor != null) {
+                    Glide.with(ProjectDetailActivity.this)
+                        .load(fotoUrl)
+                        .placeholder(R.drawable.avatar_asesor_fabri)
+                        .centerCrop()
+                        .into(imgAsesor);
+                }
+            })
+            .addOnFailureListener(e ->
+                Log.e("DetalleProyecto", "Error cargando asesor: " + e.getMessage()));
+    }
+
+    // ── Chat ──────────────────────────────────────────────────────────────────────
+
+    private void abrirChatConAsesor() {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Toast.makeText(this, "Debes iniciar sesión para chatear", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (proyectoActual == null) {
+            Toast.makeText(this, "Cargando datos del proyecto, intenta de nuevo", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<String> uidAsesores = proyectoActual.getUidAsesores();
+        if (uidAsesores == null || uidAsesores.isEmpty()) {
+            Toast.makeText(this, "Este proyecto no tiene asesor asignado", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        String uidCliente = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String uidAsesor  = uidAsesores.get(0);
+        String idProyecto = proyectoActual.getId() != null ? proyectoActual.getId() : nombreProyecto;
+        Log.d("ChatBoton", "UID asesor seleccionado: " + uidAsesor);
+
+        FirebaseFirestore.getInstance().collection("users").document(uidAsesor).get()
+            .addOnSuccessListener(docAsesor -> {
+                if (!docAsesor.exists()) {
+                    Toast.makeText(this, "El asesor de este proyecto no está disponible", Toast.LENGTH_LONG).show();
+                    Log.e("ChatBoton", "No existe el documento users/" + uidAsesor);
+                    return;
+                }
+
+                String nombreAsesor = docAsesor.getString("nombre");
+                String fotoAsesor   = docAsesor.getString("fotoUrl");
+
+                FirebaseFirestore.getInstance().collection("users").document(uidCliente).get()
+                    .addOnSuccessListener(docCliente -> {
+                        String nombreClienteRaw = docCliente.getString("nombre");
+                        String nombreCliente = (nombreClienteRaw != null && !nombreClienteRaw.isEmpty())
+                                ? nombreClienteRaw : "Cliente";
+
+                        chatRepository.abrirOCrearChat(
+                            uidCliente, uidAsesor,
+                            idProyecto, nombreProyecto,
+                            nombreCliente, nombreAsesor, fotoAsesor,
+                            chatId -> {
+                                Intent intent = new Intent(ProjectDetailActivity.this, ChatDetailActivity.class);
+                                intent.putExtra("chatId", chatId);
+                                intent.putExtra("uidAsesor", uidAsesor);
+                                intent.putExtra("nombreAsesor", nombreAsesor);
+                                intent.putExtra("fotoAsesor", fotoAsesor);
+                                startActivity(intent);
+                            },
+                            error -> {
+                                Toast.makeText(ProjectDetailActivity.this, error, Toast.LENGTH_LONG).show();
+                                Log.e("ChatBoton", "Error abrirOCrearChat: " + error);
+                            }
+                        );
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error al cargar tu perfil: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        Log.e("ChatBoton", "Error users/" + uidCliente + ": " + e.getMessage());
+                    });
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al cargar el asesor: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                Log.e("ChatBoton", "Error users/" + uidAsesor + ": " + e.getMessage());
+            });
     }
 }

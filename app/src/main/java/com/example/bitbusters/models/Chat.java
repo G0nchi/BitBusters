@@ -1,37 +1,47 @@
 package com.example.bitbusters.models;
 
+import com.google.firebase.Timestamp;
+import java.util.List;
+
 public class Chat {
-    private String id;
-    private String name;
-    private String lastMessage;
-    private String time;
-    private String initials;
-    private String colorHex;
-    private int unreadCount;
-    private boolean isRecent;
-    private String proyecto;
+    private String chatId;
+    private List<String> participantes;
+    private String nombreCliente;
+    private String nombreAsesor;
+    private String fotoAsesor;
+    private String idProyecto;
+    private String nombreProyecto;
+    private String ultimoMensaje;
+    private Timestamp timestampUltimoMensaje;
 
-    public Chat(String id, String name, String lastMessage, String time,
-                String initials, String colorHex, int unreadCount,
-                boolean isRecent, String proyecto) {
-        this.id          = id;
-        this.name        = name;
-        this.lastMessage = lastMessage;
-        this.time        = time;
-        this.initials    = initials;
-        this.colorHex    = colorHex;
-        this.unreadCount = unreadCount;
-        this.isRecent    = isRecent;
-        this.proyecto    = proyecto;
+    public Chat() {}
+
+    public String getChatId() { return chatId; }
+    public void setChatId(String chatId) { this.chatId = chatId; }
+
+    public List<String> getParticipantes() { return participantes; }
+    public void setParticipantes(List<String> participantes) { this.participantes = participantes; }
+
+    public String getNombreCliente() { return nombreCliente; }
+    public void setNombreCliente(String nombreCliente) { this.nombreCliente = nombreCliente; }
+
+    public String getNombreAsesor() { return nombreAsesor; }
+    public void setNombreAsesor(String nombreAsesor) { this.nombreAsesor = nombreAsesor; }
+
+    public String getFotoAsesor() { return fotoAsesor; }
+    public void setFotoAsesor(String fotoAsesor) { this.fotoAsesor = fotoAsesor; }
+
+    public String getIdProyecto() { return idProyecto; }
+    public void setIdProyecto(String idProyecto) { this.idProyecto = idProyecto; }
+
+    public String getNombreProyecto() { return nombreProyecto; }
+    public void setNombreProyecto(String nombreProyecto) { this.nombreProyecto = nombreProyecto; }
+
+    public String getUltimoMensaje() { return ultimoMensaje; }
+    public void setUltimoMensaje(String ultimoMensaje) { this.ultimoMensaje = ultimoMensaje; }
+
+    public Timestamp getTimestampUltimoMensaje() { return timestampUltimoMensaje; }
+    public void setTimestampUltimoMensaje(Timestamp timestampUltimoMensaje) {
+        this.timestampUltimoMensaje = timestampUltimoMensaje;
     }
-
-    public String getId()           { return id; }
-    public String getName()         { return name; }
-    public String getLastMessage()  { return lastMessage; }
-    public String getTime()         { return time; }
-    public String getInitials()     { return initials; }
-    public String getColorHex()     { return colorHex; }
-    public int getUnreadCount()     { return unreadCount; }
-    public boolean isRecent()       { return isRecent; }
-    public String getProyecto()     { return proyecto; }
 }

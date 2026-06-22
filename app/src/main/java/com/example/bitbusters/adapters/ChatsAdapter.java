@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
-import com.example.bitbusters.models.Chat;
+import com.example.bitbusters.models.AsesorChatItem;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Adapter multi-tipo para la lista de mensajes.
- * Tipos: encabezado de sección (String) y fila de chat (Chat).
+ * Adapter multi-tipo para la lista de mensajes del ASESOR.
+ * Tipos: encabezado de sección (String) y fila de chat (AsesorChatItem).
  */
 public class ChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -35,11 +35,11 @@ public class ChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     // ── Interfaces ────────────────────────────────────────────────────────────
 
     public interface OnChatClickListener {
-        void onChatClick(Chat chat);
+        void onChatClick(AsesorChatItem chat);
     }
 
     public interface OnReconectarListener {
-        void onReconectar(Chat chat);
+        void onReconectar(AsesorChatItem chat);
     }
 
     public void setOnReconectarListener(OnReconectarListener l) {
@@ -78,7 +78,7 @@ public class ChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         if (holder instanceof HeaderVH) {
             ((HeaderVH) holder).tvHeader.setText((String) items.get(position));
         } else {
-            Chat chat = (Chat) items.get(position);
+            AsesorChatItem chat = (AsesorChatItem) items.get(position);
             ChatViewHolder h = (ChatViewHolder) holder;
 
             h.tvName.setText(chat.getName());
@@ -87,7 +87,6 @@ public class ChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             h.tvInitials.setText(chat.getInitials());
             h.cardInitials.setCardBackgroundColor(Color.parseColor(chat.getColorHex()));
 
-            // Proyecto asociado
             String proyecto = chat.getProyecto();
             if (proyecto != null && !proyecto.isEmpty()) {
                 h.tvProyecto.setVisibility(View.VISIBLE);
@@ -96,7 +95,6 @@ public class ChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 h.tvProyecto.setVisibility(View.GONE);
             }
 
-            // Badge de no leídos
             if (chat.getUnreadCount() > 0) {
                 h.cardUnread.setVisibility(View.VISIBLE);
                 h.tvUnreadCount.setText(String.valueOf(chat.getUnreadCount()));
@@ -104,7 +102,6 @@ public class ChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 h.cardUnread.setVisibility(View.GONE);
             }
 
-            // Chats finalizados: apagados + fila "Conversación finalizada"
             if (chat.isRecent()) {
                 h.tvName.setAlpha(1f);
                 h.tvLastMessage.setAlpha(1f);
@@ -116,7 +113,6 @@ public class ChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 h.tvProyecto.setAlpha(0.6f);
                 h.llFinalizado.setVisibility(View.VISIBLE);
 
-                // El botón consume su propio click (no propaga al item)
                 if (reconectarListener != null) {
                     h.btnReconectar.setOnClickListener(v -> reconectarListener.onReconectar(chat));
                 } else {
@@ -135,7 +131,6 @@ public class ChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     // ── Métodos públicos ──────────────────────────────────────────────────────
 
-    /** Reemplaza la lista completa usando DiffUtil (búsqueda, reconectar, nuevo chat). */
     public void updateItems(List<Object> newItems) {
         DiffUtil.DiffResult result =
                 DiffUtil.calculateDiff(new ChatDiffCallback(this.items, newItems));
@@ -162,8 +157,8 @@ public class ChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             Object o = oldList.get(oldPos);
             Object n = newList.get(newPos);
             if (o instanceof String && n instanceof String) return o.equals(n);
-            if (o instanceof Chat && n instanceof Chat)
-                return ((Chat) o).getId().equals(((Chat) n).getId());
+            if (o instanceof AsesorChatItem && n instanceof AsesorChatItem)
+                return ((AsesorChatItem) o).getId().equals(((AsesorChatItem) n).getId());
             return false;
         }
 
@@ -172,8 +167,8 @@ public class ChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             Object o = oldList.get(oldPos);
             Object n = newList.get(newPos);
             if (o instanceof String) return o.equals(n);
-            if (o instanceof Chat && n instanceof Chat) {
-                Chat co = (Chat) o, cn = (Chat) n;
+            if (o instanceof AsesorChatItem && n instanceof AsesorChatItem) {
+                AsesorChatItem co = (AsesorChatItem) o, cn = (AsesorChatItem) n;
                 return co.getName().equals(cn.getName())
                     && co.getLastMessage().equals(cn.getLastMessage())
                     && co.getTime().equals(cn.getTime())
@@ -185,10 +180,9 @@ public class ChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     }
 
-    /** Elimina un item por posición (swipe-to-delete). */
     public void removeItem(int position) {
         if (position >= 0 && position < items.size()
-                && items.get(position) instanceof Chat) {
+                && items.get(position) instanceof AsesorChatItem) {
             items.remove(position);
             notifyItemRemoved(position);
         }

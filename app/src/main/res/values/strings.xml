@@ -203,7 +203,7 @@
     <string name="login_hide_password">Ocultar contraseña</string>
     <string name="login_no_account">¿No tienes cuenta? </string>
     <string name="login_register">Regístrate</string>
-    <string name="login_button">Login</string>
+    <string name="login_button">Iniciar Sesión</string>
     <string name="login_error_password">tu contraseña es incorrecta</string>
     <string name="login_error_invalid_credentials">Usuario o contraseña incorrectos.</string>
     <string name="login_validating">Validando…</string>
@@ -231,13 +231,17 @@
     <string name="register_account_title_base">Crea tu</string>
     <string name="register_account_title_accent">cuenta</string>
     <string name="register_account_subtitle">Ingresa tus datos personales</string>
+    <string name="register_subtitle_join">Únete a BitBusters</string>
     <string name="register_full_name_hint">Nombre completo</string>
     <string name="register_doc_type_hint">Tipo de Documento</string>
     <string name="register_doc_number_hint">Número de Documento</string>
     <string name="register_birth_date_hint">Fecha de Nacimiento</string>
     <string name="register_email_hint">Correo electrónico</string>
-    <string name="register_phone_hint">Telefono</string>
+    <string name="register_phone_hint">Teléfono (9 dígitos, empieza con 9)</string>
     <string name="register_address_hint">Domicilio</string>
+    <string name="register_dni_hint">DNI (8 dígitos)</string>
+    <string name="register_already_account">¿Ya tienes cuenta? </string>
+    <string name="register_login_link">Inicia sesión</string>
     <string name="register_next">Siguiente</string>
 
     <string name="register_otp_title_base">Ingresa el</string>

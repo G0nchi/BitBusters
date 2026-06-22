@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.ChatsAdapter;
 import com.example.bitbusters.databinding.ActivityMensajesBinding;
-import com.example.bitbusters.models.Chat;
+import com.example.bitbusters.models.AsesorChatItem;
 import com.example.bitbusters.utils.AsesorStorage;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -35,7 +35,7 @@ public class MensajesActivity extends AppCompatActivity {
     /** IDs de chats finalizados que el asesor reconectó (persiste en sesión). */
     private final Set<String> reconnectedIds = new HashSet<>();
     /** Chats nuevos creados con el botón "+". */
-    private final List<Chat>  newChats       = new ArrayList<>();
+    private final List<AsesorChatItem> newChats = new ArrayList<>();
 
     // ── Pool de clientes disponibles para nuevo chat ──────────────────────────
     private static final String[][] AVAILABLE_CLIENTS = {
@@ -122,7 +122,7 @@ public class MensajesActivity extends AppCompatActivity {
 
     // ── Abrir conversación ────────────────────────────────────────────────────
 
-    private void openConversation(Chat chat) {
+    private void openConversation(AsesorChatItem chat) {
         Intent intent = new Intent(this, ConversacionActivity.class);
         intent.putExtra(ConversacionActivity.EXTRA_CHAT_ID,  chat.getId());
         intent.putExtra(ConversacionActivity.EXTRA_NOMBRE,   chat.getName());
@@ -154,7 +154,7 @@ public class MensajesActivity extends AppCompatActivity {
             return;
         }
 
-        buildItems(); // construye la lista completa primero
+        buildItems();
         String lower = query.toLowerCase(Locale.getDefault());
 
         List<Object> filtered   = new ArrayList<>();
@@ -165,8 +165,8 @@ public class MensajesActivity extends AppCompatActivity {
             if (obj instanceof String) {
                 currentSection = (String) obj;
                 sectionAdded   = false;
-            } else if (obj instanceof Chat) {
-                Chat chat = (Chat) obj;
+            } else if (obj instanceof AsesorChatItem) {
+                AsesorChatItem chat = (AsesorChatItem) obj;
                 if (chat.getName().toLowerCase(Locale.getDefault()).contains(lower)
                         || (chat.getProyecto() != null
                             && chat.getProyecto().toLowerCase(Locale.getDefault()).contains(lower))) {
@@ -190,7 +190,6 @@ public class MensajesActivity extends AppCompatActivity {
     }
 
     private void showNewChatDialog() {
-        // Armar listado de nombres para el diálogo
         String[] labels = new String[AVAILABLE_CLIENTS.length];
         for (int i = 0; i < AVAILABLE_CLIENTS.length; i++) {
             labels[i] = AVAILABLE_CLIENTS[i][0] + "  ·  " + AVAILABLE_CLIENTS[i][3];
@@ -204,8 +203,7 @@ public class MensajesActivity extends AppCompatActivity {
     }
 
     private void createAndOpenChat(String[] client) {
-        // Verificar si ya existe un chat con este cliente
-        for (Chat c : newChats) {
+        for (AsesorChatItem c : newChats) {
             if (c.getName().equals(client[0])) {
                 openConversation(c);
                 return;
@@ -213,7 +211,7 @@ public class MensajesActivity extends AppCompatActivity {
         }
 
         String newId = "new_" + (newChats.size() + 8);
-        Chat newChat = new Chat(newId, client[0], "Chat iniciado", "Ahora",
+        AsesorChatItem newChat = new AsesorChatItem(newId, client[0], "Chat iniciado", "Ahora",
             client[1], client[2], 0, true, client[3]);
         newChats.add(newChat);
 
@@ -224,7 +222,7 @@ public class MensajesActivity extends AppCompatActivity {
 
     // ── Reconectar chat finalizado ────────────────────────────────────────────
 
-    private void reconectar(Chat chat) {
+    private void reconectar(AsesorChatItem chat) {
         reconnectedIds.add(chat.getId());
         buildItems();
         adapter.updateItems(items);
@@ -232,49 +230,40 @@ public class MensajesActivity extends AppCompatActivity {
 
     // ── Construcción de la lista ──────────────────────────────────────────────
 
-    /**
-     * Reconstruye `items` respetando:
-     * - chats eliminados (AsesorStorage)
-     * - chats reconectados (reconnectedIds → pasan a ACTIVOS)
-     * - nuevos chats creados en sesión (newChats)
-     */
     private void buildItems() {
         Set<String> deleted = AsesorStorage.getDeletedChatIds(this);
         items = new ArrayList<>();
 
-        // ── ACTIVOS ──────────────────────────────────────────────────────────
-        List<Chat> activos = new ArrayList<>(getAllActivos());
+        List<AsesorChatItem> activos = new ArrayList<>(getAllActivos());
 
-        // Chats finalizados que fueron reconectados → agregar a activos
-        for (Chat c : getAllFinalizadas()) {
+        for (AsesorChatItem c : getAllFinalizadas()) {
             if (reconnectedIds.contains(c.getId())) {
-                activos.add(new Chat(c.getId(), c.getName(),
+                activos.add(new AsesorChatItem(c.getId(), c.getName(),
                     "Conversación reiniciada 🔄", "Ahora",
                     c.getInitials(), "#4DB6AC", 0, true, c.getProyecto()));
             }
         }
 
         boolean tieneActivos = false;
-        for (Chat c : activos) {
+        for (AsesorChatItem c : activos) {
             if (!deleted.contains(c.getId())) { tieneActivos = true; break; }
         }
         if (tieneActivos) {
             items.add("ACTIVOS");
-            for (Chat c : activos) {
+            for (AsesorChatItem c : activos) {
                 if (!deleted.contains(c.getId())) items.add(c);
             }
         }
 
-        // ── FINALIZADAS (excluye reconectados y eliminados) ──────────────────
         boolean tieneFinalizadas = false;
-        for (Chat c : getAllFinalizadas()) {
+        for (AsesorChatItem c : getAllFinalizadas()) {
             if (!deleted.contains(c.getId()) && !reconnectedIds.contains(c.getId())) {
                 tieneFinalizadas = true; break;
             }
         }
         if (tieneFinalizadas) {
             items.add("FINALIZADAS");
-            for (Chat c : getAllFinalizadas()) {
+            for (AsesorChatItem c : getAllFinalizadas()) {
                 if (!deleted.contains(c.getId()) && !reconnectedIds.contains(c.getId())) {
                     items.add(c);
                 }
@@ -284,22 +273,21 @@ public class MensajesActivity extends AppCompatActivity {
 
     // ── Fuentes de datos estáticos ────────────────────────────────────────────
 
-    private List<Chat> getAllActivos() {
-        List<Chat> list = new ArrayList<>();
-        list.add(new Chat("1", "Carlos Mendoza",  "¿Podemos confirmar la cita del lunes?",  "10:32", "CM", "#4DB6AC", 2, true, "Torres del Sol · Dpto 302"));
-        list.add(new Chat("2", "Rosa Torres",     "Muchas gracias por la atención 🙏",       "9:15",  "RT", "#F06292", 1, true, "Torres del Sol · Dpto 108"));
-        list.add(new Chat("3", "Ana López",       "Perfecto, quedamos el martes entonces",   "Ayer",  "AL", "#FF8A65", 0, true, "Torres del Sol · Dpto 501"));
-        list.add(new Chat("4", "Marco Paredes",   "¿El departamento tiene estacionamiento?", "Ayer",  "MP", "#9575CD", 0, true, "Torres del Sol · Dpto 210"));
-        // Nuevos chats creados en sesión
+    private List<AsesorChatItem> getAllActivos() {
+        List<AsesorChatItem> list = new ArrayList<>();
+        list.add(new AsesorChatItem("1", "Carlos Mendoza",  "¿Podemos confirmar la cita del lunes?",  "10:32", "CM", "#4DB6AC", 2, true, "Torres del Sol · Dpto 302"));
+        list.add(new AsesorChatItem("2", "Rosa Torres",     "Muchas gracias por la atención 🙏",       "9:15",  "RT", "#F06292", 1, true, "Torres del Sol · Dpto 108"));
+        list.add(new AsesorChatItem("3", "Ana López",       "Perfecto, quedamos el martes entonces",   "Ayer",  "AL", "#FF8A65", 0, true, "Torres del Sol · Dpto 501"));
+        list.add(new AsesorChatItem("4", "Marco Paredes",   "¿El departamento tiene estacionamiento?", "Ayer",  "MP", "#9575CD", 0, true, "Torres del Sol · Dpto 210"));
         list.addAll(newChats);
         return list;
     }
 
-    private List<Chat> getAllFinalizadas() {
-        List<Chat> list = new ArrayList<>();
-        list.add(new Chat("5", "Jorge Castro", "Gracias, lo voy a pensar con mi familia",  "Lun", "JC", "#BDBDBD", 0, false, "Torres del Sol · Dpto 601"));
-        list.add(new Chat("6", "Sandra Vega",  "¿Pueden enviarme los planos del dpto 4…",  "Dom", "SV", "#BDBDBD", 0, false, "Torres del Sol · Dpto 415"));
-        list.add(new Chat("7", "Luis Vargas",  "Ok, reagendamos para la próxima semana",    "Sáb", "LV", "#BDBDBD", 0, false, "Torres del Sol · Dpto 204"));
+    private List<AsesorChatItem> getAllFinalizadas() {
+        List<AsesorChatItem> list = new ArrayList<>();
+        list.add(new AsesorChatItem("5", "Jorge Castro", "Gracias, lo voy a pensar con mi familia",  "Lun", "JC", "#BDBDBD", 0, false, "Torres del Sol · Dpto 601"));
+        list.add(new AsesorChatItem("6", "Sandra Vega",  "¿Pueden enviarme los planos del dpto 4…",  "Dom", "SV", "#BDBDBD", 0, false, "Torres del Sol · Dpto 415"));
+        list.add(new AsesorChatItem("7", "Luis Vargas",  "Ok, reagendamos para la próxima semana",    "Sáb", "LV", "#BDBDBD", 0, false, "Torres del Sol · Dpto 204"));
         return list;
     }
 
@@ -316,9 +304,9 @@ public class MensajesActivity extends AppCompatActivity {
             public void onSwiped(@NonNull RecyclerView.ViewHolder vh, int dir) {
                 int position = vh.getAdapterPosition();
                 Object item = items.get(position);
-                if (item instanceof Chat) {
+                if (item instanceof AsesorChatItem) {
                     AsesorStorage.saveDeletedChatId(
-                        MensajesActivity.this, ((Chat) item).getId());
+                        MensajesActivity.this, ((AsesorChatItem) item).getId());
                 }
                 adapter.removeItem(position);
             }

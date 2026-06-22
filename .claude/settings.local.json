@@ -11,7 +11,12 @@
       "Bash(Select-Object -First 50)",
       "Bash(xargs grep -l \"class.*Admin\\\\|class.*Asesor\\\\|class.*Cliente\")",
       "Bash(xargs grep -l \"latitud\\\\|longitud\\\\|latitude\\\\|longitude\")",
-      "Bash(xargs -I {} basename {})"
+      "Bash(xargs -I {} basename {})",
+      "Bash(./gradlew compileDebugJavaWithJavac)",
+      "PowerShell(cd \"D:\\\\2026.1\\\\IoT\\\\Proyecto\\\\BitBusters\"; $env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; .\\\\gradlew.bat compileDebugJavaWithJavac 2>&1 | Select-Object -Last 30)",
+      "PowerShell(cd \"D:\\\\2026.1\\\\IoT\\\\Proyecto\\\\BitBusters\"; $env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; .\\\\gradlew.bat compileDebugJavaWithJavac 2>&1 | Select-Object -Last 20)",
+      "PowerShell(cd \"D:\\\\2026.1\\\\IoT\\\\Proyecto\\\\BitBusters\"; $env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; .\\\\gradlew.bat compileDebugJavaWithJavac 2>&1 | Select-Object -Last 25)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; cd \"D:\\\\2026.1\\\\IoT\\\\Proyecto\\\\BitBusters\"; .\\\\gradlew.bat compileDebugJavaWithJavac 2>&1 | Select-Object -Last 30)"
     ]
   },
   "enabledMcpjsonServers": [

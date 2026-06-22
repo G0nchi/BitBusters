@@ -10,13 +10,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.widget.LinearLayout;
 import com.example.bitbusters.R;
 import com.example.bitbusters.activities.common.EscanearQRActivity;
+import android.util.Log;
+import android.widget.Toast;
 import com.example.bitbusters.adapters.ProyectoAdapter;
-import com.example.bitbusters.data.ProjectSessionData;
 import com.example.bitbusters.models.Proyecto;
+import com.example.bitbusters.repository.ProyectoRepository;
 import com.example.bitbusters.utils.ImageUrls;
 import com.example.bitbusters.utils.NotificationHelper;
 import com.example.bitbusters.utils.PreferencesManager;
 import com.bumptech.glide.Glide;
+import com.google.firebase.firestore.ListenerRegistration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +32,9 @@ public class HomeActivity extends AppCompatActivity {
     private RecyclerView rvProyectos;
     private ProyectoAdapter adapter;
     private List<Proyecto> todaLaLista;
+
+    private ProyectoRepository proyectoRepository;
+    private ListenerRegistration listenerProyectos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,12 +82,14 @@ public class HomeActivity extends AppCompatActivity {
         btnTipo2 = findViewById(R.id.btnTipo2);
         btnTipo3 = findViewById(R.id.btnTipo3);
 
-        // RecyclerView — se inicializa con lista vacía; onResume aplica el filtro guardado
+        // RecyclerView — lista vacía al inicio; Firestore la puebla en onStart
         rvProyectos  = findViewById(R.id.rvProyectos);
-        todaLaLista  = ProjectSessionData.getProyectos();
-        adapter      = new ProyectoAdapter(this, new ArrayList<>(todaLaLista));
+        todaLaLista  = new ArrayList<>();
+        adapter      = new ProyectoAdapter(this, new ArrayList<>());
         rvProyectos.setLayoutManager(new LinearLayoutManager(this));
         rvProyectos.setAdapter(adapter);
+
+        proyectoRepository = new ProyectoRepository();
 
         // Filtro Todos — guarda preferencia y aplica vista completa
         btnTodos.setOnClickListener(v -> {
@@ -154,6 +162,37 @@ public class HomeActivity extends AppCompatActivity {
         navSearch.setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
         navCitas.setOnClickListener(v  -> startActivity(new Intent(this, MisCitasActivity.class)));
         navPerfil.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        listenerProyectos = proyectoRepository.escucharProyectosCliente(
+            new ProyectoRepository.ProyectosListener() {
+                @Override
+                public void onProyectosActualizados(List<Proyecto> proyectos) {
+                    todaLaLista.clear();
+                    todaLaLista.addAll(proyectos);
+                    String filtroActual = PreferencesManager.obtenerTipologiaFavorita(HomeActivity.this);
+                    aplicarFiltro(filtroActual != null ? filtroActual : "Todos");
+                }
+
+                @Override
+                public void onError(String mensaje) {
+                    Log.e("HomeActivity", "Error cargando proyectos: " + mensaje);
+                    Toast.makeText(HomeActivity.this,
+                        "Error al cargar proyectos: " + mensaje, Toast.LENGTH_LONG).show();
+                }
+            });
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (listenerProyectos != null) {
+            listenerProyectos.remove();
+            listenerProyectos = null;
+        }
     }
 
     @Override

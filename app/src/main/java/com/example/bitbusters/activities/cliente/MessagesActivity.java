@@ -2,58 +2,78 @@ package com.example.bitbusters.activities.cliente;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
-import com.example.bitbusters.adapters.ChatsAdapter;
+import com.example.bitbusters.adapters.ClienteChatsAdapter;
 import com.example.bitbusters.models.Chat;
+import com.example.bitbusters.repository.ChatRepository;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Lista de chats del cliente.
- *
- * Muestra los 3 asesores de prueba registrados en Firestore:
- *   - asesor_ana_001    → Ana García
- *   - asesor_roberto_002 → Roberto Pérez
- *   - asesor_lucia_003  → Lucía Mendoza
- *
- * Al abrir un chat se pasa el asesorId para construir el chatId en Firestore:
- *   chatId = "{clienteUid}_{asesorId}"
- */
 public class MessagesActivity extends AppCompatActivity {
 
-    // IDs de documento en Firestore para los asesores de prueba
+    // Asesores de prueba registrados manualmente en Firestore
     public static final String ASESOR_ANA_ID      = "asesor_ana_001";
     public static final String ASESOR_ROBERTO_ID  = "asesor_roberto_002";
     public static final String ASESOR_LUCIA_ID    = "asesor_lucia_003";
 
+    private static final String[][] ASESORES_PRUEBA = {
+        { ASESOR_ANA_ID,     "Ana García",    "Asesora Inmobiliaria" },
+        { ASESOR_ROBERTO_ID, "Roberto Pérez", "Asesor Inmobiliario"  },
+        { ASESOR_LUCIA_ID,   "Lucía Mendoza", "Asesora Inmobiliaria" },
+    };
+
     private RecyclerView recyclerViewChats;
-    private ChatsAdapter chatsAdapter;
+    private ClienteChatsAdapter chatsAdapter;
     private final List<Object> chatItems = new ArrayList<>();
+
+    private ChatRepository chatRepository;
+    private ListenerRegistration chatsListener;
+    private String uidActual;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messages);
 
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        // Permite login mock (credenciales "cliente/cliente") sin romper el chat
+        uidActual = (user != null) ? user.getUid() : "cliente_demo";
+        chatRepository = new ChatRepository();
+
         TabLayout tabLayout = findViewById(R.id.tabLayout);
         recyclerViewChats = findViewById(R.id.recyclerViewChats);
 
-        chatItems.addAll(buildAsesorChats());
         setupRecyclerView();
+        setupSwipeToDelete();
 
         TabLayout.Tab tabMensajes = tabLayout.getTabAt(1);
         if (tabMensajes != null) tabMensajes.select();
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+
+        if (findViewById(R.id.btnDelete) != null) {
+            findViewById(R.id.btnDelete).setOnClickListener(v -> {
+                chatItems.clear();
+                chatsAdapter.notifyDataSetChanged();
+            });
+        }
+
+        // Botón nuevo chat con uno de los 3 asesores de prueba
+        if (findViewById(R.id.btnNewChat) != null) {
+            findViewById(R.id.btnNewChat).setOnClickListener(v -> mostrarDialogoNuevoChat());
+        }
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -68,40 +88,104 @@ public class MessagesActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Construye la lista de chats con los 3 asesores de prueba.
-     * El campo "id" del Chat se usa como asesorId para abrir Firestore.
-     */
-    private List<Chat> buildAsesorChats() {
-        List<Chat> list = new ArrayList<>();
-        list.add(new Chat(ASESOR_ANA_ID,     "Ana García",     "Hola, ¿en qué puedo ayudarte?",   "Ahora", "AG", "#26A69A", 0, true, "Asesora Inmobiliaria"));
-        list.add(new Chat(ASESOR_ROBERTO_ID, "Roberto Pérez",  "Buenos días, ¿tienes alguna duda?", "Hoy",  "RP", "#5C6BC0", 0, true, "Asesor Inmobiliario"));
-        list.add(new Chat(ASESOR_LUCIA_ID,   "Lucía Mendoza",  "¡Bienvenido! Escríbeme cuando quieras.", "Hoy", "LM", "#EC407A", 0, true, "Asesora Inmobiliaria"));
-        return list;
+    @Override
+    protected void onResume() {
+        super.onResume();
+        iniciarListenerChats();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (chatsListener != null) {
+            chatsListener.remove();
+            chatsListener = null;
+        }
+    }
+
+    private void iniciarListenerChats() {
+        chatsListener = chatRepository.escucharChatsDelUsuario(uidActual,
+            new ChatRepository.ChatsListener() {
+                @Override
+                public void onChats(List<Chat> chats) {
+                    List<Object> nuevosItems = new ArrayList<>(chats);
+                    chatsAdapter.updateItems(nuevosItems);
+                }
+
+                @Override
+                public void onError(String mensaje) {
+                    Toast.makeText(MessagesActivity.this, mensaje, Toast.LENGTH_SHORT).show();
+                }
+            });
     }
 
     private void setupRecyclerView() {
         recyclerViewChats.setLayoutManager(new LinearLayoutManager(this));
-        chatsAdapter = new ChatsAdapter(chatItems, chat -> abrirChat(chat));
+        chatsAdapter = new ClienteChatsAdapter(chatItems, this::abrirChat);
         recyclerViewChats.setAdapter(chatsAdapter);
     }
 
-    private void abrirChat(Chat chat) {
-        String clienteUid = obtenerClienteUid();
-        String chatId = clienteUid + "_" + chat.getId();
-
-        Intent intent = new Intent(this, ChatDetailActivity.class);
-        intent.putExtra(ChatDetailActivity.EXTRA_CONTACTO, chat.getName());
-        intent.putExtra(ChatDetailActivity.EXTRA_CHAT_ID,  chatId);
-        intent.putExtra(ChatDetailActivity.EXTRA_INITIALS, chat.getInitials());
-        intent.putExtra(ChatDetailActivity.EXTRA_COLOR,    chat.getColorHex());
-        startActivity(intent);
+    private void setupSwipeToDelete() {
+        ItemTouchHelper.SimpleCallback callback =
+                new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            @Override
+            public boolean onMove(RecyclerView rv, RecyclerView.ViewHolder vh, RecyclerView.ViewHolder t) {
+                return false;
+            }
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                if (position >= 0 && position < chatItems.size()) {
+                    chatsAdapter.removeItem(position);
+                }
+            }
+        };
+        new ItemTouchHelper(callback).attachToRecyclerView(recyclerViewChats);
     }
 
-    /** Obtiene el UID del cliente autenticado, o un ID de prueba si usó login mock. */
-    private String obtenerClienteUid() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) return user.getUid();
-        return "cliente_demo";
+    /** Muestra los 3 asesores de prueba para iniciar una conversación nueva. */
+    private void mostrarDialogoNuevoChat() {
+        String[] labels = new String[ASESORES_PRUEBA.length];
+        for (int i = 0; i < ASESORES_PRUEBA.length; i++) {
+            labels[i] = ASESORES_PRUEBA[i][1] + "  ·  " + ASESORES_PRUEBA[i][2];
+        }
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Iniciar conversación con")
+            .setItems(labels, (dialog, which) -> iniciarChatConAsesor(ASESORES_PRUEBA[which]))
+            .setNegativeButton("Cancelar", null)
+            .show();
+    }
+
+    private void iniciarChatConAsesor(String[] asesor) {
+        chatRepository.abrirOCrearChat(
+            uidActual, asesor[0],
+            "prueba", "Consulta General",
+            "Cliente", asesor[1], "",
+            chatId -> {
+                Intent intent = new Intent(this, ChatDetailActivity.class);
+                intent.putExtra("chatId", chatId);
+                intent.putExtra("nombreAsesor", asesor[1]);
+                startActivity(intent);
+            },
+            error -> Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+        );
+    }
+
+    private void abrirChat(Chat chat) {
+        String uidAsesor = null;
+        if (chat.getParticipantes() != null) {
+            for (String uid : chat.getParticipantes()) {
+                if (!uid.equals(uidActual)) {
+                    uidAsesor = uid;
+                    break;
+                }
+            }
+        }
+        Intent intent = new Intent(this, ChatDetailActivity.class);
+        intent.putExtra("chatId", chat.getChatId());
+        intent.putExtra("uidAsesor", uidAsesor);
+        intent.putExtra("nombreAsesor", chat.getNombreAsesor());
+        intent.putExtra("fotoAsesor", chat.getFotoAsesor());
+        startActivity(intent);
     }
 }
