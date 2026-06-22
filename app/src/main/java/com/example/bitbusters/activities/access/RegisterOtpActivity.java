@@ -17,7 +17,9 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bitbusters.R;
 import com.example.bitbusters.utils.ImmersiveMode;
+import com.example.bitbusters.utils.PreferencesManager;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -167,14 +169,77 @@ public class RegisterOtpActivity extends AppCompatActivity {
                     doc.getReference().delete();
                     if (countDownTimer != null) countDownTimer.cancel();
 
-                    Intent intent = new Intent(this, RegisterPasswordActivity.class);
-                    intent.putExtras(getIntent().getExtras());
-                    startActivity(intent);
-                    finish();
+                    // Código correcto → recién ahora se crea la cuenta.
+                    crearCuenta();
                 })
                 .addOnFailureListener(e -> {
                     verifyButton.setEnabled(true);
                     Toast.makeText(this, "Error verificando código", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    /**
+     * Crea la cuenta en Firebase Auth con los datos del formulario (propagados
+     * vía extras) y guarda el perfil en Firestore. Solo se llama tras verificar
+     * correctamente el código OTP.
+     */
+    private void crearCuenta() {
+        Bundle extras = getIntent().getExtras();
+        String password = extras != null ? extras.getString(RegisterAccountActivity.EXTRA_PASSWORD) : null;
+        if (email == null || password == null) {
+            verifyButton.setEnabled(true);
+            Toast.makeText(this, "Datos de registro incompletos", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        FirebaseAuth.getInstance()
+                .createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener(result -> guardarPerfil(result.getUser().getUid(), extras))
+                .addOnFailureListener(e -> {
+                    verifyButton.setEnabled(true);
+                    String msg = e.getMessage();
+                    if (msg != null && msg.contains("already in use")) {
+                        Toast.makeText(this, "Este correo ya está registrado", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(this, "Error al crear cuenta: " + msg, Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void guardarPerfil(String uid, Bundle extras) {
+        String nombre = extras.getString(RegisterAccountActivity.EXTRA_FULL_NAME, "");
+
+        Map<String, Object> user = new HashMap<>();
+        user.put("nombre",          nombre);
+        user.put("email",           email);
+        user.put("telefono",        extras.getString(RegisterAccountActivity.EXTRA_PHONE, ""));
+        user.put("numDoc",          extras.getString(RegisterAccountActivity.EXTRA_DNI, ""));
+        user.put("tipoDoc",         "DNI");
+        user.put("fechaNacimiento", extras.getString(RegisterAccountActivity.EXTRA_BIRTH_DATE, ""));
+        user.put("role",   "cliente");
+        user.put("status", "active");
+
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(uid)
+                .set(user)
+                .addOnSuccessListener(unused -> {
+                    PreferencesManager.guardarNombre(this, nombre);
+                    // La cuenta queda creada; se cierra sesión para que entre desde el login.
+                    FirebaseAuth.getInstance().signOut();
+                    Toast.makeText(this, R.string.register_success, Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(this, LoginActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    // Auth creada pero Firestore falló → eliminar la cuenta para no dejar estado inconsistente.
+                    if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                        FirebaseAuth.getInstance().getCurrentUser().delete();
+                    }
+                    verifyButton.setEnabled(true);
+                    Toast.makeText(this, "Error guardando datos. Intenta de nuevo.", Toast.LENGTH_LONG).show();
                 });
     }
 
