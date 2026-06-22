@@ -11,6 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.example.bitbusters.R;
 import com.example.bitbusters.models.ProyectoApi;
 import com.google.android.material.button.MaterialButton;
@@ -30,7 +32,21 @@ public class ProyectoAdapter extends RecyclerView.Adapter<ProyectoAdapter.ViewHo
         void onItemClick(int originalIndex);
     }
 
-    // Mapeo imagen_key → drawable resource
+    // Mapeo imagen_key → URL de imagen referencial (Unsplash)
+    private static String imageUrlForKey(String key) {
+        if (key == null) return URL_TORRES;
+        switch (key) {
+            case "marina": return URL_MARINA;
+            case "pinos":  return URL_PINOS;
+            default:       return URL_TORRES;
+        }
+    }
+
+    private static final String URL_MARINA = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80";
+    private static final String URL_TORRES = "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80";
+    private static final String URL_PINOS  = "https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?w=600&q=80";
+
+    // Placeholder local mientras Glide carga la imagen remota
     private static int imagenResForKey(String key) {
         if (key == null) return R.drawable.bg_proyecto_torres;
         switch (key) {
@@ -96,7 +112,13 @@ public class ProyectoAdapter extends RecyclerView.Adapter<ProyectoAdapter.ViewHo
         holder.tvUbicacion.setText(p.ubicacion);
         holder.tvPrecio.setText(p.precio);
         holder.tvRating.setText(p.rating);
-        holder.imgPlaceholder.setImageResource(imagenResForKey(p.imagenKey));
+        Glide.with(holder.itemView.getContext())
+            .load(imageUrlForKey(p.imagenKey))
+            .placeholder(imagenResForKey(p.imagenKey))
+            .error(imagenResForKey(p.imagenKey))
+            .centerCrop()
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(holder.imgPlaceholder);
 
         holder.tvEstado.setText(p.estado);
         switch (p.estado != null ? p.estado : "") {
