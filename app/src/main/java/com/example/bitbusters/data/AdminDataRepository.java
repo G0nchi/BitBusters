@@ -7,6 +7,7 @@ import com.example.bitbusters.models.AdminAsesorInmobiliaria;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public final class AdminDataRepository {
@@ -184,5 +185,19 @@ public final class AdminDataRepository {
                 new AdminAsesorInmobiliaria("AI34", "Roxana Fuentes", "RF", "roxana@inmobxyz.pe", "999-111-034", "Activo"),
                 new AdminAsesorInmobiliaria("AI35", "Wilfredo Gutierrez", "WG", "wilfredo@inmobxyz.pe", "999-111-035", "Activo")
         ));
+    }
+
+    public static List<AdminAsesorInmobiliaria> getAsesoresInmobiliariaRecientes() {
+        List<AdminAsesorInmobiliaria> lista = getAsesoresInmobiliaria();
+        Collections.reverse(lista);
+        return lista;
+    }
+
+    public static List<AdminAsesorInmobiliaria> getUltimosAsesoresInmobiliaria(int limite) {
+        List<AdminAsesorInmobiliaria> lista = getAsesoresInmobiliariaRecientes();
+        if (limite >= lista.size()) {
+            return lista;
+        }
+        return new ArrayList<>(lista.subList(0, limite));
     }
 }

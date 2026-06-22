@@ -1,37 +1,53 @@
 package com.example.bitbusters.activities.admin;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 
 import java.io.File;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.example.bitbusters.R;
 import com.example.bitbusters.data.AdminProyectosRepository;
 import com.example.bitbusters.models.AdminProyecto;
 import com.example.bitbusters.models.Tipologia;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.zxing.BarcodeFormat;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.ArrayList;
 
 /**
  * Pantalla de detalle de un proyecto del Administrador.
@@ -39,7 +55,7 @@ import java.util.Locale;
  * Parte 4: Lee el "proyecto_id" del Intent, busca el proyecto en
  * AdminProyectosRepository y puebla dinámicamente todas las vistas.
  */
-public class AdminDetallesProyectoActivity extends AppCompatActivity {
+public class AdminDetallesProyectoActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     // ── Vistas dinámicas ─────────────────────────────────────────────────────
     private TextView     tvNombreProyectoDetalle, tvUbicacionProyectoDetalle;
@@ -50,6 +66,8 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
     private LinearLayout tipologiasContainerDetalle, asesoresContainerDetalle;
     private LinearLayout fotosContainerDetalle;
     private TextView     tvSinFotos;
+    private AdminProyecto proyectoActual;
+    private GoogleMap mapaDetalle;
 
     /** ID del proyecto actualmente mostrado; puede ser null para proyectos demo sin ID */
     private String proyectoId = null;
@@ -62,6 +80,7 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
         initializeViews();
         cargarDatosProyecto();
         setupListeners();
+        configurarMapa();
     }
 
     private void initializeViews() {
@@ -101,12 +120,44 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
         poblarVistas(proyecto);
     }
 
+    private void configurarMapa() {
+        SupportMapFragment mapFragment = (SupportMapFragment)
+                getSupportFragmentManager().findFragmentById(R.id.mapDetalleProyecto);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+            habilitarGestosMapaEnScroll(mapFragment);
+        }
+    }
+
+    private void habilitarGestosMapaEnScroll(SupportMapFragment mapFragment) {
+        View mapView = mapFragment.getView();
+        if (mapView == null) return;
+        mapView.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN
+                    || event.getAction() == MotionEvent.ACTION_MOVE) {
+                v.getParent().requestDisallowInterceptTouchEvent(true);
+            } else if (event.getAction() == MotionEvent.ACTION_UP
+                    || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                v.getParent().requestDisallowInterceptTouchEvent(false);
+            }
+            return false;
+        });
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mapaDetalle = googleMap;
+        pintarMapaProyecto();
+    }
+
     /**
      * Llena todas las vistas con los datos del proyecto.
      *
      * @param p Proyecto a mostrar.
      */
     private void poblarVistas(AdminProyecto p) {
+        proyectoActual = p;
+
         // ── Hero ──────────────────────────────────────────────────────────────
         setTextSafe(tvNombreProyectoDetalle, p.getNombre());
         setTextSafe(tvUbicacionProyectoDetalle,
@@ -144,7 +195,7 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
         setTextSafe(tvPrecioDesdeDetalle,
                 p.getPrecioTotal().isEmpty() ? "—" : "S/ " + p.getPrecioTotal());
         setTextSafe(tvNombreComercialDetalle,
-                p.getNombreComercial().isEmpty() ? "—" : p.getNombreComercial());
+                p.getInmobiliariaNombre().isEmpty() ? "—" : p.getInmobiliariaNombre());
 
         // ── Ubicación ─────────────────────────────────────────────────────────
         setTextSafe(tvDireccionDetalle,
@@ -160,6 +211,28 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
 
         // ── Asesores dinámicos ─────────────────────────────────────────────────
         renderizarAsesores(p.getAsesores());
+
+        pintarMapaProyecto();
+    }
+
+    private void pintarMapaProyecto() {
+        if (mapaDetalle == null || proyectoActual == null) return;
+
+        Double lat = proyectoActual.getLatitud();
+        Double lng = proyectoActual.getLongitud();
+        if (lat == null || lng == null) {
+            LatLng lima = new LatLng(-12.0464, -77.0428);
+            mapaDetalle.moveCamera(CameraUpdateFactory.newLatLngZoom(lima, 11f));
+            return;
+        }
+
+        LatLng ubicacion = new LatLng(lat, lng);
+        mapaDetalle.clear();
+        mapaDetalle.addMarker(new MarkerOptions()
+                .position(ubicacion)
+                .title(proyectoActual.getNombre())
+                .snippet(proyectoActual.getDireccion()));
+        mapaDetalle.moveCamera(CameraUpdateFactory.newLatLngZoom(ubicacion, 16f));
     }
 
     // ── Renderizado de secciones dinámicas ───────────────────────────────────
@@ -209,7 +282,11 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
                 imgBg.setCornerRadius(dpToPx(6));
                 imgBg.setColor(0xFFE0E0E0);
                 imgTip.setBackground(imgBg);
-                Glide.with(this).load(new File(tipImagePath)).centerCrop().into(imgTip);
+                Glide.with(this)
+                        .load(esUrlRemota(tipImagePath) ? tipImagePath : new File(tipImagePath))
+                        .centerCrop()
+                        .into(imgTip);
+                imgTip.setOnClickListener(v -> mostrarImagenFullscreen(tipImagePath));
                 fila.addView(imgTip);
             }
 
@@ -273,7 +350,14 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
 
         if (tvSinFotos != null) tvSinFotos.setVisibility(View.GONE);
 
+        List<String> imagenesValidas = new ArrayList<>();
         for (String uriStr : uriStrings) {
+            if (uriStr != null && !uriStr.isEmpty()) imagenesValidas.add(uriStr);
+        }
+
+        for (int i = 0; i < imagenesValidas.size(); i++) {
+            String uriStr = imagenesValidas.get(i);
+            final int index = i;
             if (uriStr == null || uriStr.isEmpty()) continue;
 
             ImageView imgView = new ImageView(this);
@@ -298,6 +382,7 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
             } else {
                 Glide.with(this).load(uriStr).centerCrop().into(imgView);
             }
+            imgView.setOnClickListener(v -> mostrarCarruselImagenes(imagenesValidas, index));
             fotosContainerDetalle.addView(imgView);
         }
     }
@@ -403,12 +488,13 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
 
         // Intentar cargar desde la ruta guardada
         String qrPath = proyecto.getQrCode();
-        if (!qrPath.isEmpty()) {
+        boolean qrEsUrl = qrPath.startsWith("http://") || qrPath.startsWith("https://");
+        if (!qrPath.isEmpty() && !qrEsUrl) {
             qrBitmap = BitmapFactory.decodeFile(qrPath);
         }
 
         // Si no hay archivo guardado, generar al vuelo
-        if (qrBitmap == null) {
+        if (qrBitmap == null && !qrEsUrl) {
             try {
                 BarcodeEncoder encoder = new BarcodeEncoder();
                 qrBitmap = encoder.encodeBitmap(
@@ -455,8 +541,12 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
         LinearLayout.LayoutParams qrParams = new LinearLayout.LayoutParams(qrSize, qrSize);
         qrParams.gravity = Gravity.CENTER_HORIZONTAL;
         imgQr.setLayoutParams(qrParams);
-        imgQr.setImageBitmap(qrBitmap);
         imgQr.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        if (qrEsUrl) {
+            Glide.with(this).load(qrPath).into(imgQr);
+        } else {
+            imgQr.setImageBitmap(qrBitmap);
+        }
         layout.addView(imgQr);
 
         Button btnCerrar = new Button(this);
@@ -495,6 +585,140 @@ public class AdminDetallesProyectoActivity extends AppCompatActivity {
      */
     private void setTextSafe(TextView tv, String valor) {
         if (tv != null && valor != null) tv.setText(valor);
+    }
+
+    private boolean esUrlRemota(String valor) {
+        return valor != null && (valor.startsWith("http://") || valor.startsWith("https://"));
+    }
+
+    private void mostrarImagenFullscreen(String imagen) {
+        if (imagen == null || imagen.isEmpty()) return;
+        List<String> unica = new ArrayList<>();
+        unica.add(imagen);
+        mostrarCarruselImagenes(unica, 0);
+    }
+
+    private void mostrarCarruselImagenes(List<String> imagenes, int posicionInicial) {
+        if (imagenes == null || imagenes.isEmpty()) return;
+
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        FrameLayout root = new FrameLayout(this);
+        root.setBackgroundColor(Color.BLACK);
+
+        ViewPager2 viewPager = new ViewPager2(this);
+        viewPager.setLayoutParams(new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT));
+        viewPager.setAdapter(new ImagenFullscreenAdapter(imagenes));
+        int posicionSegura = Math.max(0, Math.min(posicionInicial, imagenes.size() - 1));
+        viewPager.setCurrentItem(posicionSegura, false);
+        root.addView(viewPager);
+
+        TextView contador = new TextView(this);
+        contador.setTextColor(Color.WHITE);
+        contador.setTextSize(13f);
+        contador.setGravity(Gravity.CENTER);
+        contador.setBackgroundColor(0x66000000);
+        contador.setPadding(dpToPx(10), dpToPx(4), dpToPx(10), dpToPx(4));
+        FrameLayout.LayoutParams contadorParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT);
+        contadorParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
+        contadorParams.setMargins(0, 0, 0, dpToPx(24));
+        contador.setLayoutParams(contadorParams);
+        root.addView(contador);
+
+        actualizarContadorImagen(contador, posicionSegura, imagenes.size());
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                actualizarContadorImagen(contador, position, imagenes.size());
+            }
+        });
+
+        ImageButton btnCerrar = new ImageButton(this);
+        int size = dpToPx(44);
+        FrameLayout.LayoutParams closeParams = new FrameLayout.LayoutParams(size, size);
+        closeParams.gravity = Gravity.TOP | Gravity.END;
+        closeParams.setMargins(0, dpToPx(16), dpToPx(16), 0);
+        btnCerrar.setLayoutParams(closeParams);
+        btnCerrar.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
+        btnCerrar.setColorFilter(Color.WHITE);
+        btnCerrar.setBackgroundColor(Color.TRANSPARENT);
+        btnCerrar.setContentDescription("Cerrar imagen");
+        btnCerrar.setOnClickListener(v -> dialog.dismiss());
+        root.addView(btnCerrar);
+
+        root.setOnClickListener(v -> dialog.dismiss());
+        viewPager.setOnClickListener(v -> { });
+
+        dialog.setContentView(root);
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            window.setLayout(WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT);
+        }
+        dialog.show();
+        Window shownWindow = dialog.getWindow();
+        if (shownWindow != null) {
+            shownWindow.setLayout(WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT);
+        }
+    }
+
+    private void actualizarContadorImagen(TextView contador, int position, int total) {
+        if (contador == null) return;
+        contador.setText(String.format(Locale.getDefault(), "%d / %d", position + 1, total));
+    }
+
+    private class ImagenFullscreenAdapter
+            extends RecyclerView.Adapter<ImagenFullscreenAdapter.ImagenViewHolder> {
+
+        private final List<String> imagenes;
+
+        ImagenFullscreenAdapter(List<String> imagenes) {
+            this.imagenes = imagenes;
+        }
+
+        @NonNull
+        @Override
+        public ImagenViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup parent,
+                                                   int viewType) {
+            ImageView imageView = new ImageView(parent.getContext());
+            imageView.setLayoutParams(new RecyclerView.LayoutParams(
+                    RecyclerView.LayoutParams.MATCH_PARENT,
+                    RecyclerView.LayoutParams.MATCH_PARENT));
+            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            imageView.setPadding(dpToPx(12), dpToPx(48), dpToPx(12), dpToPx(48));
+            imageView.setBackgroundColor(Color.BLACK);
+            return new ImagenViewHolder(imageView);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ImagenViewHolder holder, int position) {
+            String imagen = imagenes.get(position);
+            Glide.with(AdminDetallesProyectoActivity.this)
+                    .load(esUrlRemota(imagen) ? imagen : new File(imagen))
+                    .fitCenter()
+                    .into(holder.imageView);
+        }
+
+        @Override
+        public int getItemCount() {
+            return imagenes != null ? imagenes.size() : 0;
+        }
+
+        class ImagenViewHolder extends RecyclerView.ViewHolder {
+            final ImageView imageView;
+
+            ImagenViewHolder(@NonNull ImageView imageView) {
+                super(imageView);
+                this.imageView = imageView;
+            }
+        }
     }
 
     /** Convierte dp a px usando la densidad real del dispositivo. */

@@ -6,6 +6,8 @@ import android.text.TextWatcher;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.bitbusters.R;
 import com.google.android.material.textfield.TextInputEditText;
@@ -14,9 +16,13 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
 
     private TextInputEditText etNombreAsesor;
     private TextInputEditText etCorreoAsesor;
+    private TextInputEditText etTelefonoAsesor;
+    private TextInputEditText etDniAsesor;
     private TextView tvInitials;
     private TextView tvPreviewNombre;
     private TextView tvPreviewCorreo;
+    private TextView tvPreviewTelefono;
+    private TextView tvPreviewDni;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,9 +36,13 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
     private void initializeViews() {
         etNombreAsesor = findViewById(R.id.etNombreAsesor);
         etCorreoAsesor = findViewById(R.id.etCorreoAsesor);
+        etTelefonoAsesor = findViewById(R.id.etTelefonoAsesor);
+        etDniAsesor = findViewById(R.id.etDniAsesor);
         tvInitials = findViewById(R.id.tvInitials);
         tvPreviewNombre = findViewById(R.id.tvPreviewNombre);
         tvPreviewCorreo = findViewById(R.id.tvPreviewCorreo);
+        tvPreviewTelefono = findViewById(R.id.tvPreviewTelefono);
+        tvPreviewDni = findViewById(R.id.tvPreviewDni);
     }
 
     private void setupPreviewUpdates() {
@@ -67,11 +77,43 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
                 public void afterTextChanged(Editable s) {}
             });
         }
+
+        if (etTelefonoAsesor != null) {
+            etTelefonoAsesor.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    updatePreview();
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {}
+            });
+        }
+
+        if (etDniAsesor != null) {
+            etDniAsesor.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    updatePreview();
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {}
+            });
+        }
     }
 
     private void updatePreview() {
-        String nombre = etNombreAsesor != null ? etNombreAsesor.getText().toString().trim() : "";
-        String correo = etCorreoAsesor != null ? etCorreoAsesor.getText().toString().trim() : "";
+        String nombre = getText(etNombreAsesor);
+        String correo = getText(etCorreoAsesor);
+        String telefono = getText(etTelefonoAsesor);
+        String dni = getText(etDniAsesor);
 
         // Update name in preview
         if (tvPreviewNombre != null) {
@@ -81,6 +123,12 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
         // Update email in preview
         if (tvPreviewCorreo != null) {
             tvPreviewCorreo.setText(!correo.isEmpty() ? correo : "correo@email.com");
+        }
+        if (tvPreviewTelefono != null) {
+            tvPreviewTelefono.setText(!telefono.isEmpty() ? telefono : "Teléfono");
+        }
+        if (tvPreviewDni != null) {
+            tvPreviewDni.setText(!dni.isEmpty() ? dni : "DNI");
         }
 
         // Update initials
@@ -120,7 +168,12 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
         // Register button (save advisor)
         Button btnRegisterAdvisor = findViewById(R.id.btnRegisterAdvisor);
         if (btnRegisterAdvisor != null) {
-            btnRegisterAdvisor.setOnClickListener(v -> finish());
+            btnRegisterAdvisor.setOnClickListener(v -> {
+                if (isFormValid()) {
+                    Toast.makeText(this, "Asesor registrado en sesión", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            });
         }
 
         // Cancel button
@@ -128,5 +181,22 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
         if (btnCancelRegister != null) {
             btnCancelRegister.setOnClickListener(v -> finish());
         }
+    }
+
+    private boolean isFormValid() {
+        String nombre = getText(etNombreAsesor);
+        String correo = getText(etCorreoAsesor);
+        String telefono = getText(etTelefonoAsesor);
+        String dni = getText(etDniAsesor);
+
+        if (nombre.isEmpty() || correo.isEmpty() || telefono.isEmpty() || dni.isEmpty()) {
+            Toast.makeText(this, "Completa Nombre, Correo, Teléfono y DNI", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
+    }
+
+    private String getText(TextInputEditText input) {
+        return input != null && input.getText() != null ? input.getText().toString().trim() : "";
     }
 }

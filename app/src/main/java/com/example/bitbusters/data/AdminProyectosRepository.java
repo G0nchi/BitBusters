@@ -4,6 +4,12 @@ import android.content.Context;
 
 import com.example.bitbusters.models.AdminProyecto;
 import com.example.bitbusters.models.Tipologia;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -12,6 +18,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.lang.reflect.Type;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +34,8 @@ public class AdminProyectosRepository {
 
     /** Lista maestra — se inicializa con 3 proyectos demo */
     private static final List<AdminProyecto> proyectos = new ArrayList<>(crearDemoInicial());
+    private static final String COLECCION_PROYECTOS = "proyectos";
+    private static final String UID_ADMIN_MOCK = "admin_mock";
 
     /** Evita instanciación accidental */
     private AdminProyectosRepository() {}
@@ -47,6 +56,93 @@ public class AdminProyectosRepository {
      */
     public static List<AdminProyecto> getTodos() {
         return proyectos;
+    }
+
+    public interface ProyectosListener {
+        void onProyectosActualizados(List<AdminProyecto> proyectos);
+        void onError(String mensaje);
+    }
+
+    public interface GuardarCallback {
+        void onSuccess(String proyectoId);
+        void onError(String mensaje);
+    }
+
+    /**
+     * Guarda el proyecto en Firestore usando el mismo ID del modelo como ID
+     * de documento. También actualiza la lista local para que las pantallas de
+     * detalle existentes puedan seguir usando getById().
+     */
+    public static void guardarEnFirestore(AdminProyecto proyecto, GuardarCallback callback) {
+        if (proyecto == null || proyecto.getId().isEmpty()) {
+            if (callback != null) callback.onError("Proyecto inválido");
+            return;
+        }
+
+        FirebaseFirestore.getInstance()
+                .collection(COLECCION_PROYECTOS)
+                .document(proyecto.getId())
+                .set(proyecto)
+                .addOnSuccessListener(unused -> {
+                    agregarOReemplazarLocal(proyecto);
+                    if (callback != null) callback.onSuccess(proyecto.getId());
+                })
+                .addOnFailureListener(e -> {
+                    if (callback != null) callback.onError(e.getMessage());
+                });
+    }
+
+    /**
+     * Escucha en tiempo real los proyectos creados por el administrador actual.
+     * Para el login mock del curso se usa admin_mock.
+     */
+    public static ListenerRegistration escucharPorAdministrador(
+            String adminUid,
+            String inmobiliariaId,
+            ProyectosListener listener
+    ) {
+        Query query = FirebaseFirestore.getInstance().collection(COLECCION_PROYECTOS);
+        if (adminUid != null && !adminUid.trim().isEmpty()) {
+            query = query.whereEqualTo("adminUid", adminUid);
+        } else if (inmobiliariaId != null && !inmobiliariaId.trim().isEmpty()) {
+            query = query.whereEqualTo("inmobiliariaId", inmobiliariaId);
+        }
+
+        return query.addSnapshotListener((snapshot, error) -> {
+            if (error != null) {
+                if (listener != null) listener.onError(error.getMessage());
+                return;
+            }
+
+            List<AdminProyecto> lista = new ArrayList<>();
+            if (snapshot != null) {
+                for (QueryDocumentSnapshot doc : snapshot) {
+                    AdminProyecto proyecto = doc.toObject(AdminProyecto.class);
+                    proyecto.setId(doc.getId());
+                    lista.add(proyecto);
+                }
+            }
+
+            reemplazarListaLocal(lista);
+            if (listener != null) listener.onProyectosActualizados(getTodos());
+        });
+    }
+
+    public static String obtenerAdminUidActual() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        return user != null ? user.getUid() : UID_ADMIN_MOCK;
+    }
+
+    public static String crearInmobiliariaId(String inmobiliariaNombre) {
+        String base = inmobiliariaNombre != null && !inmobiliariaNombre.trim().isEmpty()
+                ? inmobiliariaNombre.trim()
+                : "inmobiliaria";
+        String sinTildes = Normalizer.normalize(base, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        String normalizado = sinTildes.toLowerCase()
+                .replaceAll("[^a-z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
+        return normalizado.isEmpty() ? "inmobiliaria" : normalizado;
     }
 
     /**
@@ -74,6 +170,22 @@ public class AdminProyectosRepository {
                 return;
             }
         }
+    }
+
+    private static void agregarOReemplazarLocal(AdminProyecto proyecto) {
+        if (proyecto == null) return;
+        for (int i = 0; i < proyectos.size(); i++) {
+            if (proyecto.getId().equals(proyectos.get(i).getId())) {
+                proyectos.set(i, proyecto);
+                return;
+            }
+        }
+        proyectos.add(0, proyecto);
+    }
+
+    private static void reemplazarListaLocal(List<AdminProyecto> nuevaLista) {
+        proyectos.clear();
+        if (nuevaLista != null) proyectos.addAll(nuevaLista);
     }
 
     /** Elimina todos los proyectos (útil para tests). */

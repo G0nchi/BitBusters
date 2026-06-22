@@ -11,6 +11,10 @@ import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.AdminProyectoListAdapter;
 import com.example.bitbusters.data.AdminProyectosRepository;
 import com.example.bitbusters.models.AdminProyecto;
+import com.example.bitbusters.utils.AdminPreferencesManager;
+import com.google.firebase.firestore.ListenerRegistration;
+
+import java.util.List;
 
 /**
  * Lista de proyectos del Administrador.
@@ -21,6 +25,7 @@ public class AdminProyectosActivity extends AdminMainActivity {
 
     private RecyclerView          rvProyectos;
     private AdminProyectoListAdapter adapter;
+    private ListenerRegistration proyectosListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,11 +44,48 @@ public class AdminProyectosActivity extends AdminMainActivity {
      * AdminCrearProyectoActivity). Refresca la lista con los datos más actuales.
      */
     @Override
+    protected void onStart() {
+        super.onStart();
+        iniciarListenerFirestore();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (proyectosListener != null) {
+            proyectosListener.remove();
+            proyectosListener = null;
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         if (adapter != null) {
             adapter.setData(AdminProyectosRepository.getTodos());
         }
+    }
+
+    private void iniciarListenerFirestore() {
+        String inmobiliariaNombre = AdminPreferencesManager.obtenerInmobiliaria(this);
+        String inmobiliariaId = AdminProyectosRepository.crearInmobiliariaId(inmobiliariaNombre);
+        String adminUid = AdminProyectosRepository.obtenerAdminUidActual();
+
+        proyectosListener = AdminProyectosRepository.escucharPorAdministrador(
+                adminUid,
+                inmobiliariaId,
+                new AdminProyectosRepository.ProyectosListener() {
+                    @Override
+                    public void onProyectosActualizados(List<AdminProyecto> proyectos) {
+                        if (adapter != null) adapter.setData(proyectos);
+                    }
+
+                    @Override
+                    public void onError(String mensaje) {
+                        // Mantener la lista local visible si Firestore falla.
+                        if (adapter != null) adapter.setData(AdminProyectosRepository.getTodos());
+                    }
+                });
     }
 
     private void setupCreateProjectButton() {

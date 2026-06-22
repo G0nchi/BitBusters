@@ -4,12 +4,17 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,9 +36,12 @@ import com.example.bitbusters.repository.UbicacionRepository;
 import com.example.bitbusters.utils.AsesorDatabase;
 import com.example.bitbusters.utils.ImageUrls;
 import com.example.bitbusters.utils.NotificationHelper;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.zxing.BarcodeFormat;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
@@ -56,13 +64,16 @@ import java.util.concurrent.Executors;
 public class ProjectDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final String EXTRA_PROYECTO = "proyecto";
+    private static final String EXTRA_PROYECTO_ID = "proyecto_id";
     private static final String PREF_SEED_DONE = "comentarios_seed_done";
     private static final int    REQUEST_LOCATION = 100;
 
     // Proyecto
     private String nombreProyecto;
+    private String proyectoId;
     private Proyecto proyectoActual;
     private ProyectoRepository proyectoRepository;
+    private boolean comentariosConfigurados = false;
 
     // Chat
     private ChatRepository chatRepository;
@@ -99,8 +110,6 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         configurarUIProyecto();
         cargarDatosProyecto();
         configurarNavegacion();
-        configurarComentarios();
-        cargarMapa(nombreProyecto);
     }
 
     // ── UI del proyecto ────────────────────────────────────────────────────────
@@ -135,7 +144,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         findViewById(R.id.btnFavorito).setOnClickListener(v -> { /* TODO favoritos */ });
         findViewById(R.id.btnRentar).setOnClickListener(v -> { /* TODO renta */ });
         findViewById(R.id.btnComprar).setOnClickListener(v -> { /* TODO separación */ });
-        findViewById(R.id.btnQR).setOnClickListener(v -> { /* TODO mostrar QR */ });
+        findViewById(R.id.btnQR).setOnClickListener(v -> mostrarDialogoQR());
 
         findViewById(R.id.btnChatAsesor).setOnClickListener(v -> abrirChatConAsesor());
 
@@ -532,10 +541,15 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
 
     /** Lee el nombre del proyecto desde extra (navegación normal) o URI deep link (QR). */
     private String resolverNombreProyecto() {
+        proyectoId = getIntent().getStringExtra(EXTRA_PROYECTO_ID);
         String nombre = getIntent().getStringExtra(EXTRA_PROYECTO);
         if (nombre != null && !nombre.isEmpty()) {
             Log.d("DetalleProyecto", "Proyecto cargado desde extra: " + nombre);
             return nombre;
+        }
+        if (proyectoId != null && !proyectoId.isEmpty()) {
+            Log.d("DetalleProyecto", "Proyecto cargado desde id extra: " + proyectoId);
+            return proyectoId;
         }
         Uri uri = getIntent().getData();
         if (uri != null) {
@@ -543,6 +557,11 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
             String segmento = uri.getLastPathSegment();
             if (segmento != null && !segmento.isEmpty()) {
                 nombre = mapearIdANombre(segmento);
+                if (nombre.equals(segmento)) {
+                    proyectoId = segmento;
+                } else {
+                    proyectoId = null;
+                }
                 Log.d("DetalleProyecto", "Proyecto desde deep link, id=" + segmento + " → " + nombre);
                 return nombre;
             }
@@ -578,11 +597,17 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
     // ── Datos dinámicos del proyecto ──────────────────────────────────────────────
 
     private void cargarDatosProyecto() {
-        proyectoRepository.obtenerPorNombre(nombreProyecto, new ProyectoRepository.ProyectoCallback() {
+        ProyectoRepository.ProyectoCallback callback = new ProyectoRepository.ProyectoCallback() {
             @Override
             public void onSuccess(Proyecto p) {
                 proyectoActual = p;
+                if (p.getNombre() != null && !p.getNombre().isEmpty()) {
+                    nombreProyecto = p.getNombre();
+                }
+                configurarUIProyecto();
                 pintarDatosProyecto();
+                configurarComentariosSiHaceFalta();
+                cargarMapaDesdeProyecto();
                 List<String> uidAsesores = p.getUidAsesores();
                 if (uidAsesores != null && !uidAsesores.isEmpty()) {
                     cargarAsesor(uidAsesores.get(0));
@@ -593,8 +618,16 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
                 Log.e("DetalleProyecto", "Error cargando datos: " + mensaje);
                 Toast.makeText(ProjectDetailActivity.this,
                         "No se pudo cargar el proyecto", Toast.LENGTH_SHORT).show();
+                configurarComentariosSiHaceFalta();
+                cargarMapa(nombreProyecto);
             }
-        });
+        };
+
+        if (proyectoId != null && !proyectoId.isEmpty()) {
+            proyectoRepository.obtenerPorId(proyectoId, callback);
+        } else {
+            proyectoRepository.obtenerPorNombre(nombreProyecto, callback);
+        }
     }
 
     private void pintarDatosProyecto() {
@@ -627,6 +660,42 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         pintarTipologias();
     }
 
+    private void configurarComentariosSiHaceFalta() {
+        if (!comentariosConfigurados) {
+            configurarComentarios();
+            comentariosConfigurados = true;
+        }
+    }
+
+    private void cargarMapaDesdeProyecto() {
+        if (proyectoActual == null) {
+            cargarMapa(nombreProyecto);
+            return;
+        }
+
+        Double lat = proyectoActual.getLatitud();
+        Double lng = proyectoActual.getLongitud();
+        if (lat == null || lng == null) {
+            cargarMapa(nombreProyecto);
+            return;
+        }
+
+        ubicacionProyecto = new LatLng(lat, lng);
+        TextView tvDireccion = findViewById(R.id.tvDireccion);
+        if (tvDireccion != null) {
+            String direccion = proyectoActual.getDireccion();
+            tvDireccion.setText("📍 " + (direccion != null && !direccion.isEmpty()
+                    ? direccion : proyectoActual.getUbicacion()));
+        }
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        SupportMapFragment mapFragment = (SupportMapFragment)
+                getSupportFragmentManager().findFragmentById(R.id.mapaProyecto);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(ProjectDetailActivity.this);
+        }
+    }
+
     private void pintarTipologias() {
         if (proyectoActual == null) return;
         List<Map<String, Object>> tipologias = proyectoActual.getTipologias();
@@ -657,6 +726,87 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
                 tvMetraje.setText("");
             }
         }
+    }
+
+    private void mostrarDialogoQR() {
+        String idProyecto = proyectoActual != null && proyectoActual.getId() != null
+                ? proyectoActual.getId()
+                : proyectoId;
+        if (idProyecto == null || idProyecto.isEmpty()) {
+            Toast.makeText(this, "QR no disponible para este proyecto", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String qrUrl = proyectoActual != null && proyectoActual.getQrCode() != null
+                ? proyectoActual.getQrCode()
+                : "";
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setGravity(Gravity.CENTER_HORIZONTAL);
+        int pad = dpToPx(24);
+        layout.setPadding(pad, pad, pad, pad);
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText("Código QR del Proyecto");
+        tvTitle.setTextSize(18f);
+        tvTitle.setTypeface(null, Typeface.BOLD);
+        tvTitle.setGravity(Gravity.CENTER);
+        layout.addView(tvTitle);
+
+        TextView tvSubtitle = new TextView(this);
+        tvSubtitle.setText(nombreProyecto != null ? nombreProyecto : "Proyecto");
+        tvSubtitle.setTextSize(13f);
+        tvSubtitle.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams subParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        subParams.topMargin = dpToPx(4);
+        subParams.bottomMargin = dpToPx(12);
+        tvSubtitle.setLayoutParams(subParams);
+        layout.addView(tvSubtitle);
+
+        ImageView imgQr = new ImageView(this);
+        int qrSize = dpToPx(260);
+        LinearLayout.LayoutParams qrParams = new LinearLayout.LayoutParams(qrSize, qrSize);
+        qrParams.gravity = Gravity.CENTER_HORIZONTAL;
+        imgQr.setLayoutParams(qrParams);
+        imgQr.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+        boolean qrRemoto = qrUrl.startsWith("http://") || qrUrl.startsWith("https://");
+        if (qrRemoto) {
+            Glide.with(this).load(qrUrl).into(imgQr);
+        } else {
+            try {
+                BarcodeEncoder encoder = new BarcodeEncoder();
+                Bitmap bitmap = encoder.encodeBitmap(
+                        "inmobiliaria://proyecto/" + idProyecto,
+                        BarcodeFormat.QR_CODE, 512, 512);
+                imgQr.setImageBitmap(bitmap);
+            } catch (Exception e) {
+                Toast.makeText(this, "Error generando el QR", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+        layout.addView(imgQr);
+
+        Button btnCerrar = new Button(this);
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnParams.topMargin = dpToPx(16);
+        btnCerrar.setLayoutParams(btnParams);
+        btnCerrar.setText("Cerrar");
+        btnCerrar.setOnClickListener(v -> dialog.dismiss());
+        layout.addView(btnCerrar);
+
+        dialog.setContentView(layout);
+        dialog.show();
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
     private void cargarAsesor(String uidAsesor) {

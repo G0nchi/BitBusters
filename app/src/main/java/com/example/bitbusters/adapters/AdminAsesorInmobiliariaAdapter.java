@@ -1,10 +1,11 @@
 package com.example.bitbusters.adapters;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,6 +19,7 @@ public class AdminAsesorInmobiliariaAdapter extends RecyclerView.Adapter<AdminAs
 
     private List<AdminAsesorInmobiliaria> asesorList;
     private OnAsesorActionListener listener;
+    private final boolean showActions;
 
     public interface OnAsesorActionListener {
         void onEditAsesor(int position);
@@ -25,8 +27,15 @@ public class AdminAsesorInmobiliariaAdapter extends RecyclerView.Adapter<AdminAs
     }
 
     public AdminAsesorInmobiliariaAdapter(List<AdminAsesorInmobiliaria> asesorList, OnAsesorActionListener listener) {
+        this(asesorList, listener, true);
+    }
+
+    public AdminAsesorInmobiliariaAdapter(List<AdminAsesorInmobiliaria> asesorList,
+                                          OnAsesorActionListener listener,
+                                          boolean showActions) {
         this.asesorList = asesorList;
         this.listener = listener;
+        this.showActions = showActions;
     }
 
     @NonNull
@@ -45,8 +54,12 @@ public class AdminAsesorInmobiliariaAdapter extends RecyclerView.Adapter<AdminAs
         holder.tvTelefonoAsesor.setText(asesor.getTelefono());
         holder.tvInicialesAsesor.setText(asesor.getIniciales());
         holder.tvEstadoAsesor.setText(asesor.getEstado());
+        aplicarEstiloEstado(holder.tvEstadoAsesor, asesor.getEstado());
 
-        if (listener != null) {
+        holder.btnEditAsesor.setVisibility(showActions ? View.VISIBLE : View.GONE);
+        holder.btnDeleteAsesor.setVisibility(showActions ? View.VISIBLE : View.GONE);
+
+        if (listener != null && showActions) {
             holder.btnEditAsesor.setOnClickListener(v -> listener.onEditAsesor(position));
             holder.btnDeleteAsesor.setOnClickListener(v -> listener.onDeleteAsesor(position));
         }
@@ -67,6 +80,20 @@ public class AdminAsesorInmobiliariaAdapter extends RecyclerView.Adapter<AdminAs
             asesorList.remove(position);
             notifyItemRemoved(position);
         }
+    }
+
+    private void aplicarEstiloEstado(TextView tvEstado, String estado) {
+        if (tvEstado == null) {
+            return;
+        }
+        String estadoNormalizado = estado == null ? "" : estado.trim().toLowerCase();
+        int colorTexto = Color.parseColor("#1B5E20");
+        if ("inactivo".equals(estadoNormalizado) || "suspendido".equals(estadoNormalizado)) {
+            colorTexto = Color.parseColor("#C62828");
+        } else if ("pendiente".equals(estadoNormalizado) || "en revisión".equals(estadoNormalizado)) {
+            colorTexto = Color.parseColor("#EF6C00");
+        }
+        tvEstado.setTextColor(colorTexto);
     }
 
     public static class AdminAsesorInmobiliariaViewHolder extends RecyclerView.ViewHolder {

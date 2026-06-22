@@ -1,17 +1,27 @@
 package com.example.bitbusters.activities.admin;
 
 import androidx.appcompat.app.AlertDialog;
+import android.app.Dialog;
 import android.app.DatePickerDialog;
 import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -24,6 +34,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.content.ContextCompat;
 
@@ -41,23 +52,45 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.AddressComponent;
+import com.google.android.libraries.places.api.model.AutocompletePrediction;
+import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.RectangularBounds;
+import com.google.android.libraries.places.api.net.FetchPlaceRequest;
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import android.graphics.Bitmap;
+import android.location.Address;
+import android.location.Geocoder;
 
 import com.google.zxing.BarcodeFormat;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Formulario de creación de proyecto inmobiliario del Administrador.
@@ -68,12 +101,14 @@ import java.util.UUID;
  *  Parte 3 — Distrito con AlertDialog de búsqueda en tiempo real
  *  Parte 4 — Al guardar, crea AdminProyecto y lo agrega a AdminProyectosRepository
  */
-public class AdminCrearProyectoActivity extends AppCompatActivity {
+public class AdminCrearProyectoActivity extends AppCompatActivity implements OnMapReadyCallback {
+
+    private static final String TAG = "AdminCrearProyecto";
 
     // ── Campos de texto ───────────────────────────────────────────────────────
     private TextInputEditText etNombreProyecto, etDescripcionProyecto;
     private TextView          tvFechaEntrega;
-    private TextInputEditText etDireccion;
+    private AppCompatAutoCompleteTextView etDireccion;
     private TextView          tvDistrito;          // Parte 3: no editable, abre diálogo
     private LinearLayout      layoutDistritoSelector;
     private TextInputEditText etCostoSeparacion, etPrecioTotal;
@@ -84,6 +119,7 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
 
     // ── Botones de acción ────────────────────────────────────────────────────
     private Button      btnAgregarTipologia, btnAgregarAsesor;
+    private Button      btnBuscarDireccion, btnAjustarUbicacion;
     private Button      btnGuardarProyecto,  btnCancelarCrear;
     private ImageButton btnBackCreateProject;
     private LinearLayout btnAddImage;
@@ -97,9 +133,20 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
     private String                  selectedEstado = "";
     private AdminProyectoSessionData sessionData;
     private final List<Uri>         imagenesSeleccionadas = new ArrayList<>();
+    private final List<Address>     sugerenciasDireccion = new ArrayList<>();
+    private final List<AutocompletePrediction> sugerenciasPlaces = new ArrayList<>();
+    private ArrayAdapter<String>    direccionesAdapter;
+    private final Handler           direccionHandler = new Handler(Looper.getMainLooper());
+    private Runnable                buscarDireccionRunnable;
+    private GoogleMap               mapaUbicacion;
+    private Coordenadas             coordenadasSeleccionadas;
+    private boolean                 actualizandoDireccionDesdeSugerencia = false;
+    private PlacesClient            placesClient;
+    private AutocompleteSessionToken placesSessionToken;
 
     // Placeholder para el campo fecha (para validar que hay fecha real)
     private static final String FECHA_PLACEHOLDER    = "Seleccionar fecha";
+    private static final String FECHA_NO_APLICA      = "No aplica para proyectos en venta";
     private static final String DISTRITO_PLACEHOLDER = "Seleccionar distrito";
 
     // ── Parte 3: Lista completa de distritos de Lima ──────────────────────────
@@ -130,6 +177,9 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
         initializeViews();
         restoreSessionData();
         setupListeners();
+        inicializarPlaces();
+        configurarAutocompletadoDireccion();
+        configurarMapaUbicacion();
         initializeStateButtonColors();
     }
 
@@ -144,6 +194,9 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (buscarDireccionRunnable != null) {
+            direccionHandler.removeCallbacks(buscarDireccionRunnable);
+        }
         // No limpiar aquí — solo en cancelar o guardar
     }
 
@@ -170,6 +223,8 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
 
         btnAgregarTipologia   = findViewById(R.id.btnAgregarTipologia);
         btnAgregarAsesor      = findViewById(R.id.btnAgregarAsesor);
+        btnBuscarDireccion    = findViewById(R.id.btnBuscarDireccion);
+        btnAjustarUbicacion   = findViewById(R.id.btnAjustarUbicacion);
         btnAddImage           = findViewById(R.id.btnAddImage);
         btnGuardarProyecto    = findViewById(R.id.btnGuardarProyecto);
         btnCancelarCrear      = findViewById(R.id.btnCancelarCrear);
@@ -183,6 +238,23 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
     }
 
     // ── Listeners ─────────────────────────────────────────────────────────────
+
+    private void inicializarPlaces() {
+        String apiKey = getString(R.string.google_maps_key);
+        if (TextUtils.isEmpty(apiKey)) {
+            Log.w(TAG, "No hay API key para Places");
+            return;
+        }
+        try {
+            if (!Places.isInitialized()) {
+                Places.initializeWithNewPlacesApiEnabled(getApplicationContext(), apiKey);
+            }
+            placesClient = Places.createClient(this);
+        } catch (Exception e) {
+            Log.w(TAG, "No se pudo inicializar Places: " + e.getMessage());
+            placesClient = null;
+        }
+    }
 
     private void setupListeners() {
         // Botón atrás: sale sin confirmación
@@ -202,6 +274,14 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
         // Parte 3: Selector de distrito con AlertDialog de búsqueda
         if (layoutDistritoSelector != null) {
             layoutDistritoSelector.setOnClickListener(v -> mostrarDialogoDistrito());
+        }
+
+        if (btnBuscarDireccion != null) {
+            btnBuscarDireccion.setOnClickListener(v -> buscarDireccionDesdeBoton());
+        }
+
+        if (btnAjustarUbicacion != null) {
+            btnAjustarUbicacion.setOnClickListener(v -> mostrarDialogoAjustarUbicacion());
         }
 
         // Tipología: guardar formulario → navegar
@@ -227,12 +307,699 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
         // Guardar proyecto (Parte 4)
         btnGuardarProyecto.setOnClickListener(v -> {
             saveCurrentFormData();
-            if (!validarFormulario()) return;
-            guardarProyecto();
+            if (coordenadasSeleccionadas == null && !textoSeguro(etDireccion).isEmpty()) {
+                resolverDireccionAntesDeGuardar();
+                return;
+            }
+            validarYGuardarProyecto();
         });
 
         // Cancelar: diálogo de confirmación
         btnCancelarCrear.setOnClickListener(v -> mostrarDialogoCancelar());
+    }
+
+    private void validarYGuardarProyecto() {
+        saveCurrentFormData();
+        if (!validarFormulario()) return;
+        guardarProyecto();
+    }
+
+    private void buscarDireccionDesdeBoton() {
+        if (textoSeguro(etDireccion).length() < 4) {
+            mostrarToast("Ingresa una dirección para buscar");
+            etDireccion.requestFocus();
+            return;
+        }
+
+        if (btnBuscarDireccion != null) {
+            btnBuscarDireccion.setEnabled(false);
+            btnBuscarDireccion.setText("...");
+        }
+
+        resolverDireccionConCallback(() -> {
+            if (btnBuscarDireccion != null) {
+                btnBuscarDireccion.setEnabled(true);
+                btnBuscarDireccion.setText("Buscar");
+            }
+            mostrarToast("Ubicación encontrada");
+        }, () -> {
+            if (btnBuscarDireccion != null) {
+                btnBuscarDireccion.setEnabled(true);
+                btnBuscarDireccion.setText("Buscar");
+            }
+            mostrarToast("No se pudo ubicar esa dirección");
+        });
+    }
+
+    private void configurarMapaUbicacion() {
+        SupportMapFragment mapFragment = (SupportMapFragment)
+                getSupportFragmentManager().findFragmentById(R.id.mapCrearProyecto);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+            habilitarGestosMapaEnScroll(mapFragment);
+        }
+    }
+
+    private void habilitarGestosMapaEnScroll(SupportMapFragment mapFragment) {
+        View mapView = mapFragment.getView();
+        if (mapView == null) return;
+        mapView.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN
+                    || event.getAction() == MotionEvent.ACTION_MOVE) {
+                v.getParent().requestDisallowInterceptTouchEvent(true);
+            } else if (event.getAction() == MotionEvent.ACTION_UP
+                    || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                v.getParent().requestDisallowInterceptTouchEvent(false);
+            }
+            return false;
+        });
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mapaUbicacion = googleMap;
+        LatLng lima = new LatLng(-12.0464, -77.0428);
+        mapaUbicacion.moveCamera(CameraUpdateFactory.newLatLngZoom(lima, 11f));
+        if (coordenadasSeleccionadas != null) {
+            pintarUbicacionEnMapa(coordenadasSeleccionadas);
+        }
+    }
+
+    private void configurarAutocompletadoDireccion() {
+        if (etDireccion == null) return;
+
+        direccionesAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                new ArrayList<>()
+        );
+        etDireccion.setAdapter(direccionesAdapter);
+        etDireccion.setThreshold(4);
+
+        etDireccion.setOnItemClickListener((parent, view, position, id) -> {
+            if (position >= 0 && position < sugerenciasPlaces.size()) {
+                aplicarPrediccionPlace(sugerenciasPlaces.get(position));
+            } else if (position >= 0 && position < sugerenciasDireccion.size()) {
+                aplicarDireccionSeleccionada(sugerenciasDireccion.get(position));
+            }
+        });
+
+        etDireccion.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_SEARCH) {
+                resolverDireccionActual(false);
+                return true;
+            }
+            return false;
+        });
+
+        etDireccion.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) resolverDireccionActual(false);
+        });
+
+        etDireccion.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (actualizandoDireccionDesdeSugerencia) return;
+                programarBusquedaDireccion(s != null ? s.toString().trim() : "");
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void programarBusquedaDireccion(String texto) {
+        if (buscarDireccionRunnable != null) {
+            direccionHandler.removeCallbacks(buscarDireccionRunnable);
+        }
+        if (texto.length() < 4) return;
+
+        buscarDireccionRunnable = () -> buscarSugerenciasDireccion(texto);
+        direccionHandler.postDelayed(buscarDireccionRunnable, 650);
+    }
+
+    private void buscarSugerenciasDireccion(String texto) {
+        if (placesClient != null) {
+            buscarSugerenciasPlaces(texto);
+            return;
+        }
+
+        buscarSugerenciasConGeocoder(texto);
+    }
+
+    private void buscarSugerenciasPlaces(String texto) {
+        if (placesSessionToken == null) {
+            placesSessionToken = AutocompleteSessionToken.newInstance();
+        }
+
+        FindAutocompletePredictionsRequest request =
+                FindAutocompletePredictionsRequest.builder()
+                        .setQuery(crearTextoBusquedaPlaces(texto))
+                        .setCountries("PE")
+                        .setLocationBias(RectangularBounds.newInstance(
+                                new LatLng(-12.35, -77.20),
+                                new LatLng(-11.70, -76.75)))
+                        .setSessionToken(placesSessionToken)
+                        .build();
+
+        placesClient.findAutocompletePredictions(request)
+                .addOnSuccessListener(response -> {
+                    sugerenciasPlaces.clear();
+                    sugerenciasDireccion.clear();
+                    sugerenciasPlaces.addAll(response.getAutocompletePredictions());
+
+                    if (direccionesAdapter == null) return;
+                    direccionesAdapter.clear();
+                    for (AutocompletePrediction prediction : sugerenciasPlaces) {
+                        direccionesAdapter.add(prediction.getFullText(null).toString());
+                    }
+                    direccionesAdapter.notifyDataSetChanged();
+                    if (!sugerenciasPlaces.isEmpty() && etDireccion != null && etDireccion.hasFocus()) {
+                        etDireccion.showDropDown();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Places Autocomplete falló: " + e.getMessage());
+                    buscarSugerenciasConGeocoder(texto);
+                });
+    }
+
+    private String crearTextoBusquedaPlaces(String texto) {
+        return texto + ", Lima, Perú";
+    }
+
+    private void buscarSugerenciasConGeocoder(String texto) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            List<Address> resultados = obtenerDireccionesDesdeConsulta(
+                    crearConsultaDireccion(texto, ""), 5);
+            runOnUiThread(() -> {
+                sugerenciasPlaces.clear();
+                sugerenciasDireccion.clear();
+                sugerenciasDireccion.addAll(resultados);
+                if (direccionesAdapter == null) return;
+
+                direccionesAdapter.clear();
+                for (Address address : resultados) {
+                    direccionesAdapter.add(formatearDireccionSugerida(address));
+                }
+                direccionesAdapter.notifyDataSetChanged();
+                if (!resultados.isEmpty() && etDireccion != null && etDireccion.hasFocus()) {
+                    etDireccion.showDropDown();
+                }
+            });
+        });
+    }
+
+    private void aplicarPrediccionPlace(AutocompletePrediction prediction) {
+        if (prediction == null || placesClient == null) return;
+
+        List<Place.Field> fields = Arrays.asList(
+                Place.Field.ID,
+                Place.Field.DISPLAY_NAME,
+                Place.Field.FORMATTED_ADDRESS,
+                Place.Field.LOCATION,
+                Place.Field.ADDRESS_COMPONENTS
+        );
+
+        FetchPlaceRequest request = FetchPlaceRequest.builder(prediction.getPlaceId(), fields)
+                .setSessionToken(placesSessionToken)
+                .build();
+
+        placesClient.fetchPlace(request)
+                .addOnSuccessListener(response -> {
+                    Place place = response.getPlace();
+                    aplicarPlaceSeleccionado(place, prediction);
+                    placesSessionToken = null;
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "FetchPlace falló: " + e.getMessage());
+                    actualizandoDireccionDesdeSugerencia = true;
+                    etDireccion.setText(prediction.getFullText(null).toString(), false);
+                    etDireccion.setSelection(etDireccion.getText() != null ? etDireccion.getText().length() : 0);
+                    actualizandoDireccionDesdeSugerencia = false;
+                    geocodificarDireccionActual(true);
+                    placesSessionToken = null;
+                });
+    }
+
+    private void resolverDireccionActual(boolean mostrarErrores) {
+        if (etDireccion == null) return;
+        String direccion = textoSeguro(etDireccion);
+        if (direccion.length() < 4) return;
+
+        if (placesClient == null) {
+            geocodificarDireccionActual(mostrarErrores);
+            return;
+        }
+
+        if (placesSessionToken == null) {
+            placesSessionToken = AutocompleteSessionToken.newInstance();
+        }
+
+        FindAutocompletePredictionsRequest request =
+                FindAutocompletePredictionsRequest.builder()
+                        .setQuery(crearTextoBusquedaPlaces(direccion))
+                        .setCountries("PE")
+                        .setLocationBias(RectangularBounds.newInstance(
+                                new LatLng(-12.35, -77.20),
+                                new LatLng(-11.70, -76.75)))
+                        .setSessionToken(placesSessionToken)
+                        .build();
+
+        placesClient.findAutocompletePredictions(request)
+                .addOnSuccessListener(response -> {
+                    List<AutocompletePrediction> predictions = response.getAutocompletePredictions();
+                    if (predictions == null || predictions.isEmpty()) {
+                        geocodificarDireccionActual(mostrarErrores);
+                        return;
+                    }
+                    aplicarPrediccionPlace(predictions.get(0));
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Resolver dirección con Places falló: " + e.getMessage());
+                    geocodificarDireccionActual(mostrarErrores);
+                });
+    }
+
+    private void resolverDireccionAntesDeGuardar() {
+        btnGuardarProyecto.setEnabled(false);
+        btnGuardarProyecto.setText("Ubicando...");
+
+        resolverDireccionConCallback(() -> {
+            btnGuardarProyecto.setEnabled(true);
+            btnGuardarProyecto.setText("Guardar proyecto");
+            validarYGuardarProyecto();
+        }, () -> {
+            btnGuardarProyecto.setEnabled(true);
+            btnGuardarProyecto.setText("Guardar proyecto");
+            mostrarToast("Selecciona una dirección válida para ubicar el proyecto en el mapa");
+        });
+    }
+
+    private void resolverDireccionConCallback(Runnable onSuccess, Runnable onError) {
+        if (etDireccion == null) {
+            onError.run();
+            return;
+        }
+
+        String direccion = textoSeguro(etDireccion);
+        if (direccion.length() < 4) {
+            onError.run();
+            return;
+        }
+
+        if (placesClient == null) {
+            geocodificarDireccionConCallback(onSuccess, onError);
+            return;
+        }
+
+        if (placesSessionToken == null) {
+            placesSessionToken = AutocompleteSessionToken.newInstance();
+        }
+
+        FindAutocompletePredictionsRequest request =
+                FindAutocompletePredictionsRequest.builder()
+                        .setQuery(crearTextoBusquedaPlaces(direccion))
+                        .setCountries("PE")
+                        .setLocationBias(RectangularBounds.newInstance(
+                                new LatLng(-12.35, -77.20),
+                                new LatLng(-11.70, -76.75)))
+                        .setSessionToken(placesSessionToken)
+                        .build();
+
+        placesClient.findAutocompletePredictions(request)
+                .addOnSuccessListener(response -> {
+                    List<AutocompletePrediction> predictions = response.getAutocompletePredictions();
+                    if (predictions == null || predictions.isEmpty()) {
+                        geocodificarDireccionConCallback(onSuccess, onError);
+                        return;
+                    }
+                    aplicarPrediccionPlaceConCallback(predictions.get(0), onSuccess, onError);
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Resolver dirección antes de guardar falló: " + e.getMessage());
+                    geocodificarDireccionConCallback(onSuccess, onError);
+                });
+    }
+
+    private void aplicarPrediccionPlaceConCallback(AutocompletePrediction prediction,
+                                                   Runnable onSuccess,
+                                                   Runnable onError) {
+        if (prediction == null || placesClient == null) {
+            onError.run();
+            return;
+        }
+
+        List<Place.Field> fields = Arrays.asList(
+                Place.Field.ID,
+                Place.Field.DISPLAY_NAME,
+                Place.Field.FORMATTED_ADDRESS,
+                Place.Field.LOCATION,
+                Place.Field.ADDRESS_COMPONENTS
+        );
+
+        FetchPlaceRequest request = FetchPlaceRequest.builder(prediction.getPlaceId(), fields)
+                .setSessionToken(placesSessionToken)
+                .build();
+
+        placesClient.fetchPlace(request)
+                .addOnSuccessListener(response -> {
+                    aplicarPlaceSeleccionado(response.getPlace(), prediction);
+                    if (coordenadasSeleccionadas != null) {
+                        onSuccess.run();
+                    } else {
+                        onError.run();
+                    }
+                    placesSessionToken = null;
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "FetchPlace antes de guardar falló: " + e.getMessage());
+                    placesSessionToken = null;
+                    geocodificarDireccionConCallback(onSuccess, onError);
+                });
+    }
+
+    private void geocodificarDireccionConCallback(Runnable onSuccess, Runnable onError) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            List<Address> resultados = obtenerDireccionesDesdeConsulta(
+                    crearConsultaDireccion(textoSeguro(etDireccion), ""), 1);
+            Address address = resultados.isEmpty() ? null : resultados.get(0);
+            runOnUiThread(() -> {
+                if (address == null) {
+                    onError.run();
+                    return;
+                }
+                aplicarDireccionSeleccionada(address);
+                if (coordenadasSeleccionadas != null) {
+                    onSuccess.run();
+                } else {
+                    onError.run();
+                }
+            });
+        });
+    }
+
+    private void aplicarPlaceSeleccionado(Place place, AutocompletePrediction prediction) {
+        if (place == null || etDireccion == null) return;
+
+        String direccion = place.getFormattedAddress();
+        if (direccion == null || direccion.trim().isEmpty()) {
+            direccion = prediction.getFullText(null).toString();
+        }
+
+        actualizandoDireccionDesdeSugerencia = true;
+        etDireccion.setText(limpiarDireccionPeru(direccion), false);
+        etDireccion.setSelection(etDireccion.getText() != null ? etDireccion.getText().length() : 0);
+        actualizandoDireccionDesdeSugerencia = false;
+
+        String distrito = extraerDistrito(place);
+        if (!distrito.isEmpty() && distritoDebeAutocompletarse()) {
+            actualizarDistritoSeleccionado(distrito);
+        }
+
+        LatLng latLng = place.getLocation();
+        if (latLng != null) {
+            coordenadasSeleccionadas = new Coordenadas(latLng.latitude, latLng.longitude);
+            pintarUbicacionEnMapa(coordenadasSeleccionadas);
+        } else {
+            geocodificarDireccionActual(true);
+        }
+
+        saveCurrentFormData();
+    }
+
+    private void aplicarDireccionSeleccionada(Address address) {
+        if (address == null || etDireccion == null) return;
+
+        String direccion = extraerDireccionLegible(address);
+        actualizandoDireccionDesdeSugerencia = true;
+        etDireccion.setText(direccion, false);
+        etDireccion.setSelection(etDireccion.getText() != null ? etDireccion.getText().length() : 0);
+        actualizandoDireccionDesdeSugerencia = false;
+
+        String distrito = extraerDistrito(address);
+        if (!distrito.isEmpty() && distritoDebeAutocompletarse()) {
+            actualizarDistritoSeleccionado(distrito);
+        }
+
+        coordenadasSeleccionadas = new Coordenadas(address.getLatitude(), address.getLongitude());
+        pintarUbicacionEnMapa(coordenadasSeleccionadas);
+        saveCurrentFormData();
+    }
+
+    private void geocodificarDireccionActual(boolean mostrarErrores) {
+        if (etDireccion == null) return;
+        String direccion = textoSeguro(etDireccion);
+        if (direccion.length() < 4) return;
+
+        Executors.newSingleThreadExecutor().execute(() -> {
+            List<Address> resultados = obtenerDireccionesDesdeConsulta(
+                    crearConsultaDireccion(direccion, ""), 1);
+            Address address = resultados.isEmpty() ? null : resultados.get(0);
+            runOnUiThread(() -> {
+                if (address == null) {
+                    if (mostrarErrores) mostrarToast("No se pudo ubicar esa dirección");
+                    return;
+                }
+                aplicarDireccionSeleccionada(address);
+            });
+        });
+    }
+
+    private List<Address> obtenerDireccionesDesdeConsulta(String consulta, int maxResultados) {
+        try {
+            if (!Geocoder.isPresent()) return new ArrayList<>();
+            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+            List<Address> resultados = geocoder.getFromLocationName(consulta, maxResultados);
+            return resultados != null ? resultados : new ArrayList<>();
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    private String crearConsultaDireccion(String direccion, String distrito) {
+        return direccion + ", Lima, Perú";
+    }
+
+    private String distritoActualSeleccionado() {
+        if (tvDistrito == null || tvDistrito.getText() == null) return "";
+        String distrito = tvDistrito.getText().toString().trim();
+        return DISTRITO_PLACEHOLDER.equals(distrito) ? "" : distrito;
+    }
+
+    private boolean distritoDebeAutocompletarse() {
+        return distritoActualSeleccionado().isEmpty();
+    }
+
+    private String formatearDireccionSugerida(Address address) {
+        String linea = address.getMaxAddressLineIndex() >= 0 ? address.getAddressLine(0) : "";
+        if (linea == null || linea.trim().isEmpty()) {
+            String feature = address.getFeatureName();
+            return feature != null ? feature : "";
+        }
+        return linea.replace(", Peru", "").replace(", Perú", "");
+    }
+
+    private String extraerDireccionLegible(Address address) {
+        String thoroughfare = address.getThoroughfare();
+        String numero = address.getSubThoroughfare();
+        if (thoroughfare != null && !thoroughfare.trim().isEmpty()) {
+            return numero != null && !numero.trim().isEmpty()
+                    ? thoroughfare + " " + numero
+                    : thoroughfare;
+        }
+        String linea = formatearDireccionSugerida(address);
+        return linea != null ? linea : "";
+    }
+
+    private String extraerDistrito(Address address) {
+        List<String> candidatos = Arrays.asList(
+                address.getSubLocality(),
+                address.getLocality(),
+                address.getSubAdminArea(),
+                address.getAdminArea(),
+                address.getMaxAddressLineIndex() >= 0 ? address.getAddressLine(0) : ""
+        );
+        for (String candidato : candidatos) {
+            String distrito = buscarDistritoConocido(candidato);
+            if (!distrito.isEmpty()) return distrito;
+        }
+        return "";
+    }
+
+    private String extraerDistrito(Place place) {
+        if (place.getAddressComponents() == null) return "";
+        for (AddressComponent component : place.getAddressComponents().asList()) {
+            List<String> tipos = component.getTypes();
+            String nombre = component.getName();
+            if (tipos == null || nombre == null) continue;
+            if (tipos.contains("sublocality")
+                    || tipos.contains("sublocality_level_1")
+                    || tipos.contains("locality")
+                    || tipos.contains("administrative_area_level_3")
+                    || tipos.contains("administrative_area_level_2")) {
+                String distrito = buscarDistritoConocido(nombre);
+                if (!distrito.isEmpty()) return distrito;
+            }
+        }
+        String direccion = place.getFormattedAddress();
+        return buscarDistritoConocido(direccion);
+    }
+
+    private String limpiarDireccionPeru(String direccion) {
+        if (direccion == null) return "";
+        return direccion
+                .replace(", Peru", "")
+                .replace(", Perú", "")
+                .trim();
+    }
+
+    private String buscarDistritoConocido(String texto) {
+        if (texto == null || texto.trim().isEmpty()) return "";
+        String normalizado = normalizarTexto(texto);
+        for (String distrito : DISTRITOS_LIMA) {
+            if (normalizado.contains(normalizarTexto(distrito))) {
+                return distrito;
+            }
+        }
+        return "";
+    }
+
+    private String normalizarTexto(String valor) {
+        String sinTildes = Normalizer.normalize(valor, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        return sinTildes.toLowerCase(Locale.getDefault()).trim();
+    }
+
+    private void actualizarDistritoSeleccionado(String distrito) {
+        if (tvDistrito == null || distrito == null || distrito.trim().isEmpty()) return;
+        tvDistrito.setText(distrito.trim());
+        tvDistrito.setTextColor(Color.BLACK);
+        sessionData.distrito = distrito.trim();
+    }
+
+    private void pintarUbicacionEnMapa(Coordenadas coordenadas) {
+        if (mapaUbicacion == null || coordenadas == null) return;
+        LatLng punto = new LatLng(coordenadas.latitud, coordenadas.longitud);
+        mapaUbicacion.clear();
+        mapaUbicacion.addMarker(new MarkerOptions()
+                .position(punto)
+                .title(textoSeguro(etNombreProyecto).isEmpty()
+                        ? "Ubicación del proyecto"
+                        : textoSeguro(etNombreProyecto)));
+        mapaUbicacion.animateCamera(CameraUpdateFactory.newLatLngZoom(punto, 16f));
+    }
+
+    private void mostrarDialogoAjustarUbicacion() {
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.WHITE);
+
+        TextView titulo = new TextView(this);
+        titulo.setText("Ajustar ubicación");
+        titulo.setTextColor(ContextCompat.getColor(this, R.color.brand_deep_blue));
+        titulo.setTextSize(18f);
+        titulo.setTypeface(null, android.graphics.Typeface.BOLD);
+        titulo.setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(8));
+        root.addView(titulo);
+
+        TextView ayuda = new TextView(this);
+        ayuda.setText("Mueve el mapa hasta que el pin quede sobre el punto exacto.");
+        ayuda.setTextColor(ContextCompat.getColor(this, R.color.neutral_dark));
+        ayuda.setTextSize(12f);
+        ayuda.setPadding(dpToPx(16), 0, dpToPx(16), dpToPx(8));
+        root.addView(ayuda);
+
+        FrameLayout mapaContainer = new FrameLayout(this);
+        LinearLayout.LayoutParams mapParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        mapaContainer.setLayoutParams(mapParams);
+
+        MapView mapView = new MapView(this);
+        mapView.setLayoutParams(new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT));
+        mapaContainer.addView(mapView);
+
+        ImageView pinCentro = new ImageView(this);
+        int pinSize = dpToPx(44);
+        FrameLayout.LayoutParams pinParams = new FrameLayout.LayoutParams(pinSize, pinSize);
+        pinParams.gravity = Gravity.CENTER;
+        pinParams.bottomMargin = dpToPx(22);
+        pinCentro.setLayoutParams(pinParams);
+        pinCentro.setImageResource(R.drawable.ic_location_pin);
+        pinCentro.setColorFilter(ContextCompat.getColor(this, R.color.brand_deep_blue));
+        pinCentro.setContentDescription("Pin de ubicación");
+        mapaContainer.addView(pinCentro);
+
+        root.addView(mapaContainer);
+
+        LinearLayout acciones = new LinearLayout(this);
+        acciones.setOrientation(LinearLayout.HORIZONTAL);
+        acciones.setGravity(Gravity.CENTER_VERTICAL);
+        acciones.setPadding(dpToPx(16), dpToPx(12), dpToPx(16), dpToPx(16));
+
+        Button btnCancelar = new Button(this);
+        btnCancelar.setText("Cancelar");
+        btnCancelar.setTextColor(ContextCompat.getColor(this, R.color.brand_deep_blue));
+        btnCancelar.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.TRANSPARENT));
+        acciones.addView(btnCancelar, new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        Button btnUsar = new Button(this);
+        btnUsar.setText("Usar ubicación");
+        btnUsar.setTextColor(Color.WHITE);
+        btnUsar.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                ContextCompat.getColor(this, R.color.brand_deep_blue)));
+        acciones.addView(btnUsar, new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        root.addView(acciones);
+
+        final Coordenadas[] seleccion = {
+                coordenadasSeleccionadas != null
+                        ? coordenadasSeleccionadas
+                        : new Coordenadas(-12.0464, -77.0428)
+        };
+
+        mapView.onCreate(null);
+        mapView.onResume();
+        mapView.getMapAsync(map -> {
+            LatLng inicial = new LatLng(seleccion[0].latitud, seleccion[0].longitud);
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(inicial,
+                    coordenadasSeleccionadas != null ? 17f : 11f));
+            map.setOnCameraIdleListener(() -> {
+                LatLng centro = map.getCameraPosition().target;
+                seleccion[0] = new Coordenadas(centro.latitude, centro.longitude);
+            });
+        });
+
+        btnCancelar.setOnClickListener(v -> dialog.dismiss());
+        btnUsar.setOnClickListener(v -> {
+            coordenadasSeleccionadas = seleccion[0];
+            pintarUbicacionEnMapa(coordenadasSeleccionadas);
+            mostrarToast("Ubicación ajustada");
+            dialog.dismiss();
+        });
+
+        dialog.setContentView(root);
+        dialog.setOnDismissListener(d -> {
+            mapView.onPause();
+            mapView.onDestroy();
+        });
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
+            window.setLayout(WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT);
+        }
+        dialog.show();
+        Window shownWindow = dialog.getWindow();
+        if (shownWindow != null) {
+            shownWindow.setLayout(WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT);
+        }
     }
 
     private void initializeStateButtonColors() {
@@ -259,6 +1026,23 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
 
         selectedButton.setBackgroundColor(deepBlue);
         selectedButton.setTextColor(ContextCompat.getColor(this, android.R.color.white));
+
+        actualizarDisponibilidadFechaEntrega();
+    }
+
+    private void actualizarDisponibilidadFechaEntrega() {
+        if (tvFechaEntrega == null) return;
+        boolean requiereFecha = !"En venta".equals(selectedEstado);
+        tvFechaEntrega.setEnabled(requiereFecha);
+        tvFechaEntrega.setAlpha(requiereFecha ? 1f : 0.55f);
+        if (!requiereFecha) {
+            tvFechaEntrega.setText(FECHA_NO_APLICA);
+            tvFechaEntrega.setTextColor(ContextCompat.getColor(this, R.color.neutral_medium));
+            sessionData.fechaEntrega = "";
+        } else if (sessionData.fechaEntrega.isEmpty()) {
+            tvFechaEntrega.setText(FECHA_PLACEHOLDER);
+            tvFechaEntrega.setTextColor(ContextCompat.getColor(this, R.color.neutral_medium));
+        }
     }
 
     // ── Parte 3: Diálogo selector de distrito con búsqueda ───────────────────
@@ -331,9 +1115,10 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
         // Al seleccionar un distrito → actualizar campo y guardar en sesión
         listView.setOnItemClickListener((parent, view, position, id) -> {
             String distritoSeleccionado = listaFiltrada.get(position);
-            tvDistrito.setText(distritoSeleccionado);
-            tvDistrito.setTextColor(Color.BLACK);
-            sessionData.distrito = distritoSeleccionado;
+            actualizarDistritoSeleccionado(distritoSeleccionado);
+            if (!textoSeguro(etDireccion).isEmpty()) {
+                resolverDireccionActual(false);
+            }
             dialog.dismiss();
         });
 
@@ -347,6 +1132,11 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
      * Al seleccionar → muestra la fecha en negro y la guarda en la sesión.
      */
     private void showDatePicker() {
+        if ("En venta".equals(selectedEstado)) {
+            mostrarToast("Los proyectos en venta no requieren fecha estimada de entrega");
+            return;
+        }
+
         Calendar hoy = Calendar.getInstance();
 
         DatePickerDialog dialog = new DatePickerDialog(
@@ -438,7 +1228,10 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
             imgBg.setCornerRadius(dpToPx(6));
             imgBg.setColor(0xFFE0E0E0);
             imgTip.setBackground(imgBg);
-            Glide.with(this).load(new File(tipImagePath)).centerCrop().into(imgTip);
+            Glide.with(this)
+                    .load(esUrlRemota(tipImagePath) ? tipImagePath : new File(tipImagePath))
+                    .centerCrop()
+                    .into(imgTip);
             fila.addView(imgTip);
         }
 
@@ -678,12 +1471,14 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
             return false;
         }
 
-        // 4. Fecha de entrega
-        String fecha = tvFechaEntrega.getText() != null
-                ? tvFechaEntrega.getText().toString().trim() : "";
-        if (fecha.isEmpty() || FECHA_PLACEHOLDER.equals(fecha)) {
-            mostrarToast("Por favor selecciona la fecha de entrega del proyecto");
-            return false;
+        // 4. Fecha de entrega: solo aplica para planos y preventa.
+        if (!"En venta".equals(selectedEstado)) {
+            String fecha = tvFechaEntrega.getText() != null
+                    ? tvFechaEntrega.getText().toString().trim() : "";
+            if (fecha.isEmpty() || FECHA_PLACEHOLDER.equals(fecha) || FECHA_NO_APLICA.equals(fecha)) {
+                mostrarToast("Por favor selecciona la fecha de entrega del proyecto");
+                return false;
+            }
         }
 
         // 5. Dirección
@@ -694,11 +1489,16 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
             return false;
         }
 
-        // 6. Distrito (Parte 3: selector)
+        // 6. Distrito: puede venir del selector o autocompletarse al elegir dirección.
         String distrito = tvDistrito != null && tvDistrito.getText() != null
                 ? tvDistrito.getText().toString().trim() : "";
         if (distrito.isEmpty() || DISTRITO_PLACEHOLDER.equals(distrito)) {
-            mostrarToast("Por favor selecciona el distrito del proyecto");
+            mostrarToast("Selecciona un distrito o una dirección sugerida del mapa");
+            return false;
+        }
+
+        if (coordenadasSeleccionadas == null) {
+            mostrarToast("Selecciona una dirección válida para ubicar el proyecto en el mapa");
             return false;
         }
 
@@ -758,17 +1558,11 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
      * lo agrega a AdminProyectosRepository, lanza la notificación y termina.
      */
     private void guardarProyecto() {
+        btnGuardarProyecto.setEnabled(false);
+        btnGuardarProyecto.setText("Guardando...");
+
         // Generar ID único
         String nuevoId = UUID.randomUUID().toString();
-
-        // Copiar cada imagen del proyecto a almacenamiento interno y guardar la ruta local.
-        // TODO-Firebase: reemplazar copiarImagenProyecto() por FirebaseStorage.upload()
-        //                y guardar la URL de descarga devuelta.
-        List<String> uriStrings = new ArrayList<>();
-        for (Uri uri : imagenesSeleccionadas) {
-            String localPath = copiarImagenProyecto(uri);
-            uriStrings.add(localPath.isEmpty() ? uri.toString() : localPath);
-        }
 
         // Timestamp de creación
         String fechaCreacion = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
@@ -777,6 +1571,171 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
         // Generar QR del proyecto y guardar en almacenamiento interno
         String qrPath = generarYGuardarQR(nuevoId,
                 "inmobiliaria://proyecto/" + nuevoId);
+
+        subirArchivosProyecto(nuevoId, qrPath, new SubidaArchivosCallback() {
+            @Override
+            public void onSuccess(List<String> imagenesUrls, String qrUrl) {
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    Coordenadas coordenadas = coordenadasSeleccionadas != null
+                            ? coordenadasSeleccionadas
+                            : obtenerCoordenadasDesdeDireccion(sessionData.direccion, sessionData.distrito);
+                    runOnUiThread(() -> guardarProyectoConCoordenadas(
+                            nuevoId, imagenesUrls, fechaCreacion,
+                            qrUrl != null && !qrUrl.isEmpty() ? qrUrl : qrPath,
+                            coordenadas));
+                });
+            }
+
+            @Override
+            public void onError(String mensaje) {
+                btnGuardarProyecto.setEnabled(true);
+                btnGuardarProyecto.setText("Guardar proyecto");
+                mostrarToast("No se pudieron subir los archivos: " + mensaje);
+            }
+        });
+    }
+
+    private interface SubidaArchivosCallback {
+        void onSuccess(List<String> imagenesUrls, String qrUrl);
+        void onError(String mensaje);
+    }
+
+    private void subirArchivosProyecto(String proyectoId, String qrPath,
+                                       SubidaArchivosCallback callback) {
+        StorageReference root;
+        try {
+            root = FirebaseStorage.getInstance().getReference()
+                    .child("proyectos")
+                    .child(proyectoId);
+        } catch (Exception e) {
+            callback.onError("Firebase Storage no está configurado: " + e.getMessage());
+            return;
+        }
+
+        List<Tipologia> tipologiasConImagen = obtenerTipologiasConImagenLocal();
+        int totalSubidas = imagenesSeleccionadas.size()
+                + tipologiasConImagen.size()
+                + (qrPath != null && !qrPath.isEmpty() ? 1 : 0);
+        if (totalSubidas == 0) {
+            callback.onError("No hay archivos para subir");
+            return;
+        }
+
+        String[] imagenesUrls = new String[imagenesSeleccionadas.size()];
+        final String[] qrUrl = {""};
+        AtomicInteger pendientes = new AtomicInteger(totalSubidas);
+        AtomicBoolean finalizado = new AtomicBoolean(false);
+
+        Runnable completarSiTermino = () -> {
+            if (pendientes.decrementAndGet() != 0 || !finalizado.compareAndSet(false, true)) {
+                return;
+            }
+            callback.onSuccess(new ArrayList<>(Arrays.asList(imagenesUrls)), qrUrl[0]);
+        };
+
+        for (int i = 0; i < imagenesSeleccionadas.size(); i++) {
+            final int index = i;
+            Uri uri = imagenesSeleccionadas.get(i);
+            StorageReference ref = root.child("imagenes")
+                    .child("imagen_" + index + "_" + UUID.randomUUID() + ".jpg");
+            ref.putFile(uri)
+                    .addOnSuccessListener(task -> ref.getDownloadUrl()
+                            .addOnSuccessListener(downloadUri -> {
+                                imagenesUrls[index] = downloadUri.toString();
+                                completarSiTermino.run();
+                            })
+                            .addOnFailureListener(e -> {
+                                if (finalizado.compareAndSet(false, true)) {
+                                    callback.onError(e.getMessage());
+                                }
+                            }))
+                    .addOnFailureListener(e -> {
+                        if (finalizado.compareAndSet(false, true)) {
+                            callback.onError(e.getMessage());
+                        }
+                    });
+        }
+
+        for (int i = 0; i < tipologiasConImagen.size(); i++) {
+            final int index = i;
+            Tipologia tipologia = tipologiasConImagen.get(i);
+            Uri uri = crearUriArchivoTipologia(tipologia.getImageUri());
+            if (uri == null) {
+                if (finalizado.compareAndSet(false, true)) {
+                    callback.onError("Imagen inválida en tipología " + tipologia.getNombre());
+                }
+                return;
+            }
+            StorageReference ref = root.child("tipologias")
+                    .child("tipologia_" + index + "_" + UUID.randomUUID() + ".jpg");
+            ref.putFile(uri)
+                    .addOnSuccessListener(task -> ref.getDownloadUrl()
+                            .addOnSuccessListener(downloadUri -> {
+                                tipologia.setImageUri(downloadUri.toString());
+                                completarSiTermino.run();
+                            })
+                            .addOnFailureListener(e -> {
+                                if (finalizado.compareAndSet(false, true)) {
+                                    callback.onError(e.getMessage());
+                                }
+                            }))
+                    .addOnFailureListener(e -> {
+                        if (finalizado.compareAndSet(false, true)) {
+                            callback.onError(e.getMessage());
+                        }
+                    });
+        }
+
+        if (qrPath != null && !qrPath.isEmpty()) {
+            File qrFile = new File(qrPath);
+            StorageReference qrRef = root.child("qr").child("qr.png");
+            qrRef.putFile(Uri.fromFile(qrFile))
+                    .addOnSuccessListener(task -> qrRef.getDownloadUrl()
+                            .addOnSuccessListener(downloadUri -> {
+                                qrUrl[0] = downloadUri.toString();
+                                completarSiTermino.run();
+                            })
+                            .addOnFailureListener(e -> {
+                                if (finalizado.compareAndSet(false, true)) {
+                                    callback.onError(e.getMessage());
+                                }
+                            }))
+                    .addOnFailureListener(e -> {
+                        if (finalizado.compareAndSet(false, true)) {
+                            callback.onError(e.getMessage());
+                        }
+                    });
+        }
+    }
+
+    private List<Tipologia> obtenerTipologiasConImagenLocal() {
+        List<Tipologia> resultado = new ArrayList<>();
+        if (sessionData == null || sessionData.tipologias == null) return resultado;
+        for (Tipologia tipologia : sessionData.tipologias) {
+            if (tipologia == null) continue;
+            String imageUri = tipologia.getImageUri();
+            if (!imageUri.isEmpty() && !esUrlRemota(imageUri)) {
+                resultado.add(tipologia);
+            }
+        }
+        return resultado;
+    }
+
+    private Uri crearUriArchivoTipologia(String valor) {
+        if (valor == null || valor.trim().isEmpty()) return null;
+        if (valor.startsWith("/")) return Uri.fromFile(new File(valor));
+        return Uri.parse(valor);
+    }
+
+    private boolean esUrlRemota(String valor) {
+        return valor != null && (valor.startsWith("http://") || valor.startsWith("https://"));
+    }
+
+    private void guardarProyectoConCoordenadas(String nuevoId, List<String> uriStrings,
+                                               String fechaCreacion, String qrPath,
+                                               Coordenadas coordenadas) {
+        String nombreComercial = sessionData.nombreProyecto;
+        String precioPublicado = formatearPrecioPublicado(sessionData.precioTotal);
 
         // Construir el objeto AdminProyecto
         AdminProyecto proyecto = new AdminProyecto(
@@ -787,8 +1746,8 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
                 sessionData.distrito,
                 sessionData.costoSeparacion,
                 sessionData.precioTotal,
-                sessionData.nombreComercial,
-                sessionData.precioPublicado,
+                nombreComercial,
+                precioPublicado,
                 sessionData.fechaEntrega,
                 sessionData.estado,
                 new ArrayList<>(sessionData.tipologias),
@@ -797,34 +1756,102 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
                 fechaCreacion
         );
         proyecto.setQrCode(qrPath != null ? qrPath : "");
+        poblarCamposCompartidos(proyecto, uriStrings, coordenadas, fechaCreacion);
 
-        // Agregar al repositorio compartido y persistir en disco
-        AdminProyectosRepository.agregar(proyecto);
-        AdminProyectosRepository.guardar(this);
+        AdminProyectosRepository.guardarEnFirestore(proyecto,
+                new AdminProyectosRepository.GuardarCallback() {
+                    @Override
+                    public void onSuccess(String proyectoId) {
+                        AdminProyectosRepository.guardar(AdminCrearProyectoActivity.this);
 
-        // ── Lab 5 (Parte 1): Incrementar contador en SharedPreferences ─────────
-        AdminPreferencesManager.incrementarProyectosCount(this);
+                        // ── Lab 5 (Parte 1): Incrementar contador en SharedPreferences ─────────
+                        AdminPreferencesManager.incrementarProyectosCount(AdminCrearProyectoActivity.this);
 
-        // ── Lab 5 (Parte 3): Actualizar contador en Internal Storage ──────────
-        AdminStorageManager.actualizarContador(
-                this, AdminStorageManager.CAMPO_PROYECTOS_REGISTRADOS);
+                        // ── Lab 5 (Parte 3): Actualizar contador en Internal Storage ──────────
+                        AdminStorageManager.actualizarContador(
+                                AdminCrearProyectoActivity.this,
+                                AdminStorageManager.CAMPO_PROYECTOS_REGISTRADOS);
 
-        // ── Lab 5 (Parte 2): Notificación de proyecto guardado ────────────────
-        // El PendingIntent abre AdminDetallesProyectoActivity con el ID del proyecto
-        Intent destinoNotif = new Intent(this, AdminDetallesProyectoActivity.class);
-        destinoNotif.putExtra("proyecto_id", nuevoId);
-        NotificationHelper.lanzarNotificacionAdmin(
-                this,
-                "Proyecto Registrado",
-                "El proyecto \"" + sessionData.nombreProyecto + "\" ha sido guardado correctamente.",
-                NotificationHelper.NOTIF_ADMIN_PROYECTO_GUARDADO,
-                destinoNotif
-        );
+                        // ── Lab 5 (Parte 2): Notificación de proyecto guardado ────────────────
+                        Intent destinoNotif = new Intent(AdminCrearProyectoActivity.this,
+                                AdminDetallesProyectoActivity.class);
+                        destinoNotif.putExtra("proyecto_id", proyectoId);
+                        NotificationHelper.lanzarNotificacionAdmin(
+                                AdminCrearProyectoActivity.this,
+                                "Proyecto Registrado",
+                                "El proyecto \"" + sessionData.nombreProyecto
+                                        + "\" ha sido guardado correctamente.",
+                                NotificationHelper.NOTIF_ADMIN_PROYECTO_GUARDADO,
+                                destinoNotif
+                        );
 
-        // Limpiar sesión y cerrar el formulario
-        sessionData.clear();
-        mostrarToast("Proyecto guardado exitosamente");
-        finish();
+                        sessionData.clear();
+                        mostrarToast("Proyecto guardado exitosamente");
+                        finish();
+                    }
+
+                    @Override
+                    public void onError(String mensaje) {
+                        btnGuardarProyecto.setEnabled(true);
+                        btnGuardarProyecto.setText("Guardar proyecto");
+                        mostrarToast("No se pudo guardar en Firebase: " + mensaje);
+                    }
+                });
+    }
+
+    private void poblarCamposCompartidos(AdminProyecto proyecto, List<String> imagenes,
+                                         Coordenadas coordenadas, String fechaCreacion) {
+        String inmobiliariaNombre = AdminPreferencesManager.obtenerInmobiliaria(this);
+        String precioPublicado = proyecto.getPrecioPublicado().isEmpty()
+                ? "S/ " + proyecto.getPrecioTotal()
+                : proyecto.getPrecioPublicado();
+        String imageUrl = imagenes != null && !imagenes.isEmpty() ? imagenes.get(0) : "";
+        String ubicacion = proyecto.getDireccion().isEmpty()
+                ? proyecto.getDistrito()
+                : proyecto.getDireccion()
+                + (proyecto.getDistrito().isEmpty() ? "" : ", " + proyecto.getDistrito());
+
+        proyecto.setAdminUid(AdminProyectosRepository.obtenerAdminUidActual());
+        proyecto.setInmobiliariaNombre(inmobiliariaNombre);
+        proyecto.setInmobiliariaId(AdminProyectosRepository.crearInmobiliariaId(inmobiliariaNombre));
+        proyecto.setTipo("Departamento");
+        proyecto.setPrecio(precioPublicado);
+        proyecto.setPrecioPublicado(precioPublicado);
+        proyecto.setUbicacion(ubicacion);
+        proyecto.setImageUrl(imageUrl);
+        proyecto.setVisible(true);
+        proyecto.setActivo(true);
+        proyecto.setRatingPromedio(0.0);
+        proyecto.setTotalResenas(0);
+        proyecto.setFechaActualizacion(fechaCreacion);
+        if (coordenadas != null) {
+            proyecto.setLatitud(coordenadas.latitud);
+            proyecto.setLongitud(coordenadas.longitud);
+        }
+    }
+
+    private Coordenadas obtenerCoordenadasDesdeDireccion(String direccion, String distrito) {
+        try {
+            if (!Geocoder.isPresent()) return null;
+            String consulta = direccion + ", " + distrito + ", Lima, Perú";
+            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+            List<Address> resultados = geocoder.getFromLocationName(consulta, 1);
+            if (resultados == null || resultados.isEmpty()) return null;
+            Address address = resultados.get(0);
+            return new Coordenadas(address.getLatitude(), address.getLongitude());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static class Coordenadas {
+        final double latitud;
+        final double longitud;
+
+        Coordenadas(double latitud, double longitud) {
+            this.latitud = latitud;
+            this.longitud = longitud;
+        }
     }
 
     // ── Cancelar con confirmación ────────────────────────────────────────────
@@ -853,8 +1880,8 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
         sessionData.direccion       = textoSeguro(etDireccion);
         sessionData.costoSeparacion = textoSeguro(etCostoSeparacion);
         sessionData.precioTotal     = textoSeguro(etPrecioTotal);
-        sessionData.nombreComercial = textoSeguro(etNombreComercial);
-        sessionData.precioPublicado = textoSeguro(etPrecioPublicado);
+        sessionData.nombreComercial = sessionData.nombreProyecto;
+        sessionData.precioPublicado = formatearPrecioPublicado(sessionData.precioTotal);
 
         // Distrito: solo guardar si no es el placeholder
         if (tvDistrito != null && tvDistrito.getText() != null) {
@@ -893,10 +1920,10 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
         if (!sessionData.precioTotal.isEmpty()) {
             etPrecioTotal.setText(sessionData.precioTotal);
         }
-        if (!sessionData.nombreComercial.isEmpty()) {
+        if (etNombreComercial != null && !sessionData.nombreComercial.isEmpty()) {
             etNombreComercial.setText(sessionData.nombreComercial);
         }
-        if (!sessionData.precioPublicado.isEmpty()) {
+        if (etPrecioPublicado != null && !sessionData.precioPublicado.isEmpty()) {
             etPrecioPublicado.setText(sessionData.precioPublicado);
         }
 
@@ -936,29 +1963,13 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
 
     // ── Utilidades ────────────────────────────────────────────────────────────
 
-    /**
-     * Copia una imagen de galería (content://) a almacenamiento interno del app.
-     * Devuelve la ruta absoluta del archivo destino, o "" si falla.
-     *
-     * TODO-Firebase: reemplazar por FirebaseStorage.getInstance()
-     *     .getReference("proyecto_images/{uuid}").putFile(uri)
-     *     y devolver la URL de descarga.
-     */
-    private String copiarImagenProyecto(Uri uri) {
+    private String formatearPrecioPublicado(String precioTotal) {
+        if (precioTotal == null || precioTotal.trim().isEmpty()) return "";
         try {
-            File dir = new File(getFilesDir(), "proyecto_images");
-            if (!dir.exists()) dir.mkdirs();
-            File dest = new File(dir, "img_" + UUID.randomUUID() + ".jpg");
-            try (InputStream in  = getContentResolver().openInputStream(uri);
-                 OutputStream out = new FileOutputStream(dest)) {
-                if (in == null) return "";
-                byte[] buf = new byte[4096];
-                int len;
-                while ((len = in.read(buf)) > 0) out.write(buf, 0, len);
-            }
-            return dest.getAbsolutePath();
-        } catch (Exception e) {
-            return "";
+            double precio = Double.parseDouble(precioTotal.trim());
+            return String.format(Locale.getDefault(), "S/ %,.0f", precio);
+        } catch (NumberFormatException e) {
+            return "S/ " + precioTotal.trim();
         }
     }
 
@@ -997,7 +2008,7 @@ public class AdminCrearProyectoActivity extends AppCompatActivity {
      * @param et Campo de texto.
      * @return Texto con trim(), o "" si el campo es null.
      */
-    private String textoSeguro(TextInputEditText et) {
+    private String textoSeguro(EditText et) {
         return (et != null && et.getText() != null) ? et.getText().toString().trim() : "";
     }
 

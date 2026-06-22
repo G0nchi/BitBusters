@@ -2,6 +2,7 @@ package com.example.bitbusters.activities.admin;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +17,7 @@ public class AdminDetallesInmobiliariaActivity extends AppCompatActivity {
 
     private RecyclerView rvAsesores;
     private AdminAsesorInmobiliariaAdapter adapter;
+    private Button btnVerTodosAsesoresDetalles;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,27 +41,30 @@ public class AdminDetallesInmobiliariaActivity extends AppCompatActivity {
                 startActivity(new Intent(AdminDetallesInmobiliariaActivity.this, AdminEditarInmobiliariaActivity.class));
             });
         }
+
+        btnVerTodosAsesoresDetalles = findViewById(R.id.btnVerTodosAsesoresDetalles);
+        if (btnVerTodosAsesoresDetalles != null) {
+            btnVerTodosAsesoresDetalles.setOnClickListener(v ->
+                    startActivity(new Intent(AdminDetallesInmobiliariaActivity.this,
+                            AdminListaAsesoresInmobiliariaActivity.class)));
+        }
     }
 
     private void setupRecyclerView() {
         rvAsesores = findViewById(R.id.rvAsesoresDetalles);
         if (rvAsesores != null) {
             rvAsesores.setLayoutManager(new LinearLayoutManager(this));
+            int total = AdminDataRepository.getAsesoresInmobiliaria().size();
             adapter = new AdminAsesorInmobiliariaAdapter(
-                AdminDataRepository.getAsesoresInmobiliaria(),
-                new AdminAsesorInmobiliariaAdapter.OnAsesorActionListener() {
-                    @Override
-                    public void onEditAsesor(int position) {
-                        // Navigate to edit activity if needed
-                    }
-
-                    @Override
-                    public void onDeleteAsesor(int position) {
-                        // Delete not available in details view
-                    }
-                }
+                AdminDataRepository.getUltimosAsesoresInmobiliaria(4),
+                null,
+                false
             );
             rvAsesores.setAdapter(adapter);
+
+            if (btnVerTodosAsesoresDetalles != null) {
+                btnVerTodosAsesoresDetalles.setVisibility(total > 4 ? View.VISIBLE : View.GONE);
+            }
         }
     }
 }

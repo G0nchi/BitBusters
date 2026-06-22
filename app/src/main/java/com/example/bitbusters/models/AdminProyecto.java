@@ -24,7 +24,21 @@ public class AdminProyecto {
     private List<String>    asesores;     // nombres de asesores asignados
     private List<String>    imagenesUri;  // URIs de las imágenes del proyecto
     private String          fechaCreacion;// timestamp ej: "01/01/2025"
-    private String          qrCode;       // ruta local del Bitmap QR generado
+    private String          qrCode;       // URL remota o ruta local del QR generado
+    private String adminUid;
+    private String inmobiliariaId;
+    private String inmobiliariaNombre;
+    private String tipo;
+    private String precio;
+    private String ubicacion;
+    private String imageUrl;
+    private Double latitud;
+    private Double longitud;
+    private Boolean visible;
+    private Boolean activo;
+    private Double ratingPromedio;
+    private Integer totalResenas;
+    private String fechaActualizacion;
 
     /** Constructor vacío — inicializa las listas para evitar NPE */
     public AdminProyecto() {
@@ -76,6 +90,20 @@ public class AdminProyecto {
     public String getEstado()          { return estado          != null ? estado          : ""; }
     public String getFechaCreacion()   { return fechaCreacion   != null ? fechaCreacion   : ""; }
     public String getQrCode()          { return qrCode          != null ? qrCode          : ""; }
+    public String getAdminUid()        { return adminUid        != null ? adminUid        : ""; }
+    public String getInmobiliariaId()  { return inmobiliariaId  != null ? inmobiliariaId  : ""; }
+    public String getInmobiliariaNombre() { return inmobiliariaNombre != null ? inmobiliariaNombre : ""; }
+    public String getTipo()            { return tipo            != null ? tipo            : ""; }
+    public String getPrecio()          { return precio          != null ? precio          : ""; }
+    public String getUbicacion()       { return ubicacion       != null ? ubicacion       : ""; }
+    public String getImageUrl()        { return imageUrl        != null ? imageUrl        : ""; }
+    public Double getLatitud()         { return latitud; }
+    public Double getLongitud()        { return longitud; }
+    public Boolean getVisible()        { return visible; }
+    public Boolean getActivo()         { return activo; }
+    public Double getRatingPromedio()  { return ratingPromedio; }
+    public Integer getTotalResenas()   { return totalResenas; }
+    public String getFechaActualizacion() { return fechaActualizacion != null ? fechaActualizacion : ""; }
 
     public List<Tipologia> getTipologias()  { return tipologias  != null ? tipologias  : new ArrayList<>(); }
     public List<String>    getAsesores()    { return asesores    != null ? asesores    : new ArrayList<>(); }
@@ -99,4 +127,18 @@ public class AdminProyecto {
     public void setImagenesUri(List<String> imagenesUri)    { this.imagenesUri     = imagenesUri; }
     public void setFechaCreacion(String fechaCreacion)      { this.fechaCreacion   = fechaCreacion; }
     public void setQrCode(String qrCode)                    { this.qrCode          = qrCode; }
+    public void setAdminUid(String adminUid)                { this.adminUid        = adminUid; }
+    public void setInmobiliariaId(String inmobiliariaId)    { this.inmobiliariaId  = inmobiliariaId; }
+    public void setInmobiliariaNombre(String inmobiliariaNombre) { this.inmobiliariaNombre = inmobiliariaNombre; }
+    public void setTipo(String tipo)                        { this.tipo            = tipo; }
+    public void setPrecio(String precio)                    { this.precio          = precio; }
+    public void setUbicacion(String ubicacion)              { this.ubicacion       = ubicacion; }
+    public void setImageUrl(String imageUrl)                { this.imageUrl        = imageUrl; }
+    public void setLatitud(Double latitud)                  { this.latitud         = latitud; }
+    public void setLongitud(Double longitud)                { this.longitud        = longitud; }
+    public void setVisible(Boolean visible)                 { this.visible         = visible; }
+    public void setActivo(Boolean activo)                   { this.activo          = activo; }
+    public void setRatingPromedio(Double ratingPromedio)    { this.ratingPromedio  = ratingPromedio; }
+    public void setTotalResenas(Integer totalResenas)       { this.totalResenas    = totalResenas; }
+    public void setFechaActualizacion(String fechaActualizacion) { this.fechaActualizacion = fechaActualizacion; }
 }

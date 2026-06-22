@@ -20,7 +20,11 @@ public class Proyecto {
     private String direccion;
     private String distrito;
     private String estado;
+    private String adminUid;
+    private String inmobiliariaId;
+    private String inmobiliariaNombre;
     private String precioPublicado;
+    private String precioTotal;
     private List<String> imagenesUri;
     private List<String> asesores;
     private List<String> uidAsesores;
@@ -28,9 +32,15 @@ public class Proyecto {
     private String costoSeparacion;
     private String fechaCreacion;
     private String fechaEntrega;
+    private String qrCode;
     private Boolean esDemo;
+    private Boolean visible;
+    private Boolean activo;
+    private Double ratingPromedio;
+    private Integer totalResenas;
     private Double latitud;
     private Double longitud;
+    private String fechaActualizacion;
 
     /** Constructor vacío requerido por Firestore toObject(). */
     public Proyecto() {}
@@ -81,8 +91,20 @@ public class Proyecto {
     public String getEstado()                                       { return estado; }
     public void   setEstado(String v)                               { this.estado = v; }
 
+    public String getAdminUid()                                     { return adminUid; }
+    public void   setAdminUid(String v)                             { this.adminUid = v; }
+
+    public String getInmobiliariaId()                               { return inmobiliariaId; }
+    public void   setInmobiliariaId(String v)                       { this.inmobiliariaId = v; }
+
+    public String getInmobiliariaNombre()                           { return inmobiliariaNombre; }
+    public void   setInmobiliariaNombre(String v)                   { this.inmobiliariaNombre = v; }
+
     public String getPrecioPublicado()                              { return precioPublicado; }
     public void   setPrecioPublicado(String v)                      { this.precioPublicado = v; }
+
+    public String getPrecioTotal()                                  { return precioTotal; }
+    public void   setPrecioTotal(String v)                          { this.precioTotal = v; }
 
     public List<String> getImagenesUri()                            { return imagenesUri; }
     public void         setImagenesUri(List<String> v)              { this.imagenesUri = v; }
@@ -105,12 +127,30 @@ public class Proyecto {
     public String getFechaEntrega()                                 { return fechaEntrega; }
     public void   setFechaEntrega(String v)                         { this.fechaEntrega = v; }
 
+    public String getQrCode()                                       { return qrCode; }
+    public void   setQrCode(String v)                               { this.qrCode = v; }
+
     public Boolean getEsDemo()                                      { return esDemo; }
     public void    setEsDemo(Boolean v)                             { this.esDemo = v; }
+
+    public Boolean getVisible()                                     { return visible; }
+    public void    setVisible(Boolean v)                            { this.visible = v; }
+
+    public Boolean getActivo()                                      { return activo; }
+    public void    setActivo(Boolean v)                             { this.activo = v; }
+
+    public Double getRatingPromedio()                               { return ratingPromedio; }
+    public void   setRatingPromedio(Double v)                       { this.ratingPromedio = v; }
+
+    public Integer getTotalResenas()                                { return totalResenas; }
+    public void    setTotalResenas(Integer v)                       { this.totalResenas = v; }
 
     public Double getLatitud()                                      { return latitud; }
     public void   setLatitud(Double v)                              { this.latitud = v; }
 
     public Double getLongitud()                                     { return longitud; }
     public void   setLongitud(Double v)                             { this.longitud = v; }
+
+    public String getFechaActualizacion()                           { return fechaActualizacion; }
+    public void   setFechaActualizacion(String v)                   { this.fechaActualizacion = v; }
 }

@@ -56,34 +56,16 @@ public class ProyectoRepository {
                         // Filtro: excluir solo cuando esDemo == true explícitamente
                         Boolean esDemo = doc.getBoolean("esDemo");
                         if (Boolean.TRUE.equals(esDemo)) continue;
+                        Boolean visible = doc.getBoolean("visible");
+                        if (Boolean.FALSE.equals(visible)) continue;
+                        Boolean activo = doc.getBoolean("activo");
+                        if (Boolean.FALSE.equals(activo)) continue;
 
                         Proyecto p = doc.toObject(Proyecto.class);
                         if (p == null) continue;
 
                         p.setId(doc.getId());
-
-                        // Fallback precio: "precioPublicado" si "precio" no existe
-                        if (p.precio == null || p.precio.isEmpty()) {
-                            String pub = doc.getString("precioPublicado");
-                            p.precio = pub != null ? pub : "";
-                        }
-                        // Fallback ubicacion: "distrito" si "ubicacion" no existe
-                        if (p.ubicacion == null || p.ubicacion.isEmpty()) {
-                            String dist = doc.getString("distrito");
-                            p.ubicacion = dist != null ? dist : "";
-                        }
-                        // Fallback imageUrl: primera URL de "imagenesUri"
-                        if (p.imageUrl == null || p.imageUrl.isEmpty()) {
-                            @SuppressWarnings("unchecked")
-                            List<String> imgs = (List<String>) doc.get("imagenesUri");
-                            if (imgs != null && !imgs.isEmpty()) {
-                                p.imageUrl = imgs.get(0);
-                            }
-                        }
-                        // Default rating visible si el campo no existe
-                        if (p.rating == null || p.rating.isEmpty()) {
-                            p.rating = "—";
-                        }
+                        normalizarProyecto(doc, p);
 
                         lista.add(p);
                     } catch (Exception e) {
@@ -121,24 +103,7 @@ public class ProyectoRepository {
                         return;
                     }
                     p.setId(doc.getId());
-                    if (p.precio == null || p.precio.isEmpty()) {
-                        String pub = doc.getString("precioPublicado");
-                        p.precio = pub != null ? pub : "";
-                    }
-                    if (p.ubicacion == null || p.ubicacion.isEmpty()) {
-                        String dist = doc.getString("distrito");
-                        p.ubicacion = dist != null ? dist : "";
-                    }
-                    if (p.imageUrl == null || p.imageUrl.isEmpty()) {
-                        @SuppressWarnings("unchecked")
-                        List<String> imgs = (List<String>) doc.get("imagenesUri");
-                        if (imgs != null && !imgs.isEmpty()) {
-                            p.imageUrl = imgs.get(0);
-                        }
-                    }
-                    if (p.rating == null || p.rating.isEmpty()) {
-                        p.rating = "—";
-                    }
+                    normalizarProyecto(doc, p);
                     callback.onSuccess(p);
                 } catch (Exception e) {
                     callback.onError("Error al deserializar proyecto: " + e.getMessage());
@@ -163,27 +128,43 @@ public class ProyectoRepository {
                         return;
                     }
                     p.setId(doc.getId());
-
-                    if (p.precio == null || p.precio.isEmpty()) {
-                        String pub = doc.getString("precioPublicado");
-                        p.precio = pub != null ? pub : "";
-                    }
-                    if (p.ubicacion == null || p.ubicacion.isEmpty()) {
-                        String dist = doc.getString("distrito");
-                        p.ubicacion = dist != null ? dist : "";
-                    }
-                    if (p.imageUrl == null || p.imageUrl.isEmpty()) {
-                        @SuppressWarnings("unchecked")
-                        List<String> imgs = (List<String>) doc.get("imagenesUri");
-                        if (imgs != null && !imgs.isEmpty()) {
-                            p.imageUrl = imgs.get(0);
-                        }
-                    }
+                    normalizarProyecto(doc, p);
                     callback.onSuccess(p);
                 } catch (Exception e) {
                     callback.onError("Error al deserializar proyecto: " + e.getMessage());
                 }
             })
             .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    private void normalizarProyecto(DocumentSnapshot doc, Proyecto p) {
+        if (p.precio == null || p.precio.isEmpty()) {
+            String pub = doc.getString("precioPublicado");
+            String total = doc.getString("precioTotal");
+            p.precio = pub != null && !pub.isEmpty()
+                    ? pub
+                    : (total != null && !total.isEmpty() ? "S/ " + total : "");
+        }
+        if (p.ubicacion == null || p.ubicacion.isEmpty()) {
+            String dist = doc.getString("distrito");
+            p.ubicacion = dist != null ? dist : "";
+        }
+        if (p.tipo == null || p.tipo.isEmpty()) {
+            String tipoDoc = doc.getString("tipo");
+            p.tipo = tipoDoc != null && !tipoDoc.isEmpty() ? tipoDoc : "Departamento";
+        }
+        if (p.imageUrl == null || p.imageUrl.isEmpty()) {
+            @SuppressWarnings("unchecked")
+            List<String> imgs = (List<String>) doc.get("imagenesUri");
+            if (imgs != null && !imgs.isEmpty()) {
+                p.imageUrl = imgs.get(0);
+            }
+        }
+        if (p.rating == null || p.rating.isEmpty()) {
+            Double ratingPromedio = doc.getDouble("ratingPromedio");
+            p.rating = ratingPromedio != null && ratingPromedio > 0
+                    ? String.format(java.util.Locale.getDefault(), "%.1f", ratingPromedio)
+                    : "—";
+        }
     }
 }

@@ -19,6 +19,7 @@ import java.util.List;
 public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapter.ViewHolder> {
 
     private static final String EXTRA_PROYECTO = "proyecto";
+    private static final String EXTRA_PROYECTO_ID = "proyecto_id";
     private final Context context;
     private List<Proyecto> lista;
 
@@ -62,6 +63,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, ProjectDetailActivity.class);
             intent.putExtra(EXTRA_PROYECTO, p.nombre);
+            intent.putExtra(EXTRA_PROYECTO_ID, p.getId());
             context.startActivity(intent);
         });
 
