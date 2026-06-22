@@ -16,11 +16,16 @@ import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.ChatsAdapter;
 import com.example.bitbusters.databinding.ActivityMensajesBinding;
 import com.example.bitbusters.models.AsesorChatItem;
+import com.example.bitbusters.models.Chat;
+import com.example.bitbusters.repository.ChatRepository;
 import com.example.bitbusters.utils.AsesorStorage;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.ListenerRegistration;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +36,10 @@ public class MensajesActivity extends AppCompatActivity {
     private ActivityMensajesBinding binding;
     private ChatsAdapter   adapter;
     private List<Object>   items;
+
+    private ChatRepository chatRepository;
+    private ListenerRegistration chatsListener;
+    private String uidActual;
 
     /** IDs de chats finalizados que el asesor reconectó (persiste en sesión). */
     private final Set<String> reconnectedIds = new HashSet<>();
@@ -50,6 +59,10 @@ public class MensajesActivity extends AppCompatActivity {
         binding = ActivityMensajesBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        uidActual = (user != null) ? user.getUid() : "";
+        chatRepository = new ChatRepository();
+
         binding.recyclerViewChats.setLayoutManager(new LinearLayoutManager(this));
 
         buildItems();
@@ -62,53 +75,51 @@ public class MensajesActivity extends AppCompatActivity {
         setupNewChat();
         setupSwipeToDelete();
         setupBottomNav();
-        cargarChatsFirestore();
     }
 
-    // ── Cargar chats reales desde Firestore ───────────────────────────────────
+    // ── Ciclo de vida ─────────────────────────────────────────────────────────
 
-    /**
-     * Consulta Firestore: chats donde asesorId == el ID del asesor actual.
-     * Agrega los chats reales al inicio de la sección ACTIVOS sin duplicar
-     * los ya existentes por ID.
-     */
-    private void cargarChatsFirestore() {
-        String asesorId = AsesorStorage.getAsesorId(this);
-        if (asesorId == null || asesorId.isEmpty()) return;
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!uidActual.isEmpty()) iniciarListenerChats();
+    }
 
-        FirebaseFirestore.getInstance()
-            .collection("chats")
-            .whereEqualTo("asesorId", asesorId)
-            .get()
-            .addOnSuccessListener(query -> {
-                if (query.isEmpty()) return;
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (chatsListener != null) { chatsListener.remove(); chatsListener = null; }
+    }
 
-                Set<String> existingIds = new HashSet<>();
-                for (Object obj : items) {
-                    if (obj instanceof AsesorChatItem) existingIds.add(((AsesorChatItem) obj).getId());
-                }
+    // ── Listener de chats en tiempo real (arquitectura Pedro) ─────────────────
 
-                for (QueryDocumentSnapshot doc : query) {
-                    String chatId        = doc.getId();
-                    String clienteNombre = doc.getString("nombreCliente");
-                    String lastMsg       = doc.getString("ultimoMensaje");
-
-                    if (clienteNombre == null) clienteNombre = "Cliente";
-                    if (lastMsg       == null) lastMsg       = "Chat iniciado";
-
-                    if (!existingIds.contains(chatId)) {
-                        String initials = buildInitials(clienteNombre);
-                        newChats.add(new AsesorChatItem(chatId, clienteNombre, lastMsg, "Ahora",
-                                initials, "#4DB6AC", 0, true, "Firestore"));
-                        existingIds.add(chatId);
+    private void iniciarListenerChats() {
+        chatsListener = chatRepository.escucharChatsDelUsuario(uidActual,
+            new ChatRepository.ChatsListener() {
+                @Override
+                public void onChats(List<Chat> chats) {
+                    // Mapear Chat (Firestore) → AsesorChatItem (para ChatsAdapter)
+                    Set<String> deletedIds = AsesorStorage.getDeletedChatIds(MensajesActivity.this);
+                    newChats.clear();
+                    for (Chat chat : chats) {
+                        if (deletedIds.contains(chat.getChatId())) continue;
+                        String nombre  = chat.getNombreCliente() != null ? chat.getNombreCliente() : "Cliente";
+                        String proyecto = chat.getNombreProyecto() != null ? chat.getNombreProyecto() : "";
+                        String ultimo  = chat.getUltimoMensaje()  != null ? chat.getUltimoMensaje()  : "Chat iniciado";
+                        String hora    = formatTimestamp(chat);
+                        newChats.add(new AsesorChatItem(
+                            chat.getChatId(), nombre, ultimo, hora,
+                            buildInitials(nombre), "#4DB6AC", 0, true, proyecto));
                     }
+                    buildItems();
+                    adapter.updateItems(items);
                 }
 
-                buildItems();
-                adapter.updateItems(items);
-            })
-            .addOnFailureListener(e ->
-                android.util.Log.e("MensajesActivity", "Error Firestore: " + e.getMessage()));
+                @Override
+                public void onError(String mensaje) {
+                    android.util.Log.e("MensajesActivity", "Error Firestore: " + mensaje);
+                }
+            });
     }
 
     private String buildInitials(String name) {
@@ -116,6 +127,14 @@ public class MensajesActivity extends AppCompatActivity {
         if (parts.length == 0) return "CL";
         if (parts.length == 1) return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
         return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
+    }
+
+    private String formatTimestamp(Chat chat) {
+        if (chat.getTimestampUltimoMensaje() == null) return "Ahora";
+        try {
+            return new SimpleDateFormat("HH:mm", Locale.getDefault())
+                .format(new Date(chat.getTimestampUltimoMensaje().toDate().getTime()));
+        } catch (Exception e) { return "Ahora"; }
     }
 
     // ── Abrir conversación ────────────────────────────────────────────────────
