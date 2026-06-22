@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.example.bitbusters.utils.ImmersiveMode;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import android.util.Log;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -123,69 +124,69 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void navigateByRole(String uid) {
-        // Primero buscar en "usuarios" (clientes registrados con el nuevo flujo)
+        Log.d("LoginActivity", "Login exitoso, UID: " + uid);
         FirebaseFirestore.getInstance()
-                .collection("usuarios")
+                .collection("users")
                 .document(uid)
                 .get()
                 .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        // Documento encontrado en la colección "usuarios" (nuevo flujo)
-                        String rol = doc.getString("rol");
-                        String nombre = doc.getString("nombre");
-                        routeByRole(rol, nombre, uid);
-                    } else {
-                        // Fallback: buscar en "users" (roles admin/asesor/superadmin existentes)
-                        FirebaseFirestore.getInstance()
-                                .collection("users")
-                                .document(uid)
-                                .get()
-                                .addOnSuccessListener(doc2 -> {
-                                    String role = doc2.getString("role");
-                                    String nombre = doc2.getString("nombre");
-                                    routeByRole(role, nombre, uid);
-                                })
-                                .addOnFailureListener(e -> {
-                                    // Si falla también el fallback, tratar como cliente
-                                    routeByRole(null, null, uid);
-                                });
+                    if (!doc.exists()) {
+                        Log.e("LoginActivity", "Documento no existe en 'users' para UID: " + uid);
+                        Toast.makeText(this, "Tu perfil no está configurado. Contacta al administrador.", Toast.LENGTH_LONG).show();
+                        mAuth.signOut();
+                        return;
                     }
+                    String role = doc.getString("role");
+                    String nombre = doc.getString("nombre");
+                    Log.d("LoginActivity", "Datos leídos → role: '" + role + "' | nombre: '" + nombre + "'");
+                    if (role == null || role.trim().isEmpty()) {
+                        Log.e("LoginActivity", "El campo 'role' está vacío o no existe en 'users'");
+                        Toast.makeText(this, "Tu rol no está configurado. Contacta al administrador.", Toast.LENGTH_LONG).show();
+                        mAuth.signOut();
+                        return;
+                    }
+                    routeByRole(role, nombre, uid);
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error al obtener datos del usuario", Toast.LENGTH_SHORT).show();
+                    Log.e("LoginActivity", "Error al leer 'users': " + e.getMessage());
+                    Toast.makeText(this, "Error al cargar tu perfil: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     mAuth.signOut();
                 });
     }
 
     private void routeByRole(String role, String nombre, String uid) {
-        String fechaHora = new SimpleDateFormat("dd/MM/yyyy HH:mm",
-                Locale.getDefault()).format(new Date());
+        String fechaHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
         Intent intent;
-        // Normalizar: tanto "CLIENTE" (nuevo) como null/default mapean a HomeActivity
-        String rolNorm = role != null ? role.toLowerCase() : "cliente";
+        String rolNorm = role.toLowerCase().trim();
+        Log.d("LoginActivity", "Redirigiendo rol normalizado: '" + rolNorm + "'");
         switch (rolNorm) {
             case "superadmin":
-                PreferencesManager.guardarNombreSuperadmin(this,
-                        nombre != null ? nombre : "Superadmin");
+                PreferencesManager.guardarNombreSuperadmin(this, nombre != null ? nombre : "Superadmin");
                 PreferencesManager.guardarUltimoAccesoSuperadmin(this, fechaHora);
                 intent = new Intent(this, SuperadminControlCenterActivity.class);
+                Log.d("LoginActivity", "Redirigiendo a SuperAdmin Home");
                 break;
             case "admin":
-                AdminPreferencesManager.guardarNombre(this,
-                        nombre != null ? nombre : "Admin");
+                AdminPreferencesManager.guardarNombre(this, nombre != null ? nombre : "Admin");
                 AdminPreferencesManager.guardarUltimoAcceso(this, fechaHora);
                 intent = new Intent(this, AdminMainActivity.class);
+                Log.d("LoginActivity", "Redirigiendo a Admin Home");
                 break;
             case "asesor":
                 intent = new Intent(this, AsesorHomeActivity.class);
+                Log.d("LoginActivity", "Redirigiendo a Asesor Home");
                 break;
-            default:
-                // "CLIENTE" o cualquier otro valor → HomeActivity del cliente
-                PreferencesManager.guardarNombre(this,
-                        nombre != null ? nombre : "Cliente");
+            case "cliente":
+                PreferencesManager.guardarNombre(this, nombre != null ? nombre : "Cliente");
                 PreferencesManager.guardarUltimoAcceso(this, fechaHora);
                 intent = new Intent(this, HomeActivity.class);
+                Log.d("LoginActivity", "Redirigiendo a Cliente Home");
                 break;
+            default:
+                Log.e("LoginActivity", "Rol no reconocido: '" + rolNorm + "'");
+                Toast.makeText(this, "Rol no reconocido: " + role, Toast.LENGTH_LONG).show();
+                mAuth.signOut();
+                return;
         }
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
@@ -273,8 +274,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onSuccess(FirebaseUser usuario) {
                 restaurarBotonLogin(loginButton);
-                startActivity(new Intent(LoginActivity.this, AsesorHomeActivity.class));
-                finish();
+                navigateByRole(usuario.getUid());
             }
 
             @Override

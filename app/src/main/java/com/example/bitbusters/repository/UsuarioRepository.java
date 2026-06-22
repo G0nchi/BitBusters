@@ -28,7 +28,7 @@ public class UsuarioRepository {
         }
 
         String uid = firebaseUser.getUid();
-        firestore.collection("usuarios")
+        firestore.collection("users")
                 .document(uid)
                 .get()
                 .addOnSuccessListener(doc -> {
