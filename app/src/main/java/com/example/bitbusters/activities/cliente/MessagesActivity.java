@@ -70,11 +70,6 @@ public class MessagesActivity extends AppCompatActivity {
             });
         }
 
-        // Botón nuevo chat con uno de los 3 asesores de prueba
-        if (findViewById(R.id.btnNewChat) != null) {
-            findViewById(R.id.btnNewChat).setOnClickListener(v -> mostrarDialogoNuevoChat());
-        }
-
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
