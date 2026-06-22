@@ -85,22 +85,20 @@ public class MensajesActivity extends AppCompatActivity {
 
                 Set<String> existingIds = new HashSet<>();
                 for (Object obj : items) {
-                    if (obj instanceof Chat) existingIds.add(((Chat) obj).getId());
+                    if (obj instanceof AsesorChatItem) existingIds.add(((AsesorChatItem) obj).getId());
                 }
 
                 for (QueryDocumentSnapshot doc : query) {
-                    String chatId      = doc.getId();
-                    String clienteNombre = doc.getString("clienteNombre");
-                    String lastMsg     = doc.getString("lastMessage");
-                    String lastTime    = doc.getString("lastTime");
+                    String chatId        = doc.getId();
+                    String clienteNombre = doc.getString("nombreCliente");
+                    String lastMsg       = doc.getString("ultimoMensaje");
 
                     if (clienteNombre == null) clienteNombre = "Cliente";
                     if (lastMsg       == null) lastMsg       = "Chat iniciado";
-                    if (lastTime      == null) lastTime      = "Ahora";
 
                     if (!existingIds.contains(chatId)) {
                         String initials = buildInitials(clienteNombre);
-                        newChats.add(new Chat(chatId, clienteNombre, lastMsg, lastTime,
+                        newChats.add(new AsesorChatItem(chatId, clienteNombre, lastMsg, "Ahora",
                                 initials, "#4DB6AC", 0, true, "Firestore"));
                         existingIds.add(chatId);
                     }
