@@ -95,6 +95,8 @@ public class AdminMainActivity extends AppCompatActivity {
      * Método protected para que las Activities hijas puedan reutilizarlo con su propio layout.
      */
     protected void setupHeaderListeners() {
+        cargarDatosAdmin();
+
         // Botón de notificaciones → abre AdminNotificacionesActivity
         ImageButton btnNotifications = findViewById(R.id.btnNotifications);
         if (btnNotifications != null) {
@@ -118,6 +120,12 @@ public class AdminMainActivity extends AppCompatActivity {
                     startActivity(new Intent(AdminMainActivity.this, AdminDetallesInmobiliariaActivity.class))
             );
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        cargarDatosAdmin();
     }
 
     /** Configura las tarjetas de acciones rápidas del dashboard principal. */

@@ -138,6 +138,11 @@ public class LoginActivity extends AppCompatActivity {
                     }
                     String role = doc.getString("role");
                     String nombre = doc.getString("nombre");
+                    String inmobiliaria = firstNonEmpty(
+                            doc.getString("inmobiliaria"),
+                            doc.getString("inmobiliariaNombre"),
+                            doc.getString("empresa")
+                    );
                     Log.d("LoginActivity", "Datos leídos → role: '" + role + "' | nombre: '" + nombre + "'");
                     if (role == null || role.trim().isEmpty()) {
                         Log.e("LoginActivity", "El campo 'role' está vacío o no existe en 'users'");
@@ -145,7 +150,7 @@ public class LoginActivity extends AppCompatActivity {
                         mAuth.signOut();
                         return;
                     }
-                    routeByRole(role, nombre, uid);
+                    routeByRole(role, nombre, uid, inmobiliaria);
                 })
                 .addOnFailureListener(e -> {
                     Log.e("LoginActivity", "Error al leer 'users': " + e.getMessage());
@@ -154,7 +159,7 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    private void routeByRole(String role, String nombre, String uid) {
+    private void routeByRole(String role, String nombre, String uid, String inmobiliaria) {
         String fechaHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
         Intent intent;
         String rolNorm = role.toLowerCase().trim();
@@ -168,6 +173,10 @@ public class LoginActivity extends AppCompatActivity {
                 break;
             case "admin":
                 AdminPreferencesManager.guardarNombre(this, nombre != null ? nombre : "Admin");
+                AdminPreferencesManager.guardarInmobiliaria(this,
+                        inmobiliaria != null && !inmobiliaria.trim().isEmpty()
+                                ? inmobiliaria.trim()
+                                : "Inmobiliaria BitBuilders");
                 AdminPreferencesManager.guardarUltimoAcceso(this, fechaHora);
                 intent = new Intent(this, AdminMainActivity.class);
                 Log.d("LoginActivity", "Redirigiendo a Admin Home");
@@ -191,6 +200,16 @@ public class LoginActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private String firstNonEmpty(String... values) {
+        if (values == null) return "";
+        for (String value : values) {
+            if (value != null && !value.trim().isEmpty()) {
+                return value.trim();
+            }
+        }
+        return "";
     }
 
     private void openIfAvailable(Class<?> destination) {

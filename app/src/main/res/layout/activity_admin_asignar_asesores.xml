@@ -84,6 +84,15 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp" />
 
+            <TextView
+                android:id="@+id/tvEmptyStateAsesores"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:text="No hay asesores activos disponibles."
+                android:textColor="@color/text_secondary"
+                android:visibility="gone" />
+
             <!-- Asesores RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvAsesores"

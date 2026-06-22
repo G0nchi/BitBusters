@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.AdminAsesorInmobiliariaAdapter;
-import com.example.bitbusters.data.AdminDataRepository;
+import com.example.bitbusters.data.FirestoreAsesoresRepository;
 import com.example.bitbusters.models.AdminAsesorInmobiliaria;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -34,6 +34,7 @@ public class AdminListaAsesoresInmobiliariaActivity extends AppCompatActivity {
     private RecyclerView rvAsesoresLista;
     private TextView tvEmptyState;
     private AdminAsesorInmobiliariaAdapter adapter;
+    private final FirestoreAsesoresRepository asesoresRepository = new FirestoreAsesoresRepository();
 
     private final List<AdminAsesorInmobiliaria> source = new ArrayList<>();
     private String currentQuery = "";
@@ -49,7 +50,12 @@ public class AdminListaAsesoresInmobiliariaActivity extends AppCompatActivity {
         setupRecyclerView();
         setupSearch();
         setupChips();
-        renderList();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        cargarAsesoresDesdeFirestore();
     }
 
     private void bindViews() {
@@ -67,12 +73,30 @@ public class AdminListaAsesoresInmobiliariaActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
-        source.clear();
-        source.addAll(AdminDataRepository.getAsesoresInmobiliariaRecientes());
-
         rvAsesoresLista.setLayoutManager(new LinearLayoutManager(this));
         adapter = new AdminAsesorInmobiliariaAdapter(new ArrayList<>(), null, false);
         rvAsesoresLista.setAdapter(adapter);
+    }
+
+    private void cargarAsesoresDesdeFirestore() {
+        asesoresRepository.obtenerAsesoresRegistrados(this, new FirestoreAsesoresRepository.AsesoresCallback() {
+            @Override
+            public void onSuccess(List<AdminAsesorInmobiliaria> asesores) {
+                source.clear();
+                if (asesores != null) {
+                    source.addAll(asesores);
+                }
+                setupChips();
+                renderList();
+            }
+
+            @Override
+            public void onError(String mensaje) {
+                source.clear();
+                setupChips();
+                renderList();
+            }
+        });
     }
 
     private void setupSearch() {
@@ -102,7 +126,7 @@ public class AdminListaAsesoresInmobiliariaActivity extends AppCompatActivity {
 
         chipGroupEstadosAsesor.removeAllViews();
 
-        addFilterChip("Todos", "ALL", true);
+        addFilterChip("Todos", "ALL", "ALL".equals(currentStateFilter));
 
         Set<String> estados = new LinkedHashSet<>();
         for (AdminAsesorInmobiliaria asesor : source) {
@@ -112,8 +136,10 @@ public class AdminListaAsesoresInmobiliariaActivity extends AppCompatActivity {
         }
 
         for (String estado : estados) {
-            addFilterChip(estado, estado, false);
+            addFilterChip(estado, estado, estado.equalsIgnoreCase(currentStateFilter));
         }
+
+        updateChipSelection(currentStateFilter);
     }
 
     private void addFilterChip(String label, String value, boolean checked) {

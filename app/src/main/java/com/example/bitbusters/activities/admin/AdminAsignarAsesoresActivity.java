@@ -1,8 +1,11 @@
 package com.example.bitbusters.activities.admin;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,12 +14,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.AdminAsesorAdapter;
-import com.example.bitbusters.data.AdminDataRepository;
+import com.example.bitbusters.data.FirestoreAsesoresRepository;
 import com.example.bitbusters.data.AdminProyectoSessionData;
 import com.example.bitbusters.models.AdminAsesor;
+import com.example.bitbusters.models.AdminAsesorInmobiliaria;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Activity para que el admin seleccione asesores y los asigne al proyecto
@@ -29,9 +36,16 @@ public class AdminAsignarAsesoresActivity extends AppCompatActivity {
     private AdminAsesorAdapter adapter;
     private Button btnConfirmarAsignacion, btnCancelarAsesores;
     private ImageButton btnBackAsesores;
+    private TextInputEditText etBuscarAsesor;
+    private TextView tvEmptyState;
 
     private int selectedCount = 0;
     private final List<AdminAsesor> selectedAsesores = new ArrayList<>();
+    private final List<AdminAsesor> sourceAsesores = new ArrayList<>();
+    private final List<AdminAsesor> visibleAsesores = new ArrayList<>();
+    private final Set<String> selectedNames = new HashSet<>();
+    private String currentQuery = "";
+    private final FirestoreAsesoresRepository asesoresRepository = new FirestoreAsesoresRepository();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,25 +62,56 @@ public class AdminAsignarAsesoresActivity extends AppCompatActivity {
         btnConfirmarAsignacion = findViewById(R.id.btnConfirmarAsignacion);
         btnCancelarAsesores    = findViewById(R.id.btnCancelarAsesores);
         btnBackAsesores        = findViewById(R.id.btnBackAsesores);
+        etBuscarAsesor         = findViewById(R.id.etBuscarAsesor);
         rvAsesores             = findViewById(R.id.rvAsesores);
+        tvEmptyState           = findViewById(R.id.tvEmptyStateAsesores);
+    }
+
+    private void setupSearch() {
+        if (etBuscarAsesor == null) return;
+
+        etBuscarAsesor.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                currentQuery = s == null ? "" : s.toString();
+                applySearchAndRender();
+            }
+        });
     }
 
     private void setupRecyclerView() {
         if (rvAsesores == null) return;
 
         rvAsesores.setLayoutManager(new LinearLayoutManager(this));
-        List<AdminAsesor> asesoresList = AdminDataRepository.getAsesores();
-
-        adapter = new AdminAsesorAdapter(asesoresList, (position, isChecked) -> {
-            AdminAsesor asesor = asesoresList.get(position);
+        adapter = new AdminAsesorAdapter(new ArrayList<>(), (position, isChecked) -> {
+            if (position < 0 || position >= visibleAsesores.size()) return;
+            AdminAsesor asesor = visibleAsesores.get(position);
             if (isChecked) {
-                if (!selectedAsesores.contains(asesor)) selectedAsesores.add(asesor);
+                if (!selectedNames.contains(asesor.getNombre())) {
+                    selectedAsesores.add(asesor);
+                    selectedNames.add(asesor.getNombre());
+                }
             } else {
-                selectedAsesores.remove(asesor);
+                selectedNames.remove(asesor.getNombre());
+                for (int i = selectedAsesores.size() - 1; i >= 0; i--) {
+                    if (selectedAsesores.get(i).getNombre().equals(asesor.getNombre())) {
+                        selectedAsesores.remove(i);
+                    }
+                }
             }
+            adapter.setSelectedNames(selectedNames);
             updateCounter();
         });
         rvAsesores.setAdapter(adapter);
+
+        setupSearch();
+        cargarAsesoresActivosDesdeFirestore();
     }
 
     /**
@@ -76,14 +121,74 @@ public class AdminAsignarAsesoresActivity extends AppCompatActivity {
     private void premarcarAsesoresGuardados() {
         List<String> guardados = AdminProyectoSessionData.getInstance().asesoresAsignados;
         if (guardados == null || guardados.isEmpty()) return;
-
-        List<AdminAsesor> todosList = AdminDataRepository.getAsesores();
-        for (AdminAsesor asesor : todosList) {
-            if (guardados.contains(asesor.getNombre())) {
+        selectedNames.clear();
+        selectedNames.addAll(guardados);
+        selectedAsesores.clear();
+        for (AdminAsesor asesor : sourceAsesores) {
+            if (selectedNames.contains(asesor.getNombre())) {
                 selectedAsesores.add(asesor);
             }
         }
+        if (adapter != null) {
+            adapter.setSelectedNames(selectedNames);
+        }
         updateCounter();
+    }
+
+    private void cargarAsesoresActivosDesdeFirestore() {
+        asesoresRepository.obtenerAsesoresActivosRegistrados(this, new FirestoreAsesoresRepository.AsesoresCallback() {
+            @Override
+            public void onSuccess(List<AdminAsesorInmobiliaria> asesores) {
+                sourceAsesores.clear();
+                if (asesores != null) {
+                    for (AdminAsesorInmobiliaria asesor : asesores) {
+                        sourceAsesores.add(toAdminAsesor(asesor));
+                    }
+                }
+                applySearchAndRender();
+                premarcarAsesoresGuardados();
+            }
+
+            @Override
+            public void onError(String mensaje) {
+                sourceAsesores.clear();
+                applySearchAndRender();
+            }
+        });
+    }
+
+    private AdminAsesor toAdminAsesor(AdminAsesorInmobiliaria asesor) {
+        return new AdminAsesor(
+                asesor.getId(),
+                asesor.getNombre(),
+                asesor.getIniciales(),
+                0,
+                asesor.getEstado(),
+                asesor.getEmail(),
+                asesor.getTelefono()
+        );
+    }
+
+    private void applySearchAndRender() {
+        List<AdminAsesor> filtered = new ArrayList<>();
+        String query = currentQuery == null ? "" : currentQuery.trim().toLowerCase();
+
+        for (AdminAsesor asesor : sourceAsesores) {
+            String nombre = asesor.getNombre() == null ? "" : asesor.getNombre().toLowerCase();
+            if (query.isEmpty() || nombre.contains(query)) {
+                filtered.add(asesor);
+            }
+        }
+        visibleAsesores.clear();
+        visibleAsesores.addAll(filtered);
+
+        if (adapter != null) {
+            adapter.setData(filtered);
+            adapter.setSelectedNames(selectedNames);
+        }
+        if (tvEmptyState != null) {
+            tvEmptyState.setVisibility(filtered.isEmpty() ? android.view.View.VISIBLE : android.view.View.GONE);
+        }
     }
 
     private void setupListeners() {

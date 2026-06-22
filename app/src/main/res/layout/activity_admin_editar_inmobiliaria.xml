@@ -77,10 +77,11 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etNombreComercialEdit"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Nombre comercial *"
-                            android:text="Inmobiliaria XYZ" />
+                            android:text="Inmobiliaria" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -90,10 +91,11 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etRazonSocialEdit"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Razón social *"
-                            android:text="XYZ Inmobiliaria S.A.C." />
+                            android:text="Inmobiliaria" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -293,6 +295,15 @@
                         android:textSize="11sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="12dp" />
+
+                    <TextView
+                        android:id="@+id/tvAsesoresEmptyEdit"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:text="Aún no ha registrado asesores de venta en su inmobiliaria"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone" />
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvAsesoresEdit"

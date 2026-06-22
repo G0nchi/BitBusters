@@ -12,12 +12,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bitbusters.R;
 import com.example.bitbusters.models.AdminAsesor;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AdminAsesorAdapter extends RecyclerView.Adapter<AdminAsesorAdapter.AdminAsesorViewHolder> {
 
     private List<AdminAsesor> asesorList;
     private OnAsesorCheckedListener listener;
+    private final Set<String> selectedNames = new HashSet<>();
 
     public interface OnAsesorCheckedListener {
         void onAsesorChecked(int position, boolean isChecked);
@@ -40,7 +43,7 @@ public class AdminAsesorAdapter extends RecyclerView.Adapter<AdminAsesorAdapter.
         AdminAsesor asesor = asesorList.get(position);
 
         holder.cbAsesor.setOnCheckedChangeListener(null);
-        holder.cbAsesor.setChecked(false);
+        holder.cbAsesor.setChecked(selectedNames.contains(asesor.getNombre()));
 
         holder.cbAsesor.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (listener != null) {
@@ -60,6 +63,14 @@ public class AdminAsesorAdapter extends RecyclerView.Adapter<AdminAsesorAdapter.
 
     public void setData(List<AdminAsesor> nuevaLista) {
         this.asesorList = nuevaLista;
+        notifyDataSetChanged();
+    }
+
+    public void setSelectedNames(Set<String> names) {
+        selectedNames.clear();
+        if (names != null) {
+            selectedNames.addAll(names);
+        }
         notifyDataSetChanged();
     }
 

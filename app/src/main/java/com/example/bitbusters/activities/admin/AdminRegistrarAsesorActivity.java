@@ -3,6 +3,7 @@ package com.example.bitbusters.activities.admin;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Patterns;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -10,7 +11,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.bitbusters.R;
+import com.example.bitbusters.data.FirestoreAsesoresRepository;
 import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.Locale;
 
 public class AdminRegistrarAsesorActivity extends AppCompatActivity {
 
@@ -23,6 +27,8 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
     private TextView tvPreviewCorreo;
     private TextView tvPreviewTelefono;
     private TextView tvPreviewDni;
+    private Button btnRegisterAdvisor;
+    private final FirestoreAsesoresRepository asesoresRepository = new FirestoreAsesoresRepository();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,12 +172,11 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
         }
 
         // Register button (save advisor)
-        Button btnRegisterAdvisor = findViewById(R.id.btnRegisterAdvisor);
+        btnRegisterAdvisor = findViewById(R.id.btnRegisterAdvisor);
         if (btnRegisterAdvisor != null) {
             btnRegisterAdvisor.setOnClickListener(v -> {
                 if (isFormValid()) {
-                    Toast.makeText(this, "Asesor registrado en sesión", Toast.LENGTH_SHORT).show();
-                    finish();
+                    registrarAsesorEnFirestore();
                 }
             });
         }
@@ -183,6 +188,42 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
         }
     }
 
+    private void registrarAsesorEnFirestore() {
+        String nombre = getText(etNombreAsesor);
+        String correo = getText(etCorreoAsesor).toLowerCase(Locale.ROOT);
+        String telefono = getText(etTelefonoAsesor);
+        String dni = getText(etDniAsesor);
+
+        setSavingState(true);
+        asesoresRepository.registrarAsesor(this, nombre, correo, telefono, dni,
+                new FirestoreAsesoresRepository.GuardarAsesorCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Toast.makeText(AdminRegistrarAsesorActivity.this,
+                                "Asesor registrado en Firestore",
+                                Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+
+                    @Override
+                    public void onError(String mensaje) {
+                        setSavingState(false);
+                        Toast.makeText(AdminRegistrarAsesorActivity.this,
+                                mensaje != null && !mensaje.isEmpty()
+                                        ? mensaje
+                                        : "No se pudo registrar el asesor",
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void setSavingState(boolean saving) {
+        if (btnRegisterAdvisor != null) {
+            btnRegisterAdvisor.setEnabled(!saving);
+            btnRegisterAdvisor.setText(saving ? "Registrando..." : "Registrar");
+        }
+    }
+
     private boolean isFormValid() {
         String nombre = getText(etNombreAsesor);
         String correo = getText(etCorreoAsesor);
@@ -191,6 +232,10 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
 
         if (nombre.isEmpty() || correo.isEmpty() || telefono.isEmpty() || dni.isEmpty()) {
             Toast.makeText(this, "Completa Nombre, Correo, Teléfono y DNI", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
+            Toast.makeText(this, "Ingresa un correo válido", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;
