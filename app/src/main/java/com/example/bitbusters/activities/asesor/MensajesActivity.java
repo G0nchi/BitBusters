@@ -247,65 +247,23 @@ public class MensajesActivity extends AppCompatActivity {
 
     // ── Construcción de la lista ──────────────────────────────────────────────
 
+    /** Construye la lista solo con chats reales de Firestore (sin mock estático). */
     private void buildItems() {
         Set<String> deleted = AsesorStorage.getDeletedChatIds(this);
         items = new ArrayList<>();
 
-        List<AsesorChatItem> activos = new ArrayList<>(getAllActivos());
-
-        for (AsesorChatItem c : getAllFinalizadas()) {
-            if (reconnectedIds.contains(c.getId())) {
-                activos.add(new AsesorChatItem(c.getId(), c.getName(),
-                    "Conversación reiniciada 🔄", "Ahora",
-                    c.getInitials(), "#4DB6AC", 0, true, c.getProyecto()));
-            }
+        List<AsesorChatItem> activos = new ArrayList<>();
+        for (AsesorChatItem c : newChats) {
+            if (!deleted.contains(c.getId())) activos.add(c);
         }
 
-        boolean tieneActivos = false;
-        for (AsesorChatItem c : activos) {
-            if (!deleted.contains(c.getId())) { tieneActivos = true; break; }
-        }
-        if (tieneActivos) {
+        if (!activos.isEmpty()) {
             items.add("ACTIVOS");
-            for (AsesorChatItem c : activos) {
-                if (!deleted.contains(c.getId())) items.add(c);
-            }
+            items.addAll(activos);
+        } else {
+            // Estado vacío — se muestra cuando aún no hay chats
+            items.add("Sin conversaciones activas");
         }
-
-        boolean tieneFinalizadas = false;
-        for (AsesorChatItem c : getAllFinalizadas()) {
-            if (!deleted.contains(c.getId()) && !reconnectedIds.contains(c.getId())) {
-                tieneFinalizadas = true; break;
-            }
-        }
-        if (tieneFinalizadas) {
-            items.add("FINALIZADAS");
-            for (AsesorChatItem c : getAllFinalizadas()) {
-                if (!deleted.contains(c.getId()) && !reconnectedIds.contains(c.getId())) {
-                    items.add(c);
-                }
-            }
-        }
-    }
-
-    // ── Fuentes de datos estáticos ────────────────────────────────────────────
-
-    private List<AsesorChatItem> getAllActivos() {
-        List<AsesorChatItem> list = new ArrayList<>();
-        list.add(new AsesorChatItem("1", "Carlos Mendoza",  "¿Podemos confirmar la cita del lunes?",  "10:32", "CM", "#4DB6AC", 2, true, "Torres del Sol · Dpto 302"));
-        list.add(new AsesorChatItem("2", "Rosa Torres",     "Muchas gracias por la atención 🙏",       "9:15",  "RT", "#F06292", 1, true, "Torres del Sol · Dpto 108"));
-        list.add(new AsesorChatItem("3", "Ana López",       "Perfecto, quedamos el martes entonces",   "Ayer",  "AL", "#FF8A65", 0, true, "Torres del Sol · Dpto 501"));
-        list.add(new AsesorChatItem("4", "Marco Paredes",   "¿El departamento tiene estacionamiento?", "Ayer",  "MP", "#9575CD", 0, true, "Torres del Sol · Dpto 210"));
-        list.addAll(newChats);
-        return list;
-    }
-
-    private List<AsesorChatItem> getAllFinalizadas() {
-        List<AsesorChatItem> list = new ArrayList<>();
-        list.add(new AsesorChatItem("5", "Jorge Castro", "Gracias, lo voy a pensar con mi familia",  "Lun", "JC", "#BDBDBD", 0, false, "Torres del Sol · Dpto 601"));
-        list.add(new AsesorChatItem("6", "Sandra Vega",  "¿Pueden enviarme los planos del dpto 4…",  "Dom", "SV", "#BDBDBD", 0, false, "Torres del Sol · Dpto 415"));
-        list.add(new AsesorChatItem("7", "Luis Vargas",  "Ok, reagendamos para la próxima semana",    "Sáb", "LV", "#BDBDBD", 0, false, "Torres del Sol · Dpto 204"));
-        return list;
     }
 
     // ── Swipe para eliminar ───────────────────────────────────────────────────
