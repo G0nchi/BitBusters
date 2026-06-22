@@ -85,7 +85,7 @@ public abstract class BaseCitasFragment extends Fragment {
             case "Reagendar":      openReagendar(c);     break;
             case "Ver detalle":    openVerDetalle(c);    break;
             case "Ver valoración":
-                startActivity(new Intent(requireContext(), ValorarVisitaActivity.class)); break;
+                startActivity(buildValorarIntent(c)); break;
         }
     }
 
@@ -94,7 +94,7 @@ public abstract class BaseCitasFragment extends Fragment {
             case "Confirmar": showConfirmDialog(c); break;
             case "Separar":   openNuevaSeparacion(c); break;
             case "Valorar":
-                startActivity(new Intent(requireContext(), ValorarVisitaActivity.class)); break;
+                startActivity(buildValorarIntent(c)); break;
             case "Cancelar":  showCancelDialog(c); break;
             case "Reagendar": openReagendar(c);    break;
         }
@@ -196,6 +196,15 @@ public abstract class BaseCitasFragment extends Fragment {
     }
 
     // ── Datos estáticos base ──────────────────────────────────────────────────
+
+    private Intent buildValorarIntent(CitaAdapter.Cita c) {
+        Intent i = new Intent(requireContext(), ValorarVisitaActivity.class);
+        i.putExtra(ValorarVisitaActivity.EXTRA_NOMBRE,   c.nombre);
+        i.putExtra(ValorarVisitaActivity.EXTRA_INITIALS, c.initials);
+        i.putExtra(ValorarVisitaActivity.EXTRA_PROYECTO, c.proyecto);
+        i.putExtra(ValorarVisitaActivity.EXTRA_FECHA,    c.fecha);
+        return i;
+    }
 
     protected List<CitaAdapter.Cita> staticPendientes() {
         List<CitaAdapter.Cita> list = new ArrayList<>();

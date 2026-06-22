@@ -4,40 +4,39 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.bitbusters.adapters.MensajesAdapter;
 import com.example.bitbusters.databinding.ActivityConversacionBinding;
-import com.example.bitbusters.utils.ChatRepository;
-import com.example.bitbusters.utils.MockChatRepository;
+import com.example.bitbusters.models.Mensaje;
+import com.example.bitbusters.repository.ChatRepository;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.List;
 
 /**
- * Pantalla de conversación entre asesor y cliente.
- *
- * Usa el patrón Repository (Clase 08.2) para desacoplar la UI de la
- * fuente de datos:
- *  - Desarrollo: {@link MockChatRepository} (datos en memoria, sin red).
- *  - Producción:  {@link com.example.bitbusters.utils.FirestoreChatRepository}
- *                (Firebase Firestore con SnapshotListener en tiempo real).
- *
- * El send button ahora funciona: agrega el mensaje al adapter con animación
- * y notifica al repositorio para persistirlo.
+ * Pantalla de conversación del Asesor con un Cliente.
+ * Usa ChatRepository (repository package) y MensajesAdapter — misma arquitectura que el Cliente.
  */
 public class ConversacionActivity extends AppCompatActivity {
 
-    public static final String EXTRA_CHAT_ID  = "extra_chat_id";
-    public static final String EXTRA_NOMBRE   = "extra_nombre";
-    public static final String EXTRA_INITIALS = "extra_initials";
-    public static final String EXTRA_COLOR    = "extra_color";
-    public static final String EXTRA_PROYECTO = "extra_proyecto";
+    public static final String EXTRA_CHAT_ID       = "extra_chat_id";
+    public static final String EXTRA_NOMBRE        = "extra_nombre";
+    public static final String EXTRA_INITIALS      = "extra_initials";
+    public static final String EXTRA_COLOR         = "extra_color";
+    public static final String EXTRA_PROYECTO      = "extra_proyecto";
 
     private ActivityConversacionBinding binding;
-    private MensajeAdapter              mensajeAdapter;
-    private ChatRepository              chatRepo;
-    private String                      chatId;
+    private MensajesAdapter             mensajesAdapter;
+    private ChatRepository              chatRepository;
+    private ListenerRegistration        mensajesListener;
+
+    private String chatId;
+    private String uidActual;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,18 +44,31 @@ public class ConversacionActivity extends AppCompatActivity {
         binding = ActivityConversacionBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Singleton: reutiliza el mismo cache aunque se abra/cierre la Activity.
-        // Para producción: reemplazar por new FirestoreChatRepository()
-        chatRepo = MockChatRepository.getInstance();
-        chatId   = getIntent().getStringExtra(EXTRA_CHAT_ID);
+        chatId    = getIntent().getStringExtra(EXTRA_CHAT_ID);
+        uidActual = FirebaseAuth.getInstance().getCurrentUser() != null
+                  ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
+
+        chatRepository = new ChatRepository();
 
         bindHeader();
-        loadMessages();
+        setupRecyclerView();
         setupSendButton();
         binding.btnBack.setOnClickListener(v -> finish());
     }
 
-    // ── Header dinámico ───────────────────────────────────────────────────────
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (chatId != null && !chatId.isEmpty()) iniciarListenerMensajes();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mensajesListener != null) { mensajesListener.remove(); mensajesListener = null; }
+    }
+
+    // ── Header ────────────────────────────────────────────────────────────────
 
     private void bindHeader() {
         String nombre   = getIntent().getStringExtra(EXTRA_NOMBRE);
@@ -76,39 +88,42 @@ public class ConversacionActivity extends AppCompatActivity {
             binding.tvProyectoChat.setVisibility(View.VISIBLE);
             binding.tvProyectoChat.setText(proyecto);
         } else {
-            View iconRow = (View) binding.tvProyectoChat.getParent();
-            if (iconRow != null) iconRow.setVisibility(View.GONE);
+            binding.tvProyectoChat.setVisibility(View.GONE);
         }
     }
 
-    // ── Carga de mensajes vía Repository ─────────────────────────────────────
+    // ── RecyclerView ──────────────────────────────────────────────────────────
 
-    private void loadMessages() {
+    private void setupRecyclerView() {
+        String initials = getIntent().getStringExtra(EXTRA_INITIALS);
+        if (initials == null) initials = "CL";
+
+        mensajesAdapter = new MensajesAdapter(uidActual, initials);
+
         LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setStackFromEnd(true);
         binding.rvMensajes.setLayoutManager(lm);
+        binding.rvMensajes.setAdapter(mensajesAdapter);
+    }
 
-        chatRepo.loadMessages(chatId, new ChatRepository.MessagesCallback() {
-            @Override
-            public void onMessages(List<MensajeAdapter.Mensaje> mensajes) {
-                if (mensajeAdapter == null) {
-                    // Primera carga: crear adapter
-                    mensajeAdapter = new MensajeAdapter(mensajes);
-                    binding.rvMensajes.setAdapter(mensajeAdapter);
-                } else {
-                    // Actualización en tiempo real (Firestore SnapshotListener)
-                    mensajeAdapter.updateMensajes(mensajes);
+    // ── Listener mensajes en tiempo real ─────────────────────────────────────
+
+    private void iniciarListenerMensajes() {
+        mensajesListener = chatRepository.escucharMensajes(chatId,
+            new ChatRepository.MensajesListener() {
+                @Override
+                public void onMensajes(List<Mensaje> mensajes) {
+                    mensajesAdapter.setMensajes(mensajes);
+                    if (!mensajes.isEmpty()) {
+                        binding.rvMensajes.scrollToPosition(mensajes.size() - 1);
+                    }
                 }
-                // Scroll al último mensaje
-                binding.rvMensajes.scrollToPosition(mensajeAdapter.getItemCount() - 1);
-            }
 
-            @Override
-            public void onError(String error) {
-                // En producción: mostrar Snackbar de error
-                android.util.Log.e("ConversacionActivity", "Error: " + error);
-            }
-        });
+                @Override
+                public void onError(String error) {
+                    android.util.Log.e("ConversacionActivity", "Error: " + error);
+                }
+            });
     }
 
     // ── Botón enviar ──────────────────────────────────────────────────────────
@@ -118,40 +133,22 @@ public class ConversacionActivity extends AppCompatActivity {
             String text = binding.etMensaje.getText().toString().trim();
             if (TextUtils.isEmpty(text)) return;
 
-            // Limpiar campo inmediatamente para buena UX
             binding.etMensaje.setText("");
+            binding.btnSend.setEnabled(false);
 
-            chatRepo.sendMessage(chatId, text, new ChatRepository.SendCallback() {
-                @Override
-                public void onSuccess() {
-                    // Agregar mensaje al adapter con animación
-                    if (mensajeAdapter != null) {
-                        String hora = new java.text.SimpleDateFormat(
-                            "h:mm a", java.util.Locale.getDefault()
-                        ).format(new java.util.Date());
-                        mensajeAdapter.addMensaje(
-                            new MensajeAdapter.Mensaje(text, hora, true));
-                        binding.rvMensajes.scrollToPosition(
-                            mensajeAdapter.getItemCount() - 1);
-                    }
-                }
-
-                @Override
-                public void onError(String error) {
-                    // Restaurar texto si falla (importante en producción con Firebase)
+            chatRepository.enviarMensaje(chatId, uidActual, text,
+                () -> binding.btnSend.setEnabled(true),
+                error -> {
                     binding.etMensaje.setText(text);
-                    android.util.Log.e("ConversacionActivity", "Send error: " + error);
-                }
-            });
+                    binding.btnSend.setEnabled(true);
+                    Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
+                });
         });
     }
-
-    // ── Ciclo de vida ─────────────────────────────────────────────────────────
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (chatRepo != null) chatRepo.release();  // libera SnapshotListeners de Firestore
         binding = null;
     }
 }

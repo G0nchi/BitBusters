@@ -27,6 +27,7 @@ public class AsesorStorage {
     private static final String KEY_CITA_TAB        = "cita_tab";
     private static final String KEY_HOME_FILTER     = "home_filter";
     private static final String KEY_NOTIF_BASELINE  = "notif_read_baseline";
+    private static final String KEY_ASESOR_ID       = "asesor_id";
 
     private static SharedPreferences prefs(Context ctx) {
         return ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -149,6 +150,18 @@ public class AsesorStorage {
 
     public static Set<String> getDeletedChatIds(Context ctx) {
         return new HashSet<>(db(ctx).deletedChatDao().getAllIds());
+    }
+
+    // ── Identidad del asesor ──────────────────────────────────────────────────
+
+    /** Guarda el ID de documento Firestore del asesor (ej. "asesor_ana_001"). */
+    public static void saveAsesorId(Context ctx, String asesorId) {
+        prefs(ctx).edit().putString(KEY_ASESOR_ID, asesorId).apply();
+    }
+
+    /** Devuelve el ID del asesor o null si no se ha establecido. */
+    public static String getAsesorId(Context ctx) {
+        return prefs(ctx).getString(KEY_ASESOR_ID, null);
     }
 
     // ── Limpieza de sesión ────────────────────────────────────────────────────

@@ -18,12 +18,16 @@ public class PagoSeparacionActivity extends AppCompatActivity {
     public static final String EXTRA_CLIENTE  = "extra_cliente";
     public static final String EXTRA_PROYECTO = "extra_proyecto";
     public static final String EXTRA_MONTO    = "extra_monto";
+    public static final String EXTRA_FECHA    = "extra_fecha";
+    public static final String EXTRA_HORA     = "extra_hora";
 
     private ActivityPagoSeparacionBinding binding;
 
     private String clienteNombre;
     private String proyectoNombre;
     private String monto;
+    private String fecha;
+    private String hora;
 
     // Opciones de pago
     private MaterialCardView cardTarjeta;
@@ -42,6 +46,8 @@ public class PagoSeparacionActivity extends AppCompatActivity {
         clienteNombre  = getIntent().getStringExtra(EXTRA_CLIENTE);
         proyectoNombre = getIntent().getStringExtra(EXTRA_PROYECTO);
         monto          = getIntent().getStringExtra(EXTRA_MONTO);
+        fecha          = getIntent().getStringExtra(EXTRA_FECHA);
+        hora           = getIntent().getStringExtra(EXTRA_HORA);
 
         bindResumen();
         setupPaymentOptions();
@@ -49,10 +55,17 @@ public class PagoSeparacionActivity extends AppCompatActivity {
         binding.btnBack.setOnClickListener(v -> finish());
 
         binding.btnConfirmar.setOnClickListener(v -> {
+            String metodoPago = "Tarjeta";
+            if (rbTransferencia != null && rbTransferencia.isChecked()) metodoPago = "Transferencia";
+            else if (rbYape     != null && rbYape.isChecked())          metodoPago = "Yape";
+
             Intent intent = new Intent(this, ConfirmacionSeparacionActivity.class);
-            intent.putExtra(ConfirmacionSeparacionActivity.EXTRA_CLIENTE,  clienteNombre);
-            intent.putExtra(ConfirmacionSeparacionActivity.EXTRA_PROYECTO, proyectoNombre);
-            intent.putExtra(ConfirmacionSeparacionActivity.EXTRA_MONTO,    monto);
+            intent.putExtra(ConfirmacionSeparacionActivity.EXTRA_CLIENTE,      clienteNombre);
+            intent.putExtra(ConfirmacionSeparacionActivity.EXTRA_PROYECTO,     proyectoNombre);
+            intent.putExtra(ConfirmacionSeparacionActivity.EXTRA_MONTO,        monto);
+            intent.putExtra(ConfirmacionSeparacionActivity.EXTRA_FECHA,        fecha);
+            intent.putExtra(ConfirmacionSeparacionActivity.EXTRA_HORA,         hora);
+            intent.putExtra(ConfirmacionSeparacionActivity.EXTRA_METODO_PAGO,  metodoPago);
             startActivity(intent);
         });
     }

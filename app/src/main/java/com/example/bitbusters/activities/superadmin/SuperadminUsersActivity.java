@@ -27,9 +27,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bitbusters.R;
 import com.example.bitbusters.utils.PreferencesManager;
 
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -38,8 +40,9 @@ public class SuperadminUsersActivity extends AppCompatActivity {
     private static final int PAGE_SIZE = 4;
     private static final String TAG = "SA_USERS";
 
-    private static final String STATUS_ACTIVE = "ACTIVE";
-    private static final String STATUS_INACTIVE = "INACTIVE";
+    private static final String STATUS_ACTIVE   = "active";
+    private static final String STATUS_INACTIVE = "inactive";
+    private static final String STATUS_PENDING  = "pending";
 
     private static final String TAB_ADMINS = "ADMINS";
     private static final String TAB_ADVISORS = "ADVISORS";
@@ -55,6 +58,7 @@ public class SuperadminUsersActivity extends AppCompatActivity {
     private TextView filterAllChip;
     private TextView filterActiveChip;
     private TextView filterInactiveChip;
+    private TextView filterPendingChip;
 
     private EditText searchUsersInput;
     private RecyclerView usersRecyclerView;
@@ -68,6 +72,7 @@ public class SuperadminUsersActivity extends AppCompatActivity {
     private final List<UserItem> visibleUsers = new ArrayList<>();
     private int renderedUsersCount = 0;
     private boolean isLoadingMore = false;
+    private final List<UserItem> allUsersFromFirestore = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,15 +86,21 @@ public class SuperadminUsersActivity extends AppCompatActivity {
         setupSearch();
         setupInfiniteScroll();
 
-        // Restaurar tab y filtro guardados en SharedPreferences
-        currentStatusFilter = PreferencesManager.obtenerFiltroEstado(this);
-        String tabGuardado = PreferencesManager.obtenerTabUsuarios(this);
+        // Restaurar tab y filtro — sanitizar valores stale de versiones anteriores
+        String savedFilter = PreferencesManager.obtenerFiltroEstado(this);
+        if (STATUS_ACTIVE.equals(savedFilter) || STATUS_INACTIVE.equals(savedFilter) || STATUS_PENDING.equals(savedFilter)) {
+            currentStatusFilter = savedFilter;
+        } else {
+            currentStatusFilter = "ALL";
+        }
         updateFilterChipStyles();
+        String tabGuardado = PreferencesManager.obtenerTabUsuarios(this);
         switch (tabGuardado) {
             case TAB_ADMINS:   showAdmins();   break;
             case TAB_ADVISORS: showAdvisors(); break;
             default:           showClients();  break;
         }
+        loadUsersFromFirestore();
     }
 
     private void setupInfiniteScroll() {
@@ -142,6 +153,7 @@ public class SuperadminUsersActivity extends AppCompatActivity {
         filterAllChip = findViewById(R.id.filterAllChip);
         filterActiveChip = findViewById(R.id.filterActiveChip);
         filterInactiveChip = findViewById(R.id.filterInactiveChip);
+        filterPendingChip = findViewById(R.id.filterPendingChip);
 
         searchUsersInput = findViewById(R.id.searchUsersInput);
         usersRecyclerView = findViewById(R.id.usersRecyclerView);
@@ -190,6 +202,14 @@ public class SuperadminUsersActivity extends AppCompatActivity {
         if (filterInactiveChip != null) {
             filterInactiveChip.setOnClickListener(v -> {
                 currentStatusFilter = STATUS_INACTIVE;
+                PreferencesManager.guardarFiltroEstado(this, currentStatusFilter);
+                updateFilterChipStyles();
+                applyFiltersAndRender(true);
+            });
+        }
+        if (filterPendingChip != null) {
+            filterPendingChip.setOnClickListener(v -> {
+                currentStatusFilter = STATUS_PENDING;
                 PreferencesManager.guardarFiltroEstado(this, currentStatusFilter);
                 updateFilterChipStyles();
                 applyFiltersAndRender(true);
@@ -276,9 +296,9 @@ public class SuperadminUsersActivity extends AppCompatActivity {
 
         renderedUsersCount = 0;
         visibleUsers.clear();
+        Log.d(TAG, "applyFiltersAndRender -> tab=" + currentTab + " statusFilter=" + currentStatusFilter + " source=" + source.size() + " filtered=" + filteredUsers.size());
         loadMoreUsers();
         fillViewportIfNeeded();
-        Log.d(TAG, "applyFiltersAndRender -> filtered=" + filteredUsers.size() + ", rendered=" + renderedUsersCount);
 
         if (resetScroll && usersRecyclerView != null) {
             usersRecyclerView.scrollToPosition(0);
@@ -286,10 +306,7 @@ public class SuperadminUsersActivity extends AppCompatActivity {
     }
 
     private void loadMoreUsers() {
-        if (!appendNextPage()) {
-            return;
-        }
-
+        appendNextPage();
         if (userAdapter != null) {
             userAdapter.submitList(visibleUsers);
         }
@@ -333,7 +350,11 @@ public class SuperadminUsersActivity extends AppCompatActivity {
         card.setGravity(Gravity.CENTER_VERTICAL);
         card.setPadding(dp(14), 0, dp(14), 0);
         card.setBackgroundResource(R.drawable.sa_user_row_bg);
-        card.setOnClickListener(v -> open(SuperadminUserDetailActivity.class));
+        card.setOnClickListener(v -> {
+            Intent intent = new Intent(this, SuperadminUserDetailActivity.class);
+            intent.putExtra("userId", item.uid);
+            startActivity(intent);
+        });
 
         TextView initials = new TextView(this);
         LinearLayout.LayoutParams initialsParams = new LinearLayout.LayoutParams(dp(48), dp(48));
@@ -373,6 +394,10 @@ public class SuperadminUsersActivity extends AppCompatActivity {
             status.setText(R.string.sa_status_active);
             status.setTextColor(ContextCompat.getColor(this, R.color.success_green));
             status.setBackgroundResource(R.drawable.sa_status_active_pill_bg);
+        } else if (STATUS_PENDING.equals(item.status)) {
+            status.setText(R.string.sa_status_pending);
+            status.setTextColor(0xFFD97706);
+            status.setBackgroundResource(R.drawable.sa_status_pending_bg);
         } else {
             status.setText(R.string.sa_status_inactive);
             status.setTextColor(ContextCompat.getColor(this, R.color.text_medium));
@@ -403,16 +428,14 @@ public class SuperadminUsersActivity extends AppCompatActivity {
     }
 
     private void updateFilterChipStyles() {
-        if (filterAllChip == null || filterActiveChip == null || filterInactiveChip == null) {
-            return;
-        }
-
-        styleChip(filterAllChip, "ALL".equals(currentStatusFilter));
-        styleChip(filterActiveChip, STATUS_ACTIVE.equals(currentStatusFilter));
+        styleChip(filterAllChip,      "ALL".equals(currentStatusFilter));
+        styleChip(filterActiveChip,   STATUS_ACTIVE.equals(currentStatusFilter));
         styleChip(filterInactiveChip, STATUS_INACTIVE.equals(currentStatusFilter));
+        styleChip(filterPendingChip,  STATUS_PENDING.equals(currentStatusFilter));
     }
 
     private void styleChip(TextView chip, boolean selected) {
+        if (chip == null) return;
         chip.setBackgroundResource(selected
                 ? R.drawable.sa_filter_chip_selected_bg
                 : R.drawable.sa_filter_chip_unselected_bg);
@@ -423,54 +446,52 @@ public class SuperadminUsersActivity extends AppCompatActivity {
     }
 
     private List<UserItem> getUsersForCurrentTab() {
-        if (TAB_ADMINS.equals(currentTab)) {
-            return Arrays.asList(
-                    new UserItem("CM", "Carlos Mendoza", "Inmobiliaria Centro", STATUS_ACTIVE),
-                    new UserItem("AG", "Ana Garcia", "Inmobiliaria Norte", STATUS_ACTIVE),
-                    new UserItem("RS", "Roberto Silva", "Inmobiliaria Sur", STATUS_INACTIVE),
-                    new UserItem("LV", "Luis Vargas", "Inmobiliaria Oeste", STATUS_ACTIVE),
-                    new UserItem("IO", "Ines Ortega", "Inmobiliaria Prime", STATUS_ACTIVE),
-                    new UserItem("JV", "Javier Nuñez", "Inmobiliaria Sol", STATUS_ACTIVE),
-                    new UserItem("MP", "Marta Paredes", "Inmobiliaria Capital", STATUS_ACTIVE),
-                    new UserItem("DR", "Daniel Rios", "Inmobiliaria Norte", STATUS_INACTIVE),
-                    new UserItem("FL", "Fernanda Lopez", "Inmobiliaria Sur", STATUS_ACTIVE),
-                    new UserItem("PG", "Paula Gutierrez", "Inmobiliaria Centro", STATUS_ACTIVE),
-                    new UserItem("HR", "Hector Ruiz", "Inmobiliaria Oeste", STATUS_ACTIVE),
-                    new UserItem("CT", "Camila Torres", "Inmobiliaria Prime", STATUS_INACTIVE)
-            );
+        String roleFilter;
+        switch (currentTab) {
+            case TAB_ADMINS:   roleFilter = "admin";  break;
+            case TAB_ADVISORS: roleFilter = "asesor"; break;
+            default:           roleFilter = "cliente"; break;
         }
-
-        if (TAB_ADVISORS.equals(currentTab)) {
-            return Arrays.asList(
-                    new UserItem("ML", "Maria Lopez", "Inmobiliaria Centro", STATUS_ACTIVE),
-                    new UserItem("PR", "Pedro Ramirez", "Inmobiliaria Este", STATUS_ACTIVE),
-                    new UserItem("JL", "Jorge Luna", "Inmobiliaria Norte", STATUS_INACTIVE),
-                    new UserItem("SF", "Sara Flores", "Inmobiliaria Rio", STATUS_ACTIVE),
-                    new UserItem("DT", "Diego Torres", "Inmobiliaria Capital", STATUS_ACTIVE),
-                    new UserItem("CR", "Claudia Rojas", "Inmobiliaria Centro", STATUS_ACTIVE),
-                    new UserItem("BG", "Bruno Gomez", "Inmobiliaria Sur", STATUS_INACTIVE),
-                    new UserItem("AR", "Andrea Romero", "Inmobiliaria Este", STATUS_ACTIVE),
-                    new UserItem("VP", "Valeria Ponce", "Inmobiliaria Norte", STATUS_ACTIVE),
-                    new UserItem("NV", "Nicolas Vega", "Inmobiliaria Rio", STATUS_ACTIVE),
-                    new UserItem("MC", "Mateo Cardenas", "Inmobiliaria Sur", STATUS_INACTIVE),
-                    new UserItem("LM", "Laura Mejia", "Inmobiliaria Capital", STATUS_ACTIVE)
-            );
+        List<UserItem> result = new ArrayList<>();
+        for (UserItem u : allUsersFromFirestore) {
+            if (roleFilter.equals(u.role)) result.add(u);
         }
+        return result;
+    }
 
-        return Arrays.asList(
-                new UserItem("SR", "Sofia Ruiz", "Cliente Directo", STATUS_ACTIVE),
-                new UserItem("MA", "Miguel Angel", "Cliente Directo", STATUS_ACTIVE),
-                new UserItem("LV", "Lucia Vargas", "Cliente Directo", STATUS_INACTIVE),
-                new UserItem("SC", "Sebastian Castro", "Cliente Directo", STATUS_ACTIVE),
-                new UserItem("IO", "Isabella Ortiz", "Cliente Directo", STATUS_ACTIVE),
-                new UserItem("PA", "Pablo Arias", "Cliente Directo", STATUS_ACTIVE),
-                new UserItem("DM", "Daniela Mora", "Cliente Directo", STATUS_ACTIVE),
-                new UserItem("JR", "Juan Rios", "Cliente Directo", STATUS_INACTIVE),
-                new UserItem("VP", "Valentina Pardo", "Cliente Directo", STATUS_ACTIVE),
-                new UserItem("GC", "Gabriel Cardenas", "Cliente Directo", STATUS_ACTIVE),
-                new UserItem("TC", "Tatiana Cruz", "Cliente Directo", STATUS_INACTIVE),
-                new UserItem("EB", "Esteban Blanco", "Cliente Directo", STATUS_ACTIVE)
-        );
+    private void loadUsersFromFirestore() {
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .get()
+            .addOnSuccessListener(snapshots -> {
+                allUsersFromFirestore.clear();
+                for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                    String nombre = doc.getString("nombre");
+                    String role   = doc.getString("role");
+                    String email  = doc.getString("email");
+                    if (nombre == null || role == null || "superadmin".equals(role)) continue;
+                    String initials = computeInitials(nombre);
+                    String company  = doc.getString("inmobiliaria");
+                    if (company == null) company = email != null ? email : "";
+                    String status = doc.getString("status");
+                    if (status == null) status = STATUS_ACTIVE;
+                    allUsersFromFirestore.add(new UserItem(initials, nombre, company, status, role, doc.getId()));
+                }
+                Log.d(TAG, "Firestore loaded " + allUsersFromFirestore.size() + " users");
+                applyFiltersAndRender(true);
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Firestore load failed: " + e.getMessage(), e);
+                android.widget.Toast.makeText(this, "Error cargando usuarios: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+            });
+    }
+
+    private String computeInitials(String nombre) {
+        String[] parts = nombre.trim().split("\\s+");
+        if (parts.length >= 2) {
+            return (String.valueOf(parts[0].charAt(0)) + String.valueOf(parts[1].charAt(0))).toUpperCase(Locale.ROOT);
+        }
+        return nombre.length() >= 1 ? String.valueOf(nombre.charAt(0)).toUpperCase(Locale.ROOT) : "?";
     }
 
     private void setTabState(
@@ -524,12 +545,16 @@ public class SuperadminUsersActivity extends AppCompatActivity {
         private final String name;
         private final String company;
         private final String status;
+        private final String role;
+        private final String uid;
 
-        private UserItem(String initials, String name, String company, String status) {
+        private UserItem(String initials, String name, String company, String status, String role, String uid) {
             this.initials = initials;
             this.name = name;
             this.company = company;
             this.status = status;
+            this.role = role;
+            this.uid = uid;
         }
     }
 

@@ -77,6 +77,7 @@
                         app:strokeWidth="0dp"
                         android:layout_marginBottom="10dp">
                         <TextView
+                            android:id="@+id/tvValorarIniciales"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:text="CM"
@@ -85,10 +86,14 @@
                             android:fontFamily="@font/lato_bold"
                             android:gravity="center"/>
                     </com.google.android.material.card.MaterialCardView>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    <TextView
+                        android:id="@+id/tvValorarNombreCliente"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Carlos Mendoza" android:textColor="@color/neutral_dark"
                         android:textSize="17sp" android:fontFamily="@font/lato_bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    <TextView
+                        android:id="@+id/tvValorarDetalleCliente"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Torres del Sol · Dpto 302 · 7 Abr, 2025"
                         android:textColor="@color/nav_inactive" android:textSize="13sp"
                         android:fontFamily="@font/lato_regular" android:layout_marginBottom="6dp"/>
@@ -110,18 +115,24 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="4dp">
-                <ImageView android:layout_width="36dp" android:layout_height="36dp"
-                    android:src="@drawable/ic_star_filled" android:contentDescription="@null" android:layout_marginRight="4dp"/>
-                <ImageView android:layout_width="36dp" android:layout_height="36dp"
-                    android:src="@drawable/ic_star_filled" android:contentDescription="@null" android:layout_marginRight="4dp"/>
-                <ImageView android:layout_width="36dp" android:layout_height="36dp"
-                    android:src="@drawable/ic_star_filled" android:contentDescription="@null" android:layout_marginRight="4dp"/>
-                <ImageView android:layout_width="36dp" android:layout_height="36dp"
-                    android:src="@drawable/ic_star_filled" android:contentDescription="@null" android:layout_marginRight="4dp"/>
-                <ImageView android:layout_width="36dp" android:layout_height="36dp"
-                    android:src="@drawable/ic_star_filled" android:alpha="0.3" android:contentDescription="@null"/>
+                <ImageView android:id="@+id/star1" android:layout_width="36dp" android:layout_height="36dp"
+                    android:src="@drawable/ic_star_filled" android:contentDescription="@null"
+                    android:clickable="true" android:focusable="true" android:layout_marginRight="4dp"/>
+                <ImageView android:id="@+id/star2" android:layout_width="36dp" android:layout_height="36dp"
+                    android:src="@drawable/ic_star_filled" android:contentDescription="@null"
+                    android:clickable="true" android:focusable="true" android:layout_marginRight="4dp"/>
+                <ImageView android:id="@+id/star3" android:layout_width="36dp" android:layout_height="36dp"
+                    android:src="@drawable/ic_star_filled" android:contentDescription="@null"
+                    android:clickable="true" android:focusable="true" android:layout_marginRight="4dp"/>
+                <ImageView android:id="@+id/star4" android:layout_width="36dp" android:layout_height="36dp"
+                    android:src="@drawable/ic_star_filled" android:contentDescription="@null"
+                    android:clickable="true" android:focusable="true" android:layout_marginRight="4dp"/>
+                <ImageView android:id="@+id/star5" android:layout_width="36dp" android:layout_height="36dp"
+                    android:src="@drawable/ic_star_filled" android:alpha="0.3" android:contentDescription="@null"
+                    android:clickable="true" android:focusable="true"/>
             </LinearLayout>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            <TextView android:id="@+id/tvLabelCalificacion"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="Muy bueno · 4 de 5" android:textColor="@color/star_yellow"
                 android:textSize="13sp" android:fontFamily="@font/lato_bold" android:layout_marginBottom="20dp"/>
 
@@ -178,14 +189,14 @@
                 android:layout_marginBottom="20dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etComentarioValoracion"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/valorar_hint_comentario"
                     android:minLines="4"
                     android:gravity="top"
                     android:inputType="textMultiLine"
-                    android:fontFamily="@font/lato_regular"
-                    android:text="El asesor fue muy amable y nos explicó todo con detalle. El departamento cumple con lo esperado."/>
+                    android:fontFamily="@font/lato_regular"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Anonymous toggle -->

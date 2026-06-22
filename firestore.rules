@@ -13,6 +13,7 @@ service cloud.firestore {
     }
 
     // === OTPs ===
+    // OTPs de registro: acceso sin auth porque el usuario aún no tiene cuenta
     match /emailOtps/{email} {
       allow read, write: if true;
     }

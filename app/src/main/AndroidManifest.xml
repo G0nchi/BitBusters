@@ -54,6 +54,15 @@
         <activity android:name=".activities.access.RegisterOtpActivity" android:exported="false" />
         <activity android:name=".activities.access.RegisterPasswordActivity" android:exported="false" />
 
+        <!-- FCM: Servicio de mensajería push por usuario -->
+        <service
+            android:name=".services.BitBustersMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <!-- Asesor: BroadcastReceiver para recordatorios de citas -->
         <receiver
             android:name=".receivers.CitaReminderReceiver"
@@ -70,6 +79,7 @@
         <activity android:name=".activities.asesor.CitasAgendadasActivity" android:exported="false" android:launchMode="singleTop" />
         <activity android:name=".activities.asesor.MensajesActivity"       android:exported="false" android:launchMode="singleTop" />
         <activity android:name=".activities.asesor.AsesorPerfilActivity"   android:exported="false" android:launchMode="singleTop" />
+        <activity android:name=".activities.asesor.AsesorReportesActivity" android:exported="false" android:launchMode="singleTop" />
         <activity android:name=".activities.asesor.ProyectoDetalleActivity"        android:exported="false" />
         <activity android:name=".activities.asesor.NuevaSeparacionActivity"        android:exported="false" />
         <activity android:name=".activities.asesor.PagoSeparacionActivity"         android:exported="false" />

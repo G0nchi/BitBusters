@@ -121,6 +121,20 @@
                             android:text="@string/sa_status_inactive"
                             android:textColor="@color/overlay_white_30"
                             android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/filterPendingChip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="30dp"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/sa_filter_chip_unselected_bg"
+                            android:gravity="center"
+                            android:minWidth="84dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:text="@string/sa_status_pending"
+                            android:textColor="@color/overlay_white_30"
+                            android:textSize="12sp" />
                     </LinearLayout>
                 </HorizontalScrollView>
             </LinearLayout>

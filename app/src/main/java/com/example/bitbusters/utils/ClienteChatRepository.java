@@ -1,6 +1,6 @@
 package com.example.bitbusters.utils;
 
-import com.example.bitbusters.activities.asesor.MensajeAdapter;
+import com.example.bitbusters.models.ClientMessage;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
@@ -16,24 +16,33 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Implementación de producción de {@link ChatRepository} usando Firebase Firestore.
+ * Repositorio Firestore para el chat desde el lado del Cliente.
  *
  * Estructura Firestore:
- *   chats/
- *     {chatId}/
- *       mensajes/   ← subcolección
- *         {autoId}/
- *           texto:     String
- *           hora:      String
- *           esCliente: Boolean  (true = mensaje del cliente, false = del asesor)
- *           timestamp: Timestamp
+ *   chats/{chatId}/mensajes/{autoId}
+ *     texto:     String
+ *     hora:      String
+ *     esCliente: Boolean  (true = mensaje del cliente)
+ *     timestamp: Timestamp
+ *
+ * chatId = "{clienteUid}_{asesorId}"
+ *   ej.: "uid_abc123_asesor_ana_001"
  */
-public class FirestoreChatRepository implements ChatRepository {
+public class ClienteChatRepository {
+
+    public interface MessagesCallback {
+        void onMessages(List<ClientMessage> mensajes);
+        void onError(String error);
+    }
+
+    public interface SendCallback {
+        void onSuccess();
+        void onError(String error);
+    }
 
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private ListenerRegistration listenerReg;
 
-    @Override
     public void loadMessages(String chatId, MessagesCallback callback) {
         if (chatId == null || chatId.isEmpty()) {
             callback.onError("chatId inválido");
@@ -51,18 +60,16 @@ public class FirestoreChatRepository implements ChatRepository {
                 }
                 if (snapshots == null) return;
 
-                List<MensajeAdapter.Mensaje> msgs = new ArrayList<>();
+                List<ClientMessage> msgs = new ArrayList<>();
                 for (DocumentSnapshot doc : snapshots.getDocuments()) {
                     String texto = doc.getString("texto");
                     String hora  = doc.getString("hora");
                     Boolean esCliente = doc.getBoolean("esCliente");
                     if (texto != null) {
-                        // sent=true significa que el mensaje es del asesor (se muestra a la derecha)
-                        boolean esMioAsesor = !Boolean.TRUE.equals(esCliente);
-                        msgs.add(new MensajeAdapter.Mensaje(
+                        msgs.add(new ClientMessage(
                             texto,
                             hora != null ? hora : "",
-                            esMioAsesor
+                            Boolean.TRUE.equals(esCliente)  // sent=true → mensaje propio del cliente
                         ));
                     }
                 }
@@ -70,14 +77,13 @@ public class FirestoreChatRepository implements ChatRepository {
             });
     }
 
-    @Override
     public void sendMessage(String chatId, String text, SendCallback callback) {
         String hora = new SimpleDateFormat("h:mm a", Locale.getDefault()).format(new Date());
 
         Map<String, Object> data = new HashMap<>();
         data.put("texto",     text);
         data.put("hora",      hora);
-        data.put("esCliente", false);   // asesor envía
+        data.put("esCliente", true);   // cliente envía
         data.put("timestamp", FieldValue.serverTimestamp());
 
         db.collection("chats")
@@ -88,7 +94,6 @@ public class FirestoreChatRepository implements ChatRepository {
             .addOnFailureListener(e  -> callback.onError(e.getMessage()));
     }
 
-    @Override
     public void release() {
         if (listenerReg != null) listenerReg.remove();
     }

@@ -28,6 +28,8 @@ import com.example.bitbusters.utils.ImmersiveMode;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import android.util.Log;
+import com.google.firebase.messaging.FirebaseMessaging;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -136,20 +138,40 @@ public class LoginActivity extends AppCompatActivity {
                         mAuth.signOut();
                         return;
                     }
-                    String role = doc.getString("role");
+                    String role   = doc.getString("role");
                     String nombre = doc.getString("nombre");
                     String inmobiliaria = firstNonEmpty(
                             doc.getString("inmobiliaria"),
                             doc.getString("inmobiliariaNombre"),
                             doc.getString("empresa")
                     );
+                    String status = doc.getString("status");
                     Log.d("LoginActivity", "Datos leídos → role: '" + role + "' | nombre: '" + nombre + "'");
+
                     if (role == null || role.trim().isEmpty()) {
                         Log.e("LoginActivity", "El campo 'role' está vacío o no existe en 'users'");
                         Toast.makeText(this, "Tu rol no está configurado. Contacta al administrador.", Toast.LENGTH_LONG).show();
                         mAuth.signOut();
                         return;
                     }
+                    if ("inactive".equals(status)) {
+                        mAuth.signOut();
+                        Toast.makeText(this, "Tu cuenta está desactivada. Contacta al soporte.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    if ("pending".equals(status)) {
+                        mAuth.signOut();
+                        Toast.makeText(this, "Tu cuenta está pendiente de aprobación.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    // Guardar FCM token en Firestore para notificaciones push
+                    FirebaseMessaging.getInstance().getToken()
+                            .addOnSuccessListener(token ->
+                                    FirebaseFirestore.getInstance()
+                                            .collection("users").document(uid)
+                                            .update("fcmToken", token));
+
                     routeByRole(role, nombre, uid, inmobiliaria);
                 })
                 .addOnFailureListener(e -> {

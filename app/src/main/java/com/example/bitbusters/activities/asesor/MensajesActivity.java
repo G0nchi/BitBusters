@@ -16,9 +16,16 @@ import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.ChatsAdapter;
 import com.example.bitbusters.databinding.ActivityMensajesBinding;
 import com.example.bitbusters.models.AsesorChatItem;
+import com.example.bitbusters.models.Chat;
+import com.example.bitbusters.repository.ChatRepository;
 import com.example.bitbusters.utils.AsesorStorage;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.ListenerRegistration;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -29,6 +36,10 @@ public class MensajesActivity extends AppCompatActivity {
     private ActivityMensajesBinding binding;
     private ChatsAdapter   adapter;
     private List<Object>   items;
+
+    private ChatRepository chatRepository;
+    private ListenerRegistration chatsListener;
+    private String uidActual;
 
     /** IDs de chats finalizados que el asesor reconectó (persiste en sesión). */
     private final Set<String> reconnectedIds = new HashSet<>();
@@ -48,6 +59,10 @@ public class MensajesActivity extends AppCompatActivity {
         binding = ActivityMensajesBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        uidActual = (user != null) ? user.getUid() : "";
+        chatRepository = new ChatRepository();
+
         binding.recyclerViewChats.setLayoutManager(new LinearLayoutManager(this));
 
         buildItems();
@@ -60,6 +75,66 @@ public class MensajesActivity extends AppCompatActivity {
         setupNewChat();
         setupSwipeToDelete();
         setupBottomNav();
+    }
+
+    // ── Ciclo de vida ─────────────────────────────────────────────────────────
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!uidActual.isEmpty()) iniciarListenerChats();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (chatsListener != null) { chatsListener.remove(); chatsListener = null; }
+    }
+
+    // ── Listener de chats en tiempo real (arquitectura Pedro) ─────────────────
+
+    private void iniciarListenerChats() {
+        chatsListener = chatRepository.escucharChatsDelUsuario(uidActual,
+            new ChatRepository.ChatsListener() {
+                @Override
+                public void onChats(List<Chat> chats) {
+                    // Mapear Chat (Firestore) → AsesorChatItem (para ChatsAdapter)
+                    Set<String> deletedIds = AsesorStorage.getDeletedChatIds(MensajesActivity.this);
+                    newChats.clear();
+                    for (Chat chat : chats) {
+                        if (deletedIds.contains(chat.getChatId())) continue;
+                        String nombre  = chat.getNombreCliente() != null ? chat.getNombreCliente() : "Cliente";
+                        String proyecto = chat.getNombreProyecto() != null ? chat.getNombreProyecto() : "";
+                        String ultimo  = chat.getUltimoMensaje()  != null ? chat.getUltimoMensaje()  : "Chat iniciado";
+                        String hora    = formatTimestamp(chat);
+                        newChats.add(new AsesorChatItem(
+                            chat.getChatId(), nombre, ultimo, hora,
+                            buildInitials(nombre), "#4DB6AC", 0, true, proyecto));
+                    }
+                    buildItems();
+                    adapter.updateItems(items);
+                }
+
+                @Override
+                public void onError(String mensaje) {
+                    android.util.Log.e("MensajesActivity", "Error Firestore: " + mensaje);
+                }
+            });
+    }
+
+    private String buildInitials(String name) {
+        String[] parts = name.trim().split("\\s+");
+        if (parts.length == 0) return "CL";
+        if (parts.length == 1) return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
+        return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
+    }
+
+    private String formatTimestamp(Chat chat) {
+        if (chat.getTimestampUltimoMensaje() == null) return "Ahora";
+        try {
+            return new SimpleDateFormat("HH:mm", Locale.getDefault())
+                .format(new Date(chat.getTimestampUltimoMensaje().toDate().getTime()));
+        } catch (Exception e) { return "Ahora"; }
     }
 
     // ── Abrir conversación ────────────────────────────────────────────────────
@@ -172,65 +247,23 @@ public class MensajesActivity extends AppCompatActivity {
 
     // ── Construcción de la lista ──────────────────────────────────────────────
 
+    /** Construye la lista solo con chats reales de Firestore (sin mock estático). */
     private void buildItems() {
         Set<String> deleted = AsesorStorage.getDeletedChatIds(this);
         items = new ArrayList<>();
 
-        List<AsesorChatItem> activos = new ArrayList<>(getAllActivos());
-
-        for (AsesorChatItem c : getAllFinalizadas()) {
-            if (reconnectedIds.contains(c.getId())) {
-                activos.add(new AsesorChatItem(c.getId(), c.getName(),
-                    "Conversación reiniciada 🔄", "Ahora",
-                    c.getInitials(), "#4DB6AC", 0, true, c.getProyecto()));
-            }
+        List<AsesorChatItem> activos = new ArrayList<>();
+        for (AsesorChatItem c : newChats) {
+            if (!deleted.contains(c.getId())) activos.add(c);
         }
 
-        boolean tieneActivos = false;
-        for (AsesorChatItem c : activos) {
-            if (!deleted.contains(c.getId())) { tieneActivos = true; break; }
-        }
-        if (tieneActivos) {
+        if (!activos.isEmpty()) {
             items.add("ACTIVOS");
-            for (AsesorChatItem c : activos) {
-                if (!deleted.contains(c.getId())) items.add(c);
-            }
+            items.addAll(activos);
+        } else {
+            // Estado vacío — se muestra cuando aún no hay chats
+            items.add("Sin conversaciones activas");
         }
-
-        boolean tieneFinalizadas = false;
-        for (AsesorChatItem c : getAllFinalizadas()) {
-            if (!deleted.contains(c.getId()) && !reconnectedIds.contains(c.getId())) {
-                tieneFinalizadas = true; break;
-            }
-        }
-        if (tieneFinalizadas) {
-            items.add("FINALIZADAS");
-            for (AsesorChatItem c : getAllFinalizadas()) {
-                if (!deleted.contains(c.getId()) && !reconnectedIds.contains(c.getId())) {
-                    items.add(c);
-                }
-            }
-        }
-    }
-
-    // ── Fuentes de datos estáticos ────────────────────────────────────────────
-
-    private List<AsesorChatItem> getAllActivos() {
-        List<AsesorChatItem> list = new ArrayList<>();
-        list.add(new AsesorChatItem("1", "Carlos Mendoza",  "¿Podemos confirmar la cita del lunes?",  "10:32", "CM", "#4DB6AC", 2, true, "Torres del Sol · Dpto 302"));
-        list.add(new AsesorChatItem("2", "Rosa Torres",     "Muchas gracias por la atención 🙏",       "9:15",  "RT", "#F06292", 1, true, "Torres del Sol · Dpto 108"));
-        list.add(new AsesorChatItem("3", "Ana López",       "Perfecto, quedamos el martes entonces",   "Ayer",  "AL", "#FF8A65", 0, true, "Torres del Sol · Dpto 501"));
-        list.add(new AsesorChatItem("4", "Marco Paredes",   "¿El departamento tiene estacionamiento?", "Ayer",  "MP", "#9575CD", 0, true, "Torres del Sol · Dpto 210"));
-        list.addAll(newChats);
-        return list;
-    }
-
-    private List<AsesorChatItem> getAllFinalizadas() {
-        List<AsesorChatItem> list = new ArrayList<>();
-        list.add(new AsesorChatItem("5", "Jorge Castro", "Gracias, lo voy a pensar con mi familia",  "Lun", "JC", "#BDBDBD", 0, false, "Torres del Sol · Dpto 601"));
-        list.add(new AsesorChatItem("6", "Sandra Vega",  "¿Pueden enviarme los planos del dpto 4…",  "Dom", "SV", "#BDBDBD", 0, false, "Torres del Sol · Dpto 415"));
-        list.add(new AsesorChatItem("7", "Luis Vargas",  "Ok, reagendamos para la próxima semana",    "Sáb", "LV", "#BDBDBD", 0, false, "Torres del Sol · Dpto 204"));
-        return list;
     }
 
     // ── Swipe para eliminar ───────────────────────────────────────────────────
@@ -265,6 +298,8 @@ public class MensajesActivity extends AppCompatActivity {
                 startActivity(new Intent(this, AsesorHomeActivity.class)); finish();
             } else if (id == R.id.nav_citas) {
                 startActivity(new Intent(this, CitasAgendadasActivity.class)); finish();
+            } else if (id == R.id.nav_reportes) {
+                startActivity(new Intent(this, AsesorReportesActivity.class)); finish();
             } else if (id == R.id.nav_perfil) {
                 startActivity(new Intent(this, AsesorPerfilActivity.class)); finish();
             }

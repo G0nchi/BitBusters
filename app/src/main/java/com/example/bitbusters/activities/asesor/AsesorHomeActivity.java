@@ -19,13 +19,20 @@ import com.example.bitbusters.R;
 import com.example.bitbusters.activities.access.LoginActivity;
 import com.example.bitbusters.activities.common.EscanearQRActivity;
 import com.example.bitbusters.databinding.ActivityAsesorHomeBinding;
+import com.example.bitbusters.models.AsesorNotif;
 import com.example.bitbusters.models.ProyectoApi;
 import com.example.bitbusters.utils.ApiClient;
 import com.example.bitbusters.utils.AsesorNotificationHelper;
 import com.example.bitbusters.utils.AuthHelper;
 import com.example.bitbusters.utils.AsesorStorage;
 import com.example.bitbusters.utils.BitBustersApiService;
+import com.example.bitbusters.utils.NotificationHelper;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.List;
 
@@ -39,6 +46,7 @@ public class AsesorHomeActivity extends AppCompatActivity {
     private ProyectoAdapter proyectoAdapter;
     private MaterialButton chipTodos, chipDepartamentos, chipVillas;
     private TextView badgeCampana;
+    private ListenerRegistration notifListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +55,8 @@ public class AsesorHomeActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         AsesorNotificationHelper.createChannel(this);
         requestNotifPermission();
+        cargarAsesorId();
+        cargarNombreAsesor();
         setupRecyclerView();
         setupChips();
         setupQuickActions();
@@ -56,6 +66,70 @@ public class AsesorHomeActivity extends AppCompatActivity {
         if (imgPerfil != null) {
             imgPerfil.setOnClickListener(v -> showProfileMenu(v));
         }
+    }
+
+    /**
+     * Lee el campo "asesorId" del documento del asesor en Firestore (colección "users")
+     * y lo guarda en SharedPreferences para usarlo en el chat.
+     * Si el campo no existe, usa el Firebase Auth UID como fallback.
+     */
+    private void cargarAsesorId() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        String cachedId = AsesorStorage.getAsesorId(this);
+        if (cachedId != null) return; // ya guardado
+
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(user.getUid())
+            .get()
+            .addOnSuccessListener(doc -> {
+                String asesorId = null;
+                if (doc.exists()) {
+                    asesorId = doc.getString("asesorId");
+                }
+                if (asesorId == null || asesorId.isEmpty()) {
+                    asesorId = user.getUid(); // fallback: usar UID de Firebase Auth
+                }
+                AsesorStorage.saveAsesorId(this, asesorId);
+            })
+            .addOnFailureListener(e ->
+                AsesorStorage.saveAsesorId(this, user.getUid()));
+    }
+
+    /** Lee nombre del asesor de Firestore y lo muestra en saludo e iniciales. */
+    private void cargarNombreAsesor() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(user.getUid())
+            .get()
+            .addOnSuccessListener(doc -> {
+                String nombre = doc.exists() ? doc.getString("nombre") : null;
+                if (nombre == null || nombre.isEmpty()) nombre = "Asesor";
+
+                TextView tvGreeting = binding.getRoot().findViewById(R.id.tvGreetingHome);
+                TextView tvInitials = binding.getRoot().findViewById(R.id.tvInitialsHome);
+
+                if (tvGreeting != null) {
+                    String hora = new java.text.SimpleDateFormat("HH", java.util.Locale.getDefault())
+                            .format(new java.util.Date());
+                    int h = Integer.parseInt(hora);
+                    String saludo = h < 12 ? "Buenos días, " : h < 18 ? "Buenas tardes, " : "Buenas noches, ";
+                    tvGreeting.setText(saludo + nombre.split(" ")[0] + " 👋");
+                }
+                if (tvInitials != null) tvInitials.setText(obtenerIniciales(nombre));
+            });
+    }
+
+    private static String obtenerIniciales(String nombre) {
+        String[] partes = nombre.trim().split("\\s+");
+        if (partes.length == 0) return "AS";
+        if (partes.length == 1) return partes[0].substring(0, Math.min(2, partes[0].length())).toUpperCase();
+        return (partes[0].substring(0, 1) + partes[1].substring(0, 1)).toUpperCase();
     }
 
     private void showProfileMenu(View anchor) {
@@ -198,9 +272,66 @@ public class AsesorHomeActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        startFirestoreNotifListener();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (notifListener != null) {
+            notifListener.remove();
+            notifListener = null;
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         refreshBadge();
+    }
+
+    private void startFirestoreNotifListener() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        notifListener = FirebaseFirestore.getInstance()
+                .collection("notifications")
+                .document(user.getUid())
+                .collection("items")
+                .whereEqualTo("read", false)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null || snapshots == null || snapshots.isEmpty()) return;
+
+                    boolean firstInBatch = true;
+                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                        String title = doc.getString("title");
+                        String body  = doc.getString("body");
+                        String type  = doc.getString("type");
+                        if (title == null) continue;
+
+                        // Guardar en Room DB para que aparezca en AsesorNotificacionesActivity
+                        String tipoLocal = "approval_accepted".equals(type)
+                                ? AsesorNotif.TIPO_VALORACION
+                                : AsesorNotif.TIPO_ALERTA;
+                        AsesorStorage.addNotificacion(this,
+                                new AsesorNotif(title, body != null ? body : "", "Ahora", tipoLocal));
+
+                        // Marcar como leída en Firestore para no procesar de nuevo
+                        doc.getReference().update("read", true);
+
+                        // Mostrar push local solo para la primera notificación del lote
+                        if (firstInBatch) {
+                            firstInBatch = false;
+                            Intent destino = new Intent(this, AsesorNotificacionesActivity.class);
+                            NotificationHelper.lanzarNotificacion(
+                                    this, title, body != null ? body : "",
+                                    (int) System.currentTimeMillis(), destino);
+                        }
+                    }
+                    refreshBadge();
+                });
     }
 
     private void refreshBadge() {
@@ -223,6 +354,8 @@ public class AsesorHomeActivity extends AppCompatActivity {
                     startActivity(new Intent(this, CitasAgendadasActivity.class));
                 } else if (id == R.id.nav_chat) {
                     startActivity(new Intent(this, MensajesActivity.class));
+                } else if (id == R.id.nav_reportes) {
+                    startActivity(new Intent(this, AsesorReportesActivity.class));
                 } else if (id == R.id.nav_perfil) {
                     startActivity(new Intent(this, AsesorPerfilActivity.class));
                 }

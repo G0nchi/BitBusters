@@ -68,6 +68,7 @@
                     android:paddingBottom="24dp">
 
                     <TextView
+                        android:id="@+id/userInitials"
                         android:layout_width="80dp"
                         android:layout_height="80dp"
                         android:background="@drawable/sa_avatar_bg"
@@ -78,6 +79,7 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/userName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
@@ -87,6 +89,7 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/userStatusPill"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
@@ -101,7 +104,7 @@
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/disableUserButton"
+                        android:id="@+id/toggleStatusButton"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:layout_marginTop="24dp"
