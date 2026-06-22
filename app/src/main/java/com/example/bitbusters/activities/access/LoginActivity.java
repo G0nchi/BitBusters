@@ -28,6 +28,8 @@ import com.example.bitbusters.utils.ImmersiveMode;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import android.util.Log;
+import com.google.firebase.messaging.FirebaseMessaging;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -136,16 +138,53 @@ public class LoginActivity extends AppCompatActivity {
                         mAuth.signOut();
                         return;
                     }
-                    String role = doc.getString("role");
+                    String role   = doc.getString("role");
                     String nombre = doc.getString("nombre");
-                    Log.d("LoginActivity", "Datos leídos → role: '" + role + "' | nombre: '" + nombre + "'");
-                    if (role == null || role.trim().isEmpty()) {
-                        Log.e("LoginActivity", "El campo 'role' está vacío o no existe en 'users'");
-                        Toast.makeText(this, "Tu rol no está configurado. Contacta al administrador.", Toast.LENGTH_LONG).show();
+                    String status = doc.getString("status");
+                    String fechaHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
+
+                    if ("inactive".equals(status)) {
                         mAuth.signOut();
+                        Toast.makeText(this, "Tu cuenta está desactivada. Contacta al soporte.", Toast.LENGTH_LONG).show();
                         return;
                     }
-                    routeByRole(role, nombre, uid);
+                    if ("pending".equals(status)) {
+                        mAuth.signOut();
+                        Toast.makeText(this, "Tu cuenta está pendiente de aprobación.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    Intent intent;
+                    switch (role != null ? role : "cliente") {
+                        case "superadmin":
+                            PreferencesManager.guardarNombreSuperadmin(this, nombre != null ? nombre : "Superadmin");
+                            PreferencesManager.guardarUltimoAccesoSuperadmin(this, fechaHora);
+                            intent = new Intent(this, SuperadminControlCenterActivity.class);
+                            break;
+                        case "admin":
+                            AdminPreferencesManager.guardarNombre(this, nombre != null ? nombre : "Admin");
+                            AdminPreferencesManager.guardarUltimoAcceso(this, fechaHora);
+                            intent = new Intent(this, AdminMainActivity.class);
+                            break;
+                        case "asesor":
+                            intent = new Intent(this, AsesorHomeActivity.class);
+                            break;
+                        default:
+                            PreferencesManager.guardarNombre(this, nombre != null ? nombre : "Cliente");
+                            PreferencesManager.guardarUltimoAcceso(this, fechaHora);
+                            intent = new Intent(this, HomeActivity.class);
+                            break;
+                    }
+                    // Guardar FCM token en Firestore para notificaciones push
+                    FirebaseMessaging.getInstance().getToken()
+                            .addOnSuccessListener(token ->
+                                    FirebaseFirestore.getInstance()
+                                            .collection("users").document(uid)
+                                            .update("fcmToken", token));
+
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
                 })
                 .addOnFailureListener(e -> {
                     Log.e("LoginActivity", "Error al leer 'users': " + e.getMessage());

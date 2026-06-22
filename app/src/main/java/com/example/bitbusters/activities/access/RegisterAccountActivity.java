@@ -1,13 +1,12 @@
 package com.example.bitbusters.activities.access;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -15,41 +14,36 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bitbusters.R;
-import com.example.bitbusters.activities.cliente.HomeActivity;
-import com.example.bitbusters.models.Usuario;
-import com.example.bitbusters.repository.AuthRepository;
 import com.example.bitbusters.utils.ImmersiveMode;
-import com.example.bitbusters.utils.PreferencesManager;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.Locale;
 
 /**
- * Pantalla de registro de cliente.
- * Recoge: nombre, email, teléfono, DNI, contraseña y confirmación de contraseña.
- * Valida todos los campos localmente, verifica unicidad de DNI en Firestore,
- * crea la cuenta en Firebase Auth y guarda el perfil en Firestore.
+ * Primer paso del registro de cliente: recoge los datos personales y, tras
+ * validarlos, navega a {@link RegisterOtpActivity} para verificar el correo
+ * con un código. La cuenta NO se crea aquí: se crea al verificar el OTP.
  */
 public class RegisterAccountActivity extends AppCompatActivity {
 
-    /** Extras para compatibilidad con RegisterOtpActivity y RegisterPasswordActivity (flujo asesor). */
-    public static final String EXTRA_EMAIL     = "extra_email";
-    public static final String EXTRA_FULL_NAME = "extra_full_name";
+    // Claves de extras propagadas a RegisterOtpActivity (y de ahí a la creación de cuenta).
+    public static final String EXTRA_FULL_NAME  = "fullName";
+    public static final String EXTRA_EMAIL      = "email";
+    public static final String EXTRA_PHONE      = "phone";
+    public static final String EXTRA_DNI        = "dni";
+    public static final String EXTRA_BIRTH_DATE = "birthDate";
+    public static final String EXTRA_PASSWORD   = "password";
 
-    private EditText fullNameInput;
-    private EditText emailInput;
-    private EditText phoneInput;
-    private EditText dniInput;
-    private EditText passwordInput;
-    private EditText repeatPasswordInput;
-    private MaterialButton registerButton;
-    private ProgressBar progressBar;
+    private EditText fullNameInput, emailInput, phoneInput, dniInput,
+            birthDateInput, passwordInput, repeatPasswordInput;
     private View rootLayout;
 
-    private AuthRepository authRepository;
+    /** Fecha elegida en el calendario; arranca en la fecha actual. */
+    private final Calendar fechaSeleccionada = Calendar.getInstance();
+    private final SimpleDateFormat formatoFecha =
+            new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,36 +51,31 @@ public class RegisterAccountActivity extends AppCompatActivity {
         ImmersiveMode.apply(this);
         setContentView(R.layout.activity_register_account);
 
-        authRepository = new AuthRepository();
-
         // Campos del formulario
-        fullNameInput      = findViewById(R.id.fullNameInput);
-        emailInput         = findViewById(R.id.emailInput);
-        phoneInput         = findViewById(R.id.phoneInput);
-        dniInput           = findViewById(R.id.dniInput);
-        passwordInput      = findViewById(R.id.passwordInput);
+        fullNameInput       = findViewById(R.id.fullNameInput);
+        emailInput          = findViewById(R.id.emailInput);
+        phoneInput          = findViewById(R.id.phoneInput);
+        dniInput            = findViewById(R.id.dniInput);
+        birthDateInput      = findViewById(R.id.birthDateInput);
+        passwordInput       = findViewById(R.id.passwordInput);
         repeatPasswordInput = findViewById(R.id.repeatPasswordInput);
+        rootLayout          = findViewById(R.id.main);
 
-        // Controles de UI
-        registerButton = findViewById(R.id.registerButton);
-        progressBar    = findViewById(R.id.progressBar);
-        rootLayout     = findViewById(R.id.main);
+        MaterialButton backButton     = findViewById(R.id.backButton);
+        MaterialButton registerButton = findViewById(R.id.registerButton);
+        TextView loginLink            = findViewById(R.id.loginLink);
 
-        // Botón atrás
-        MaterialButton backButton = findViewById(R.id.backButton);
-        if (backButton != null) {
-            backButton.setOnClickListener(v -> finish());
+        if (backButton != null) backButton.setOnClickListener(v -> finish());
+        if (loginLink != null)  loginLink.setOnClickListener(v -> finish());
+
+        // La fecha de nacimiento se elige con un calendario (no se escribe a mano).
+        if (birthDateInput != null) {
+            birthDateInput.setOnClickListener(v -> mostrarCalendarioFechaNacimiento());
         }
 
-        // Link "¿Ya tienes cuenta? Inicia sesión"
-        TextView loginLink = findViewById(R.id.loginLink);
-        if (loginLink != null) {
-            loginLink.setOnClickListener(v -> finish());
-        }
-
-        // Botón Registrarme
+        // Botón Registrarme → valida y pasa a la verificación por código (OTP).
         if (registerButton != null) {
-            registerButton.setOnClickListener(v -> attemptRegister());
+            registerButton.setOnClickListener(v -> irAVerificacionOtp());
         }
 
         if (rootLayout != null) {
@@ -98,54 +87,37 @@ public class RegisterAccountActivity extends AppCompatActivity {
         }
     }
 
-    // ── Flujo de registro ────────────────────────────────────────────────────
+    // ── Calendario de fecha de nacimiento ────────────────────────────────────
 
-    private void attemptRegister() {
+    private void mostrarCalendarioFechaNacimiento() {
+        DatePickerDialog dialog = new DatePickerDialog(
+                this,
+                (view, year, month, day) -> {
+                    fechaSeleccionada.set(year, month, day);
+                    birthDateInput.setText(formatoFecha.format(fechaSeleccionada.getTime()));
+                    clearInputError(birthDateInput);
+                },
+                fechaSeleccionada.get(Calendar.YEAR),
+                fechaSeleccionada.get(Calendar.MONTH),
+                fechaSeleccionada.get(Calendar.DAY_OF_MONTH));
+        // No tiene sentido nacer en el futuro.
+        dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        dialog.show();
+    }
+
+    // ── Navegación al paso de verificación (OTP) ─────────────────────────────
+
+    private void irAVerificacionOtp() {
         if (!validateFields()) return;
 
-        String nombre   = fullNameInput.getText().toString().trim();
-        String email    = emailInput.getText().toString().trim();
-        String telefono = phoneInput.getText().toString().trim();
-        String dni      = dniInput.getText().toString().trim();
-        String password = passwordInput.getText().toString();
-
-        setLoading(true);
-
-        authRepository.registrarCliente(nombre, email, password, telefono, dni,
-                new AuthRepository.AuthCallback() {
-                    @Override
-                    public void onSuccess(Usuario usuario) {
-                        // Guardar nombre en PreferencesManager para uso local
-                        String fechaHora = new SimpleDateFormat(
-                                "dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
-                        PreferencesManager.guardarNombre(
-                                RegisterAccountActivity.this, usuario.getNombre());
-                        PreferencesManager.guardarUltimoAcceso(
-                                RegisterAccountActivity.this, fechaHora);
-
-                        Toast.makeText(RegisterAccountActivity.this,
-                                "¡Cuenta creada! Bienvenido, " + usuario.getNombre(),
-                                Toast.LENGTH_LONG).show();
-
-                        Intent intent = new Intent(
-                                RegisterAccountActivity.this, HomeActivity.class);
-                        intent.setFlags(
-                                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
-                    }
-
-                    @Override
-                    public void onError(String mensaje) {
-                        setLoading(false);
-                        if (rootLayout != null) {
-                            Snackbar.make(rootLayout, mensaje, Snackbar.LENGTH_LONG).show();
-                        } else {
-                            Toast.makeText(RegisterAccountActivity.this,
-                                    mensaje, Toast.LENGTH_LONG).show();
-                        }
-                    }
-                });
+        Intent intent = new Intent(this, RegisterOtpActivity.class);
+        intent.putExtra(EXTRA_FULL_NAME,  fullNameInput.getText().toString().trim());
+        intent.putExtra(EXTRA_EMAIL,      emailInput.getText().toString().trim());
+        intent.putExtra(EXTRA_PHONE,      phoneInput.getText().toString().trim());
+        intent.putExtra(EXTRA_DNI,        dniInput.getText().toString().trim());
+        intent.putExtra(EXTRA_BIRTH_DATE, birthDateInput.getText().toString().trim());
+        intent.putExtra(EXTRA_PASSWORD,   passwordInput.getText().toString());
+        startActivity(intent);
     }
 
     // ── Validaciones locales ─────────────────────────────────────────────────
@@ -154,8 +126,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
         boolean isValid = true;
 
         // Nombre (mínimo 3 caracteres)
-        String nombre = fullNameInput != null
-                ? fullNameInput.getText().toString().trim() : "";
+        String nombre = fullNameInput != null ? fullNameInput.getText().toString().trim() : "";
         if (nombre.isEmpty()) {
             setInputError(fullNameInput, getString(R.string.validation_required));
             isValid = false;
@@ -167,8 +138,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
         }
 
         // Email
-        String email = emailInput != null
-                ? emailInput.getText().toString().trim() : "";
+        String email = emailInput != null ? emailInput.getText().toString().trim() : "";
         if (email.isEmpty()) {
             setInputError(emailInput, getString(R.string.validation_required));
             isValid = false;
@@ -180,8 +150,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
         }
 
         // Teléfono (9 dígitos, empieza con 9)
-        String telefono = phoneInput != null
-                ? phoneInput.getText().toString().trim() : "";
+        String telefono = phoneInput != null ? phoneInput.getText().toString().trim() : "";
         if (telefono.isEmpty()) {
             setInputError(phoneInput, getString(R.string.validation_required));
             isValid = false;
@@ -193,8 +162,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
         }
 
         // DNI (exactamente 8 dígitos numéricos)
-        String dni = dniInput != null
-                ? dniInput.getText().toString().trim() : "";
+        String dni = dniInput != null ? dniInput.getText().toString().trim() : "";
         if (dni.isEmpty()) {
             setInputError(dniInput, getString(R.string.validation_required));
             isValid = false;
@@ -205,9 +173,17 @@ public class RegisterAccountActivity extends AppCompatActivity {
             clearInputError(dniInput);
         }
 
+        // Fecha de nacimiento (obligatoria; se elige desde el calendario)
+        String fecha = birthDateInput != null ? birthDateInput.getText().toString().trim() : "";
+        if (fecha.isEmpty()) {
+            setInputError(birthDateInput, getString(R.string.validation_required));
+            isValid = false;
+        } else {
+            clearInputError(birthDateInput);
+        }
+
         // Contraseña (mínimo 6 caracteres)
-        String password = passwordInput != null
-                ? passwordInput.getText().toString() : "";
+        String password = passwordInput != null ? passwordInput.getText().toString() : "";
         if (password.isEmpty()) {
             setInputError(passwordInput, getString(R.string.validation_required));
             isValid = false;
@@ -225,8 +201,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
             setInputError(repeatPasswordInput, getString(R.string.validation_required));
             isValid = false;
         } else if (!password.equals(repeatPassword)) {
-            setInputError(repeatPasswordInput,
-                    getString(R.string.validation_password_mismatch));
+            setInputError(repeatPasswordInput, getString(R.string.validation_password_mismatch));
             isValid = false;
         } else {
             clearInputError(repeatPasswordInput);
@@ -241,16 +216,5 @@ public class RegisterAccountActivity extends AppCompatActivity {
 
     private void clearInputError(EditText input) {
         if (input != null) input.setError(null);
-    }
-
-    // ── Estado de carga ──────────────────────────────────────────────────────
-
-    private void setLoading(boolean loading) {
-        if (progressBar != null) {
-            progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
-        }
-        if (registerButton != null) {
-            registerButton.setEnabled(!loading);
-        }
     }
 }

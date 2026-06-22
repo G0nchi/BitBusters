@@ -19,16 +19,20 @@ import com.example.bitbusters.R;
 import com.example.bitbusters.activities.access.LoginActivity;
 import com.example.bitbusters.activities.common.EscanearQRActivity;
 import com.example.bitbusters.databinding.ActivityAsesorHomeBinding;
+import com.example.bitbusters.models.AsesorNotif;
 import com.example.bitbusters.models.ProyectoApi;
 import com.example.bitbusters.utils.ApiClient;
 import com.example.bitbusters.utils.AsesorNotificationHelper;
 import com.example.bitbusters.utils.AuthHelper;
 import com.example.bitbusters.utils.AsesorStorage;
 import com.example.bitbusters.utils.BitBustersApiService;
+import com.example.bitbusters.utils.NotificationHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.List;
 
@@ -42,6 +46,7 @@ public class AsesorHomeActivity extends AppCompatActivity {
     private ProyectoAdapter proyectoAdapter;
     private MaterialButton chipTodos, chipDepartamentos, chipVillas;
     private TextView badgeCampana;
+    private ListenerRegistration notifListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -267,9 +272,66 @@ public class AsesorHomeActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        startFirestoreNotifListener();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (notifListener != null) {
+            notifListener.remove();
+            notifListener = null;
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         refreshBadge();
+    }
+
+    private void startFirestoreNotifListener() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        notifListener = FirebaseFirestore.getInstance()
+                .collection("notifications")
+                .document(user.getUid())
+                .collection("items")
+                .whereEqualTo("read", false)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null || snapshots == null || snapshots.isEmpty()) return;
+
+                    boolean firstInBatch = true;
+                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                        String title = doc.getString("title");
+                        String body  = doc.getString("body");
+                        String type  = doc.getString("type");
+                        if (title == null) continue;
+
+                        // Guardar en Room DB para que aparezca en AsesorNotificacionesActivity
+                        String tipoLocal = "approval_accepted".equals(type)
+                                ? AsesorNotif.TIPO_VALORACION
+                                : AsesorNotif.TIPO_ALERTA;
+                        AsesorStorage.addNotificacion(this,
+                                new AsesorNotif(title, body != null ? body : "", "Ahora", tipoLocal));
+
+                        // Marcar como leída en Firestore para no procesar de nuevo
+                        doc.getReference().update("read", true);
+
+                        // Mostrar push local solo para la primera notificación del lote
+                        if (firstInBatch) {
+                            firstInBatch = false;
+                            Intent destino = new Intent(this, AsesorNotificacionesActivity.class);
+                            NotificationHelper.lanzarNotificacion(
+                                    this, title, body != null ? body : "",
+                                    (int) System.currentTimeMillis(), destino);
+                        }
+                    }
+                    refreshBadge();
+                });
     }
 
     private void refreshBadge() {
