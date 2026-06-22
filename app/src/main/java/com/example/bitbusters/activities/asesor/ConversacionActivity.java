@@ -45,9 +45,7 @@ public class ConversacionActivity extends AppCompatActivity {
         binding = ActivityConversacionBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Singleton: reutiliza el mismo cache aunque se abra/cierre la Activity.
-        // Para producción: reemplazar por new FirestoreChatRepository()
-        chatRepo = MockChatRepository.getInstance();
+        chatRepo = new com.example.bitbusters.utils.FirestoreChatRepository();
         chatId   = getIntent().getStringExtra(EXTRA_CHAT_ID);
 
         bindHeader();

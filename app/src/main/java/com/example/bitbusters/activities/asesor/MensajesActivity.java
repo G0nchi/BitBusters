@@ -17,6 +17,8 @@ import com.example.bitbusters.adapters.ChatsAdapter;
 import com.example.bitbusters.databinding.ActivityMensajesBinding;
 import com.example.bitbusters.models.Chat;
 import com.example.bitbusters.utils.AsesorStorage;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -60,6 +62,62 @@ public class MensajesActivity extends AppCompatActivity {
         setupNewChat();
         setupSwipeToDelete();
         setupBottomNav();
+        cargarChatsFirestore();
+    }
+
+    // ── Cargar chats reales desde Firestore ───────────────────────────────────
+
+    /**
+     * Consulta Firestore: chats donde asesorId == el ID del asesor actual.
+     * Agrega los chats reales al inicio de la sección ACTIVOS sin duplicar
+     * los ya existentes por ID.
+     */
+    private void cargarChatsFirestore() {
+        String asesorId = AsesorStorage.getAsesorId(this);
+        if (asesorId == null || asesorId.isEmpty()) return;
+
+        FirebaseFirestore.getInstance()
+            .collection("chats")
+            .whereEqualTo("asesorId", asesorId)
+            .get()
+            .addOnSuccessListener(query -> {
+                if (query.isEmpty()) return;
+
+                Set<String> existingIds = new HashSet<>();
+                for (Object obj : items) {
+                    if (obj instanceof Chat) existingIds.add(((Chat) obj).getId());
+                }
+
+                for (QueryDocumentSnapshot doc : query) {
+                    String chatId      = doc.getId();
+                    String clienteNombre = doc.getString("clienteNombre");
+                    String lastMsg     = doc.getString("lastMessage");
+                    String lastTime    = doc.getString("lastTime");
+
+                    if (clienteNombre == null) clienteNombre = "Cliente";
+                    if (lastMsg       == null) lastMsg       = "Chat iniciado";
+                    if (lastTime      == null) lastTime      = "Ahora";
+
+                    if (!existingIds.contains(chatId)) {
+                        String initials = buildInitials(clienteNombre);
+                        newChats.add(new Chat(chatId, clienteNombre, lastMsg, lastTime,
+                                initials, "#4DB6AC", 0, true, "Firestore"));
+                        existingIds.add(chatId);
+                    }
+                }
+
+                buildItems();
+                adapter.updateItems(items);
+            })
+            .addOnFailureListener(e ->
+                android.util.Log.e("MensajesActivity", "Error Firestore: " + e.getMessage()));
+    }
+
+    private String buildInitials(String name) {
+        String[] parts = name.trim().split("\\s+");
+        if (parts.length == 0) return "CL";
+        if (parts.length == 1) return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
+        return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
     }
 
     // ── Abrir conversación ────────────────────────────────────────────────────

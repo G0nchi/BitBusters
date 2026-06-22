@@ -26,6 +26,9 @@ import com.example.bitbusters.utils.AuthHelper;
 import com.example.bitbusters.utils.AsesorStorage;
 import com.example.bitbusters.utils.BitBustersApiService;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
@@ -47,6 +50,7 @@ public class AsesorHomeActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         AsesorNotificationHelper.createChannel(this);
         requestNotifPermission();
+        cargarAsesorId();
         setupRecyclerView();
         setupChips();
         setupQuickActions();
@@ -56,6 +60,36 @@ public class AsesorHomeActivity extends AppCompatActivity {
         if (imgPerfil != null) {
             imgPerfil.setOnClickListener(v -> showProfileMenu(v));
         }
+    }
+
+    /**
+     * Lee el campo "asesorId" del documento del asesor en Firestore (colección "users")
+     * y lo guarda en SharedPreferences para usarlo en el chat.
+     * Si el campo no existe, usa el Firebase Auth UID como fallback.
+     */
+    private void cargarAsesorId() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        String cachedId = AsesorStorage.getAsesorId(this);
+        if (cachedId != null) return; // ya guardado
+
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(user.getUid())
+            .get()
+            .addOnSuccessListener(doc -> {
+                String asesorId = null;
+                if (doc.exists()) {
+                    asesorId = doc.getString("asesorId");
+                }
+                if (asesorId == null || asesorId.isEmpty()) {
+                    asesorId = user.getUid(); // fallback: usar UID de Firebase Auth
+                }
+                AsesorStorage.saveAsesorId(this, asesorId);
+            })
+            .addOnFailureListener(e ->
+                AsesorStorage.saveAsesorId(this, user.getUid()));
     }
 
     private void showProfileMenu(View anchor) {
