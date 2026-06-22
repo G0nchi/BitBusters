@@ -323,6 +323,8 @@ public class MensajesActivity extends AppCompatActivity {
                 startActivity(new Intent(this, AsesorHomeActivity.class)); finish();
             } else if (id == R.id.nav_citas) {
                 startActivity(new Intent(this, CitasAgendadasActivity.class)); finish();
+            } else if (id == R.id.nav_reportes) {
+                startActivity(new Intent(this, AsesorReportesActivity.class)); finish();
             } else if (id == R.id.nav_perfil) {
                 startActivity(new Intent(this, AsesorPerfilActivity.class)); finish();
             }

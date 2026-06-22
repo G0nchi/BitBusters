@@ -51,6 +51,7 @@ public class AsesorHomeActivity extends AppCompatActivity {
         AsesorNotificationHelper.createChannel(this);
         requestNotifPermission();
         cargarAsesorId();
+        cargarNombreAsesor();
         setupRecyclerView();
         setupChips();
         setupQuickActions();
@@ -90,6 +91,40 @@ public class AsesorHomeActivity extends AppCompatActivity {
             })
             .addOnFailureListener(e ->
                 AsesorStorage.saveAsesorId(this, user.getUid()));
+    }
+
+    /** Lee nombre del asesor de Firestore y lo muestra en saludo e iniciales. */
+    private void cargarNombreAsesor() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(user.getUid())
+            .get()
+            .addOnSuccessListener(doc -> {
+                String nombre = doc.exists() ? doc.getString("nombre") : null;
+                if (nombre == null || nombre.isEmpty()) nombre = "Asesor";
+
+                TextView tvGreeting = binding.getRoot().findViewById(R.id.tvGreetingHome);
+                TextView tvInitials = binding.getRoot().findViewById(R.id.tvInitialsHome);
+
+                if (tvGreeting != null) {
+                    String hora = new java.text.SimpleDateFormat("HH", java.util.Locale.getDefault())
+                            .format(new java.util.Date());
+                    int h = Integer.parseInt(hora);
+                    String saludo = h < 12 ? "Buenos días, " : h < 18 ? "Buenas tardes, " : "Buenas noches, ";
+                    tvGreeting.setText(saludo + nombre.split(" ")[0] + " 👋");
+                }
+                if (tvInitials != null) tvInitials.setText(obtenerIniciales(nombre));
+            });
+    }
+
+    private static String obtenerIniciales(String nombre) {
+        String[] partes = nombre.trim().split("\\s+");
+        if (partes.length == 0) return "AS";
+        if (partes.length == 1) return partes[0].substring(0, Math.min(2, partes[0].length())).toUpperCase();
+        return (partes[0].substring(0, 1) + partes[1].substring(0, 1)).toUpperCase();
     }
 
     private void showProfileMenu(View anchor) {
@@ -257,6 +292,8 @@ public class AsesorHomeActivity extends AppCompatActivity {
                     startActivity(new Intent(this, CitasAgendadasActivity.class));
                 } else if (id == R.id.nav_chat) {
                     startActivity(new Intent(this, MensajesActivity.class));
+                } else if (id == R.id.nav_reportes) {
+                    startActivity(new Intent(this, AsesorReportesActivity.class));
                 } else if (id == R.id.nav_perfil) {
                     startActivity(new Intent(this, AsesorPerfilActivity.class));
                 }
