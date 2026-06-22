@@ -5,11 +5,11 @@ import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bitbusters.databinding.ActivityNuevaSeparacionBinding;
-import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -48,11 +48,26 @@ public class NuevaSeparacionActivity extends AppCompatActivity {
         binding.btnContinuar.setOnClickListener(v -> {
             String monto = binding.etSepValor != null
                 ? binding.etSepValor.getText().toString().trim() : "";
+            String fecha = binding.etSepFecha != null
+                ? binding.etSepFecha.getText().toString().trim() : "";
+            String hora  = binding.etSepHora  != null
+                ? binding.etSepHora.getText().toString().trim()  : "";
+
+            if (fecha.isEmpty()) {
+                Toast.makeText(this, "Selecciona una fecha", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (hora.isEmpty()) {
+                Toast.makeText(this, "Selecciona una hora", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             Intent intent = new Intent(this, PagoSeparacionActivity.class);
             intent.putExtra(PagoSeparacionActivity.EXTRA_CLIENTE,  clienteNombre);
             intent.putExtra(PagoSeparacionActivity.EXTRA_PROYECTO, proyectoNombre);
             intent.putExtra(PagoSeparacionActivity.EXTRA_MONTO,    monto.isEmpty() ? "0" : monto);
+            intent.putExtra(PagoSeparacionActivity.EXTRA_FECHA,    fecha);
+            intent.putExtra(PagoSeparacionActivity.EXTRA_HORA,     hora);
             startActivity(intent);
         });
     }
