@@ -1,0 +1,18 @@
+{
+  "name": "functions",
+  "description": "Cloud Functions de BitBusters — envío del código OTP de registro por email",
+  "main": "index.js",
+  "private": true,
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "logs": "firebase functions:log",
+    "deploy": "firebase deploy --only functions"
+  },
+  "dependencies": {
+    "firebase-functions": "^5.1.0",
+    "nodemailer": "^6.9.14"
+  }
+}
