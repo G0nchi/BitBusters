@@ -108,6 +108,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.cliente.AgendaCitaActivity" android:exported="false" />
+        <activity android:name=".activities.cliente.CitaDetailActivity" android:exported="false" />
         <activity android:name=".activities.cliente.MisCitasActivity" android:exported="false" />
         <activity android:name=".activities.cliente.PaymentMethodActivity" android:exported="false" />
         <activity android:name=".activities.cliente.NotificationsActivity" android:exported="false" />

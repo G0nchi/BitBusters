@@ -69,7 +69,7 @@ public class ClientAppointmentsAdapter extends RecyclerView.Adapter<ClientAppoin
         if (ClientAppointment.STATUS_CONFIRMED.equals(status)) {
             holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_confirmada);
             holder.tvStatus.setTextColor(0xFF2E7D32);
-            holder.btnLeft.setText(ACTION_REAGENDAR);
+            holder.btnLeft.setText(ACTION_VER_DETALLE);
             holder.btnRight.setText(ACTION_CANCELAR);
         } else if (ClientAppointment.STATUS_PENDING.equals(status)) {
             holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_pendiente);
@@ -79,7 +79,7 @@ public class ClientAppointmentsAdapter extends RecyclerView.Adapter<ClientAppoin
         } else if (ClientAppointment.STATUS_COMPLETED.equals(status)) {
             holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_completada);
             holder.tvStatus.setTextColor(0xFF1565C0);
-            holder.btnLeft.setText(ACTION_REAGENDAR);
+            holder.btnLeft.setText(ACTION_VER_DETALLE);
             holder.btnRight.setText(ACTION_VALORAR);
         } else if (ClientAppointment.STATUS_REVIEWED.equals(status)) {
             holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_completada);

@@ -76,7 +76,7 @@ public class MisCitasActivity extends AppCompatActivity {
                 new ClientAppointmentsAdapter.OnAppointmentActionListener() {
                     @Override
                     public void onPrimaryAction(ClientAppointment cita) {
-                        accionReagendar(cita);
+                        abrirDetalleCita(cita);
                     }
                     @Override
                     public void onSecondaryAction(ClientAppointment cita) {
@@ -189,19 +189,16 @@ public class MisCitasActivity extends AppCompatActivity {
 
     // ── Acciones del adapter ───────────────────────────────────────────────────
 
-    private void accionReagendar(ClientAppointment cita) {
-        String status = cita.getStatus();
-        // Solo se puede reagendar citas activas (pendiente o confirmada)
-        if (!ClientAppointment.STATUS_PENDING.equals(status)
-                && !ClientAppointment.STATUS_CONFIRMED.equals(status)) return;
-
-        Intent intent = new Intent(this, AgendaCitaActivity.class);
-        intent.putExtra(AgendaCitaActivity.EXTRA_PROYECTO,         cita.getProjectName());
-        intent.putExtra(AgendaCitaActivity.EXTRA_PROYECTO_ID,      cita.getProyectoId());
-        intent.putExtra(AgendaCitaActivity.EXTRA_UID_ASESOR,       cita.getUidAsesorCita());
-        intent.putExtra(AgendaCitaActivity.EXTRA_MODO,             "reagendar");
-        intent.putExtra(AgendaCitaActivity.EXTRA_CITA_ID,          cita.getFirestoreId());
-        intent.putExtra(AgendaCitaActivity.EXTRA_SLOT_ID_ANTERIOR, cita.getSlotId());
+    private void abrirDetalleCita(ClientAppointment cita) {
+        Intent intent = new Intent(this, CitaDetailActivity.class);
+        intent.putExtra(CitaDetailActivity.EXTRA_FIRESTORE_ID,    cita.getFirestoreId());
+        intent.putExtra(CitaDetailActivity.EXTRA_SLOT_ID,         cita.getSlotId());
+        intent.putExtra(CitaDetailActivity.EXTRA_PROYECTO_ID,     cita.getProyectoId());
+        intent.putExtra(CitaDetailActivity.EXTRA_PROYECTO_NOMBRE, cita.getProjectName());
+        intent.putExtra(CitaDetailActivity.EXTRA_UID_ASESOR,      cita.getUidAsesorCita());
+        intent.putExtra(CitaDetailActivity.EXTRA_FECHA,           cita.getDate());
+        intent.putExtra(CitaDetailActivity.EXTRA_HORA,            cita.getTime());
+        intent.putExtra(CitaDetailActivity.EXTRA_ESTADO,          cita.getStatus());
         startActivity(intent);
     }
 
