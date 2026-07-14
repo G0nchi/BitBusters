@@ -140,20 +140,22 @@ public class CitaRepository {
 
     // ── Cancelar cita (WriteBatch) ──────────────────────────────────────────────
 
-    public Task<Void> cancelarCita(String citaId, String slotId) {
+    public Task<Void> cancelarCita(String citaId, String slotId, String motivoCancelacion) {
         WriteBatch batch = db.batch();
 
         DocumentReference citaRef = db.collection(CITAS).document(citaId);
-        batch.update(citaRef,
-                "estado",        Cita.ESTADO_CANCELADA,
-                "actualizadoEn", FieldValue.serverTimestamp());
+        Map<String, Object> citaUpdates = new HashMap<>();
+        citaUpdates.put("estado",              Cita.ESTADO_CANCELADA);
+        citaUpdates.put("actualizadoEn",       FieldValue.serverTimestamp());
+        citaUpdates.put("motivoCancelacion",   motivoCancelacion);
+        batch.update(citaRef, citaUpdates);
 
         if (slotId != null && !slotId.isEmpty()) {
             DocumentReference slotRef = db.collection(SLOTS).document(slotId);
             batch.update(slotRef,
-                    "ocupado",         false,
-                    "canceladoEn",     FieldValue.serverTimestamp(),
-                    "citaIdAnterior",  citaId);
+                    "ocupado",        false,
+                    "canceladoEn",    FieldValue.serverTimestamp(),
+                    "citaIdAnterior", citaId);
         }
 
         return batch.commit();

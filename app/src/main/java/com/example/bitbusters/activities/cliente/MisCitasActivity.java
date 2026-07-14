@@ -219,27 +219,56 @@ public class MisCitasActivity extends AppCompatActivity {
     }
 
     private void mostrarDialogoCancelar(ClientAppointment cita) {
-        new AlertDialog.Builder(this)
+        android.widget.EditText etMotivo = new android.widget.EditText(this);
+        etMotivo.setHint("Indica el motivo de cancelación");
+        etMotivo.setMaxLines(3);
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+
+        android.widget.LinearLayout container = new android.widget.LinearLayout(this);
+        container.setOrientation(android.widget.LinearLayout.VERTICAL);
+        container.setPadding(pad, pad / 2, pad, 0);
+        container.addView(etMotivo);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Cancelar cita")
-                .setMessage("¿Estás seguro que deseas cancelar esta cita?")
-                .setPositiveButton("Sí", (dialog, which) -> {
-                    String firestoreId = cita.getFirestoreId();
-                    String slotId      = cita.getSlotId();
-                    if (firestoreId == null || firestoreId.isEmpty()) {
-                        Toast.makeText(this, "Error: cita sin ID. Recarga.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    citaRepository.cancelarCita(firestoreId, slotId)
-                            .addOnSuccessListener(v ->
-                                    Toast.makeText(this, "Cita cancelada", Toast.LENGTH_SHORT).show())
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(this, "No se pudo cancelar. Intenta de nuevo.", Toast.LENGTH_SHORT).show();
-                                Log.e(TAG, "Error cancelando: " + e.getMessage());
-                            });
-                    // La UI se actualiza automáticamente por el listener de Firestore
-                })
-                .setNegativeButton("No", null)
-                .show();
+                .setMessage("Esta acción no se puede deshacer.")
+                .setView(container)
+                .setPositiveButton("Cancelar cita", null) // override en setOnShowListener
+                .setNegativeButton("Volver", null)
+                .create();
+
+        dialog.setOnShowListener(d -> {
+            android.widget.Button btnConfirmar = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            btnConfirmar.setOnClickListener(v -> {
+                String motivo = etMotivo.getText().toString().trim();
+                if (motivo.isEmpty()) {
+                    etMotivo.setError("Indica el motivo");
+                    return;
+                }
+                String firestoreId = cita.getFirestoreId();
+                String slotId      = cita.getSlotId();
+                if (firestoreId == null || firestoreId.isEmpty()) {
+                    Toast.makeText(this, "Error: cita sin ID. Recarga.", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                    return;
+                }
+                btnConfirmar.setEnabled(false);
+                citaRepository.cancelarCita(firestoreId, slotId, motivo)
+                        .addOnSuccessListener(__ -> {
+                            Toast.makeText(this, "Cita cancelada", Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+                            // La UI se actualiza automáticamente por el listener de Firestore
+                        })
+                        .addOnFailureListener(e -> {
+                            btnConfirmar.setEnabled(true);
+                            Toast.makeText(this, "No se pudo cancelar. Intenta de nuevo.",
+                                    Toast.LENGTH_SHORT).show();
+                            Log.e(TAG, "Error cancelando: " + e.getMessage());
+                        });
+            });
+        });
+
+        dialog.show();
     }
 
     // ── Tabs ───────────────────────────────────────────────────────────────────

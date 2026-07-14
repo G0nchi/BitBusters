@@ -75,7 +75,7 @@ public class ClientAppointmentsAdapter extends RecyclerView.Adapter<ClientAppoin
             holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_pendiente);
             holder.tvStatus.setTextColor(0xFFE65100);
             holder.btnLeft.setText(ACTION_VER_DETALLE);
-            holder.btnRight.setText(ACTION_REAGENDAR);
+            holder.btnRight.setText(ACTION_CANCELAR);
         } else if (ClientAppointment.STATUS_COMPLETED.equals(status)) {
             holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_completada);
             holder.tvStatus.setTextColor(0xFF1565C0);
