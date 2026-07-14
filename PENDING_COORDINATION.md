@@ -147,6 +147,47 @@ Responsable Firebase aplica los cambios en consola → Firestore → Rules → P
 
 ---
 
+## PC-05 — Política de `uidAsesores` en proyectos: campo obligatorio desde el origen
+
+### Contexto
+
+El módulo Cliente usa `proyectos.uidAsesores` (array de UIDs) para:
+
+1. Mostrar el botón "Agendar cita" habilitado en `ProjectDetailActivity`.
+2. Pasar `uidAsesor = uidAsesores[0]` a `AgendaCitaActivity` → campo `uidAsesor` en `citas/{citaId}`.
+
+Los proyectos creados antes del refactor de citas (seeds, creación manual en consola) no tienen este campo → el botón "Agendar cita" queda deshabilitado con el mensaje "Este proyecto no tiene asesor asignado."
+
+### Definición del campo
+
+| Campo | Tipo | Cardinalidad | Regla |
+|-------|------|--------------|-------|
+| `uidAsesores` | `Array<String>` | 1..N UIDs de Firebase Auth | **Obligatorio en todo proyecto nuevo** |
+
+- Es un **array** para soportar proyectos con múltiples asesores en el futuro.
+- La política actual usa `uidAsesores[0]` (primer asesor del array) para asignar citas.
+- El Admin debe elegir el asesor al crear o editar un proyecto desde `AdminCrearProyectoActivity` / `AdminEditarProyectoActivity`.
+
+### Acción para proyectos existentes (migración one-shot)
+
+Usar `AdminSeedActivity` (herramienta de desarrollo incluida en esta rama):
+
+```
+adb shell am start -n com.example.bitbusters/.activities.admin.AdminSeedActivity
+```
+
+La activity:
+1. Lee usuarios con `role = "asesor"` de la colección `users`.
+2. Si no hay ninguno, crea `asesor_demo_001` automáticamente.
+3. Asigna en round-robin un asesor a cada proyecto sin `uidAsesores`.
+4. Escribe con `WriteBatch`. Reporta en Logcat y en pantalla.
+
+### Acción para proyectos nuevos
+
+En `AdminCrearProyectoActivity` y `AdminEditarProyectoActivity` (módulo Admin), verificar que el formulario de creación/edición de proyectos incluya la selección de asesor y persista `uidAsesores` como array en Firestore. **Esta tarea corresponde al dueño del módulo Admin.**
+
+---
+
 ## PC-04 — Índices compuestos Firestore requeridos por el módulo Cliente
 
 Las queries de `CitaRepository` requieren índices compuestos. Sin ellos, Firestore falla con error que incluye un link directo para crearlos.

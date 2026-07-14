@@ -254,7 +254,34 @@ String display = sdf.format(cita.getFechaTimestamp());
 
 ---
 
-## 8. Horarios operativos válidos
+## 8. Relación Proyecto → Asesor en el flujo de citas
+
+### ¿Un asesor o múltiples?
+
+El modelo `Proyecto` define `uidAsesores: List<String>` (array). Un proyecto **puede tener múltiples asesores** en Firestore. Sin embargo, el flujo de reserva de citas siempre asigna `uidAsesores[0]` (el primero del array).
+
+| Campo en `proyectos/` | Tipo | Cardinalidad | Política actual |
+|-----------------------|------|--------------|-----------------|
+| `uidAsesores`         | Array\<String\> | 1..N | Se usa `get(0)` — el primer UID asignado |
+
+### ¿Por qué `uidAsesores[0]`?
+
+- Es suficiente para el flujo MVP: un proyecto con un asesor principal.
+- Si en el futuro se implementa elección de asesor por el cliente, el campo ya soporta múltiples (sin migración de schema).
+- El Admin ordena los UIDs según prioridad al registrar el proyecto.
+
+### Consecuencia si el array está vacío o ausente
+
+`ProjectDetailActivity.pintarDatosProyecto()` detecta este caso:
+- Deshabilita el botón "Agendar cita" (alpha=0.4, enabled=false).
+- Muestra: _"Este proyecto no tiene asesor asignado. Contacta al administrador."_
+- Emite `Log.w("ProjectDetail", "Proyecto sin uidAsesores: {proyectoId}")`.
+
+Para corregir proyectos existentes sin asesor: ver **PC-05**.
+
+---
+
+## 9. Horarios operativos válidos
 
 ```java
 // Horarios disponibles en AgendaCitaActivity (ID layout → código 24h)
@@ -269,7 +296,7 @@ SlotIds para proyectoId="abc123", 14 Jul 2026:
 
 ---
 
-## 9. Consideraciones de zona horaria
+## 10. Consideraciones de zona horaria
 
 ```java
 // Calcular fechaTimestamp (zona Lima)
