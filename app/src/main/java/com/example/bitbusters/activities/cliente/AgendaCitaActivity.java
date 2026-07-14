@@ -197,6 +197,7 @@ public class AgendaCitaActivity extends AppCompatActivity {
                     getResources().getColor(android.R.color.black, getTheme()));
 
             iniciarSlotListener(year, month);   // reinicia si cambia de mes
+            actualizarDisponibilidadHoras();    // recalcula disponibilidad para el día elegido
         }, anio, mes, dia)
                 .show();
     }
@@ -223,24 +224,30 @@ public class AgendaCitaActivity extends AppCompatActivity {
     private void actualizarDisponibilidadHoras() {
         if (selectedYear == 0 || proyectoId == null) return;
         for (Map.Entry<TextView, String> entry : horaViews.entrySet()) {
-            TextView tv    = entry.getKey();
-            String hora24  = entry.getValue();
-            String slotId  = CitaRepository.generarSlotId(
+            TextView tv   = entry.getKey();
+            String hora24 = entry.getValue();
+            String slotId = CitaRepository.generarSlotId(
                     proyectoId, selectedYear, selectedMonth + 1, selectedDay, hora24);
             boolean ocupado = slotsOcupados.contains(slotId);
 
-            tv.setAlpha(ocupado ? 0.4f : 1.0f);
+            tv.setAlpha(1f);
             tv.setEnabled(!ocupado);
             if (ocupado) {
-                tv.setBackgroundResource(R.drawable.bg_hora_normal);
-                tv.setTextColor(getResources().getColor(android.R.color.darker_gray, getTheme()));
+                tv.setBackgroundResource(R.drawable.bg_hora_ocupada);
+                tv.setTextColor(getResources().getColor(R.color.colorTextHint, getTheme()));
                 if (tv == selectedHoraView) {
                     selectedHoraView = null;
                     selectedHora24   = null;
+                    Toast.makeText(this,
+                            "El horario que seleccionaste acaba de ser reservado. Elige otro.",
+                            Toast.LENGTH_LONG).show();
                 }
             } else if (tv == selectedHoraView) {
                 tv.setBackgroundResource(R.drawable.bg_hora_selected);
                 tv.setTextColor(getResources().getColor(android.R.color.white, getTheme()));
+            } else {
+                tv.setBackgroundResource(R.drawable.bg_hora_normal);
+                tv.setTextColor(getResources().getColor(R.color.colorTextSecondary, getTheme()));
             }
         }
     }
