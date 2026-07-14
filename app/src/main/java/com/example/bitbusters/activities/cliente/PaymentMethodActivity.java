@@ -119,11 +119,12 @@ public class PaymentMethodActivity extends AppCompatActivity {
         }
 
         // Pop up de confirmación
+        String numLimpio = numero.replace(" ", "");
+        String ultimos4  = numLimpio.length() >= 4
+                ? numLimpio.substring(numLimpio.length() - 4) : numLimpio;
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Método de pago guardado")
-                .setMessage("Tu tarjeta terminada en " +
-                        numero.replace(" ", "").substring(12) +
-                        " fue agregada correctamente.")
+                .setMessage("Tu tarjeta terminada en " + ultimos4 + " fue agregada correctamente.")
                 .setIcon(android.R.drawable.ic_dialog_info)
                 .setPositiveButton("Aceptar", (dialog, which) -> {
                     // Lanzar notificación de método de pago guardado
