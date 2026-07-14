@@ -165,15 +165,17 @@ public class AgendaCitaActivity extends AppCompatActivity {
         Date inicio = CitaRepository.inicioDelMes(year, month0based);
         Date fin    = CitaRepository.inicioDelMesSiguiente(year, month0based);
 
+        Log.d(TAG, "DIAG iniciarSlotListener: proyectoId=[" + proyectoId + "] year=" + year + " month0=" + month0based + " inicio=" + inicio + " fin=" + fin);
         slotListener = citaRepository.escucharSlotsOcupados(proyectoId, inicio, fin,
                 new CitaRepository.SlotsOcupadosListener() {
                     @Override public void onSlotsActualizados(Set<String> slots) {
+                        Log.d(TAG, "DIAG onSlotsActualizados: recibidos=" + slots.size() + " ids=" + slots);
                         slotsOcupados.clear();
                         slotsOcupados.addAll(slots);
                         actualizarDisponibilidadHoras();
                     }
                     @Override public void onError(String msg) {
-                        Log.w(TAG, "Error en listener de slots: " + msg);
+                        Log.e(TAG, "DIAG ERROR slot listener: " + msg);
                     }
                 });
     }
@@ -223,12 +225,14 @@ public class AgendaCitaActivity extends AppCompatActivity {
 
     private void actualizarDisponibilidadHoras() {
         if (selectedYear == 0 || proyectoId == null) return;
+        Log.d(TAG, "DIAG actualizarDisponibilidadHoras: fecha=" + selectedYear + "/" + (selectedMonth + 1) + "/" + selectedDay + " proyectoId=[" + proyectoId + "] slotsOcupados.total=" + slotsOcupados.size() + " contenido=" + slotsOcupados);
         for (Map.Entry<TextView, String> entry : horaViews.entrySet()) {
             TextView tv   = entry.getKey();
             String hora24 = entry.getValue();
             String slotId = CitaRepository.generarSlotId(
                     proyectoId, selectedYear, selectedMonth + 1, selectedDay, hora24);
             boolean ocupado = slotsOcupados.contains(slotId);
+            Log.d(TAG, "DIAG cruce: generado=[" + slotId + "] match=" + ocupado);
 
             tv.setAlpha(1f);
             tv.setEnabled(!ocupado);
