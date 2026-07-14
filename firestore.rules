@@ -90,8 +90,27 @@ service cloud.firestore {
     }
 
     // === Citas ===
+    // TODO (PC-04): restringir con reglas específicas antes de producción — ver PENDING_COORDINATION.md
     match /citas/{id} {
       allow read, write: if request.auth != null;
+    }
+
+    // === Slots de disponibilidad ===
+    // Creado por: auditoría Cliente (Pedro/Branch-1) — 2026-07-13
+    match /slots/{slotId} {
+      // Cualquier usuario autenticado puede leer disponibilidad
+      allow read: if request.auth != null;
+
+      // Solo el dueño del slot puede crearlo (reserva)
+      allow create: if request.auth != null
+        && request.resource.data.uidCliente == request.auth.uid
+        && request.resource.data.ocupado == true;
+
+      // El dueño puede liberar el slot (cancelación/reagendamiento)
+      allow update: if request.auth != null
+        && resource.data.uidCliente == request.auth.uid;
+
+      allow delete: if false;
     }
   }
 }
