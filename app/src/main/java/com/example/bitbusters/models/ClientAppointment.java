@@ -17,6 +17,12 @@ public class ClientAppointment {
     private final int advisorColor;
     private final String status;
 
+    // Campos adicionales para operaciones Firestore (mutable, no expuestos al adapter)
+    private String firestoreId;
+    private String slotId;
+    private String proyectoId;
+    private String uidAsesorCita;
+
     public ClientAppointment(
             String id,
             String projectName,
@@ -75,9 +81,26 @@ public class ClientAppointment {
         return status;
     }
 
-    /** Devuelve una copia de este objeto con un estado diferente (patrón inmutable). */
+    // ── Setters de campos Firestore (fluent, para uso post-construcción) ──────────
+
+    public ClientAppointment setFirestoreId(String v)    { firestoreId   = v; return this; }
+    public ClientAppointment setSlotId(String v)         { slotId        = v; return this; }
+    public ClientAppointment setProyectoId(String v)     { proyectoId    = v; return this; }
+    public ClientAppointment setUidAsesorCita(String v)  { uidAsesorCita = v; return this; }
+
+    public String getFirestoreId()   { return firestoreId; }
+    public String getSlotId()        { return slotId; }
+    public String getProyectoId()    { return proyectoId; }
+    public String getUidAsesorCita() { return uidAsesorCita; }
+
+    /** Devuelve una copia con estado diferente, copiando los campos Firestore. */
     public ClientAppointment withStatus(String nuevoEstado) {
-        return new ClientAppointment(id, projectName, location, date, time,
+        ClientAppointment copy = new ClientAppointment(id, projectName, location, date, time,
                 advisorName, advisorInitials, advisorColor, nuevoEstado);
+        copy.firestoreId   = this.firestoreId;
+        copy.slotId        = this.slotId;
+        copy.proyectoId    = this.proyectoId;
+        copy.uidAsesorCita = this.uidAsesorCita;
+        return copy;
     }
 }
