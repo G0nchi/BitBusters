@@ -135,7 +135,8 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         if (btnAgendar != null) {
             btnAgendar.setOnClickListener(v -> {
                 Intent intent = new Intent(this, AgendaCitaActivity.class);
-                intent.putExtra(EXTRA_PROYECTO, nombreProyecto);
+                intent.putExtra(AgendaCitaActivity.EXTRA_PROYECTO, nombreProyecto);
+                // proyectoId y uidAsesor se sobreescriben en pintarDatosProyecto() cuando cargan
                 startActivity(intent);
             });
         }
@@ -632,6 +633,21 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
 
     private void pintarDatosProyecto() {
         if (proyectoActual == null) return;
+
+        // Actualizar listener de btnAgendar con proyectoId y uidAsesor reales
+        View btnAgendar = findViewById(R.id.btnAgendarCita);
+        if (btnAgendar != null) {
+            List<String> asesores = proyectoActual.getUidAsesores();
+            String uid1er = (asesores != null && !asesores.isEmpty()) ? asesores.get(0) : null;
+            String pid    = proyectoActual.getId();
+            btnAgendar.setOnClickListener(v -> {
+                Intent intent = new Intent(this, AgendaCitaActivity.class);
+                intent.putExtra(AgendaCitaActivity.EXTRA_PROYECTO,    proyectoActual.getNombre());
+                if (pid    != null) intent.putExtra(AgendaCitaActivity.EXTRA_PROYECTO_ID, pid);
+                if (uid1er != null) intent.putExtra(AgendaCitaActivity.EXTRA_UID_ASESOR,  uid1er);
+                startActivity(intent);
+            });
+        }
 
         TextView tvNombre = findViewById(R.id.tvNombreProyecto);
         if (tvNombre != null) tvNombre.setText(proyectoActual.getNombre());
