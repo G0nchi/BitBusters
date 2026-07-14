@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#FFFFFF">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Admin Seed — Migración uidAsesores"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#D32F2F"
+        android:paddingBottom="8dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Herramienta de desarrollo. NO usar en producción.\nAsigna uidAsesores a proyectos que no lo tengan."
+        android:textSize="13sp"
+        android:textColor="#666666"
+        android:paddingBottom="16dp" />
+
+    <Button
+        android:id="@+id/btnEjecutarMigracion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ejecutar migración"
+        android:backgroundTint="#D32F2F"
+        android:textColor="#FFFFFF" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="16dp">
+
+        <TextView
+            android:id="@+id/tvLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Log vacío. Pulsa el botón para iniciar."
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:textColor="#212121"
+            android:background="#F5F5F5"
+            android:padding="12dp" />
+
+    </ScrollView>
+
+</LinearLayout>
