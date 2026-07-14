@@ -56,7 +56,7 @@ public class NotificationsActivity extends AppCompatActivity {
         FirebaseFirestore.getInstance()
             .collection("notifications")
             .whereEqualTo("role", "cliente")
-            .orderBy("order", Query.Direction.ASCENDING)
+            .orderBy("order", Query.Direction.DESCENDING) // más reciente primero (order más alto = más nuevo)
             .get()
             .addOnSuccessListener(snapshots -> {
                 List<Notification> list;
