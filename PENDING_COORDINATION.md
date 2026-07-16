@@ -202,3 +202,30 @@ Las queries de `CitaRepository` requieren índices compuestos. Sin ellos, Firest
 ### Acción requerida
 
 En la consola Firebase → Firestore → Indexes → Composite → Agregar índice para cada fila de la tabla.
+
+---
+
+## PC-06 — `valoradaCliente`: booleano independiente de `estado`
+
+### Contexto
+
+`AddCommentActivity` (pantalla donde el cliente valora una visita) originalmente marcaba `citas/{citaId}.estado = "valorada"` al guardar la reseña. Esto se corrigió porque **`PC-03` ya reserva el valor `"valorada"` de `estado` para un uso distinto**: las reglas propuestas en `firestore.rules` (ver sección PC-03 arriba) permiten que el **asesor** transicione `estado` a `"confirmada" | "completada" | "valorada"` — es decir, `estado="valorada"` está pensado como parte del ciclo de vida que controla el asesor, no como "el cliente ya escribió su reseña".
+
+Mezclar ambos significados habría acoplado el flujo de reseña del cliente con el ciclo de vida de la cita que gestiona el módulo Asesor (confirmado en auditoría: hoy el módulo Asesor no lee `estado` de Firestore en ningún lado, pero `ValorarVisitaActivity` ya existe del lado asesor y podría conectarse a futuro con un filtro `estado == "completada"`, que dejaría de matchear si el cliente sobrescribe `estado` a `"valorada"` primero).
+
+### Solución aplicada
+
+| Campo | Tipo | Dueño de la escritura | Significado |
+|-------|------|------------------------|-------------|
+| `estado` | `String` | Módulo Asesor (ciclo de vida de la cita) | `pendiente` → `confirmada` → `completada` → (`valorada`, futuro, la escribe el asesor) → `cancelada` |
+| `valoradaCliente` | `Boolean` | Módulo Cliente (`AddCommentActivity`) | `true` si el cliente ya dejó su valoración de la visita. No participa del ciclo de vida de `estado`. |
+
+Citas antiguas sin el campo `valoradaCliente` se tratan como `false` (no valorada aún). También se mantiene, por compatibilidad, un fallback: si una cita quedó con `estado == "valorada"` por el comportamiento anterior (ya corregido), se interpreta como valorada por el cliente aunque `valoradaCliente` no esté seteado — ver `MisCitasActivity.mapearCita()`.
+
+### Quiénes deben participar
+
+- Dueño del módulo Asesor: al implementar la transición real `estado → "valorada"` (o el nombre que se decida), confirmar que no colisiona con `valoradaCliente` y que ambos campos pueden coexistir en el mismo documento sin conflicto semántico.
+
+### Acción requerida
+
+Ninguna inmediata — dejar este documento como referencia para cuando se conecte el flujo real de `ValorarVisitaActivity` del asesor a Firestore.

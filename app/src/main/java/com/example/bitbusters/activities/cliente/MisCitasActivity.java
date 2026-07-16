@@ -169,10 +169,15 @@ public class MisCitasActivity extends AppCompatActivity {
                 0xFF1A7EBD,         // brand_deep_blue
                 estadoDisplay
         );
+        // Compat: citas marcadas "valorada" en estado antes de desacoplar el campo valoradaCliente (ver PC-06)
+        boolean valoradaCliente = Boolean.TRUE.equals(cita.getValoradaCliente())
+                || Cita.ESTADO_VALORADA.equals(cita.getEstado());
+
         ca.setFirestoreId(cita.getId())
           .setSlotId(cita.getSlotId())
           .setProyectoId(cita.getProyectoId())
-          .setUidAsesorCita(cita.getUidAsesor());
+          .setUidAsesorCita(cita.getUidAsesor())
+          .setValoradaCliente(valoradaCliente);
         return ca;
     }
 

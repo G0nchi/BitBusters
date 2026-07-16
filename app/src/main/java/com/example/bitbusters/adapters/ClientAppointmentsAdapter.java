@@ -76,16 +76,13 @@ public class ClientAppointmentsAdapter extends RecyclerView.Adapter<ClientAppoin
             holder.tvStatus.setTextColor(0xFFE65100);
             holder.btnLeft.setText(ACTION_VER_DETALLE);
             holder.btnRight.setText(ACTION_CANCELAR);
-        } else if (ClientAppointment.STATUS_COMPLETED.equals(status)) {
+        } else if (ClientAppointment.STATUS_COMPLETED.equals(status)
+                || ClientAppointment.STATUS_REVIEWED.equals(status)) {
             holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_completada);
             holder.tvStatus.setTextColor(0xFF1565C0);
             holder.btnLeft.setText(ACTION_VER_DETALLE);
-            holder.btnRight.setText(ACTION_VALORAR);
-        } else if (ClientAppointment.STATUS_REVIEWED.equals(status)) {
-            holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_completada);
-            holder.tvStatus.setTextColor(0xFF1565C0);
-            holder.btnLeft.setText(ACTION_VER_DETALLE);
-            holder.btnRight.setText(ACTION_ESCRIBIR_NUEVO);
+            // El botón depende de valoradaCliente (booleano), no del estado — ver PC-06
+            holder.btnRight.setText(item.isValoradaCliente() ? ACTION_ESCRIBIR_NUEVO : ACTION_VALORAR);
         } else {
             // Estado CANCELADA: badge rojo y botones ocultos
             holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelar);

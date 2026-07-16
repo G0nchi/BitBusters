@@ -7,7 +7,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.bitbusters.R;
-import com.example.bitbusters.models.Cita;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FieldValue;
@@ -126,8 +125,9 @@ public class AddCommentActivity extends AppCompatActivity {
             finalizarConExito();
             return;
         }
+        // Campo booleano independiente de "estado" — no altera el ciclo de vida de la cita (ver PC-06).
         firestore.collection("citas").document(citaId)
-                .update("estado", Cita.ESTADO_VALORADA)
+                .update("valoradaCliente", true)
                 .addOnSuccessListener(unused -> finalizarConExito())
                 .addOnFailureListener(e -> finalizarConExito());
     }

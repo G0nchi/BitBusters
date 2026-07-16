@@ -26,6 +26,7 @@ public class Cita {
     private Date   creadoEn;
     private Date   actualizadoEn;
     private List<Map<String, Object>> historialReagendamientos;
+    private Boolean valoradaCliente;
 
     public Cita() {}
 
@@ -66,4 +67,8 @@ public class Cita {
 
     public List<Map<String, Object>> getHistorialReagendamientos() { return historialReagendamientos; }
     public void setHistorialReagendamientos(List<Map<String, Object>> v) { this.historialReagendamientos = v; }
+
+    /** Indica si el cliente ya dejó su valoración de la visita. Independiente de {@code estado} — ver PC-06. */
+    public Boolean getValoradaCliente() { return valoradaCliente; }
+    public void   setValoradaCliente(Boolean valoradaCliente) { this.valoradaCliente = valoradaCliente; }
 }

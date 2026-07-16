@@ -22,6 +22,7 @@ public class ClientAppointment {
     private String slotId;
     private String proyectoId;
     private String uidAsesorCita;
+    private boolean valoradaCliente;
 
     public ClientAppointment(
             String id,
@@ -83,24 +84,27 @@ public class ClientAppointment {
 
     // ── Setters de campos Firestore (fluent, para uso post-construcción) ──────────
 
-    public ClientAppointment setFirestoreId(String v)    { firestoreId   = v; return this; }
-    public ClientAppointment setSlotId(String v)         { slotId        = v; return this; }
-    public ClientAppointment setProyectoId(String v)     { proyectoId    = v; return this; }
-    public ClientAppointment setUidAsesorCita(String v)  { uidAsesorCita = v; return this; }
+    public ClientAppointment setFirestoreId(String v)     { firestoreId     = v; return this; }
+    public ClientAppointment setSlotId(String v)          { slotId          = v; return this; }
+    public ClientAppointment setProyectoId(String v)      { proyectoId      = v; return this; }
+    public ClientAppointment setUidAsesorCita(String v)   { uidAsesorCita   = v; return this; }
+    public ClientAppointment setValoradaCliente(boolean v) { valoradaCliente = v; return this; }
 
-    public String getFirestoreId()   { return firestoreId; }
-    public String getSlotId()        { return slotId; }
-    public String getProyectoId()    { return proyectoId; }
-    public String getUidAsesorCita() { return uidAsesorCita; }
+    public String  getFirestoreId()     { return firestoreId; }
+    public String  getSlotId()          { return slotId; }
+    public String  getProyectoId()      { return proyectoId; }
+    public String  getUidAsesorCita()   { return uidAsesorCita; }
+    public boolean isValoradaCliente()  { return valoradaCliente; }
 
     /** Devuelve una copia con estado diferente, copiando los campos Firestore. */
     public ClientAppointment withStatus(String nuevoEstado) {
         ClientAppointment copy = new ClientAppointment(id, projectName, location, date, time,
                 advisorName, advisorInitials, advisorColor, nuevoEstado);
-        copy.firestoreId   = this.firestoreId;
-        copy.slotId        = this.slotId;
-        copy.proyectoId    = this.proyectoId;
-        copy.uidAsesorCita = this.uidAsesorCita;
+        copy.firestoreId     = this.firestoreId;
+        copy.slotId          = this.slotId;
+        copy.proyectoId      = this.proyectoId;
+        copy.uidAsesorCita   = this.uidAsesorCita;
+        copy.valoradaCliente = this.valoradaCliente;
         return copy;
     }
 }
