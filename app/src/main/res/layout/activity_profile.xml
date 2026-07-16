@@ -46,10 +46,49 @@
             android:contentDescription="Editar Perfil" />
     </RelativeLayout>
 
-    <ScrollView
+    <ProgressBar
+        android:id="@+id/progressProfile"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/layoutProfileError"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvProfileError"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No se pudo cargar tu perfil"
+            android:textSize="14sp"
+            android:textColor="@color/text_medium"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRetryProfile"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reintentar"
+            app:cornerRadius="8dp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/scrollProfileContent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -90,6 +129,14 @@
                     android:text="jonathan@bitbusters.com"
                     android:textSize="14sp"
                     android:textColor="@color/text_medium" />
+
+                <TextView
+                    android:id="@+id/tvLastAccess"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_medium"
+                    android:layout_marginTop="4dp" />
             </LinearLayout>
 
             <!-- Información Personal -->
