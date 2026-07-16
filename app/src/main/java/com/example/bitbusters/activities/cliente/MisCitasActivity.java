@@ -211,6 +211,9 @@ public class MisCitasActivity extends AppCompatActivity {
                 || ClientAppointment.STATUS_REVIEWED.equals(status)) {
             Intent intent = new Intent(this, AddCommentActivity.class);
             intent.putExtra("proyecto", cita.getProjectName());
+            intent.putExtra("citaId", cita.getFirestoreId());
+            intent.putExtra("proyectoId", cita.getProyectoId());
+            intent.putExtra("uidAsesor", cita.getUidAsesorCita());
             startActivity(intent);
         }
     }
