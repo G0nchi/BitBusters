@@ -149,7 +149,9 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         if (tvVerTodos != null) {
             tvVerTodos.setOnClickListener(v -> {
                 Intent intent = new Intent(this, ReviewsActivity.class);
-                intent.putExtra(EXTRA_PROYECTO, nombreProyecto);
+                intent.putExtra(ReviewsActivity.EXTRA_PROYECTO, nombreProyecto);
+                String idProyecto = proyectoActual != null ? proyectoActual.getId() : proyectoId;
+                intent.putExtra(ReviewsActivity.EXTRA_PROYECTO_ID, idProyecto != null ? idProyecto : "");
                 startActivity(intent);
             });
         }
