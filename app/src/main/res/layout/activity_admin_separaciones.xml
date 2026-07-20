@@ -61,8 +61,8 @@
                     android:layout_weight="1"
                     android:text="Pendientes (3)"
                     android:textSize="12sp"
-                    android:textColor="@color/neutral_medium"
-                    android:background="@drawable/button_outline_state_bg"
+                    android:textColor="@color/white"
+                    android:background="@color/brand_deep_blue"
                     android:layout_marginEnd="4dp" />
 
                 <Button
@@ -72,8 +72,8 @@
                     android:layout_weight="1"
                     android:text="Aprobadas (12)"
                     android:textSize="12sp"
-                    android:textColor="@color/white"
-                    android:background="@color/brand_deep_blue"
+                    android:textColor="@color/neutral_medium"
+                    android:background="@drawable/button_outline_state_bg"
                     android:layout_marginEnd="4dp"
                     android:layout_marginStart="4dp" />
 

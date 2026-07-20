@@ -39,7 +39,7 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
     private AutoCompleteTextView actvProyectoFilter, actvFechaFilter;
     private RecyclerView rvSeparaciones;
     private AdminSeparacionAdapter adapter;
-    private String currentEstadoFilter = null;
+    private String currentEstadoFilter = "Pendiente";
     private String currentProyectoFilter = "Todos los proyectos";
     private String currentFechaFilter = "Todo el tiempo";
     private ArrayAdapter<String> adapterProyectos;
@@ -216,6 +216,7 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
         }
         adapter.setData(filtradas);
         actualizarContadoresTabs();
+        seleccionarTab(currentEstadoFilter);
     }
 
     private boolean cumpleFiltroEstado(AdminSeparacion separacion) {
@@ -348,6 +349,8 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
         if (adapter != null) {
             adapter.setData(new ArrayList<>(SeparacionesRepository.getLista()));
         }
+        seleccionarTab(currentEstadoFilter);
+        actualizarContadoresTabs();
 
         // Hacer scroll hasta la posición del ítem resaltado
         int posicion = SeparacionesRepository.getPosicion(separacionId);
