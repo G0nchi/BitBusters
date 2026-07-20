@@ -267,6 +267,7 @@
                     android:padding="16dp">
 
                     <LinearLayout
+                        android:id="@+id/layoutVentaProyecto1"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -274,6 +275,7 @@
                         android:layout_marginBottom="12dp">
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoNombre1"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -281,6 +283,7 @@
                             android:textColor="@color/text_primary" />
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoMonto1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="S/42,000"
@@ -289,6 +292,7 @@
                     </LinearLayout>
 
                     <ProgressBar
+                        android:id="@+id/progressVentaProyecto1"
                         android:layout_width="match_parent"
                         android:layout_height="8dp"
                         android:progress="40"
@@ -297,6 +301,7 @@
                         android:layout_marginBottom="12dp" />
 
                     <LinearLayout
+                        android:id="@+id/layoutVentaProyecto2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -304,6 +309,7 @@
                         android:layout_marginBottom="12dp">
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoNombre2"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -311,6 +317,7 @@
                             android:textColor="@color/text_primary" />
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoMonto2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="S/28,500"
@@ -319,6 +326,7 @@
                     </LinearLayout>
 
                     <ProgressBar
+                        android:id="@+id/progressVentaProyecto2"
                         android:layout_width="match_parent"
                         android:layout_height="8dp"
                         android:progress="30"
@@ -327,6 +335,7 @@
                         android:layout_marginBottom="12dp" />
 
                     <LinearLayout
+                        android:id="@+id/layoutVentaProyecto3"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -334,6 +343,7 @@
                         android:layout_marginBottom="12dp">
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoNombre3"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -341,6 +351,7 @@
                             android:textColor="@color/text_primary" />
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoMonto3"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="S/18,200"
@@ -349,6 +360,7 @@
                     </LinearLayout>
 
                     <ProgressBar
+                        android:id="@+id/progressVentaProyecto3"
                         android:layout_width="match_parent"
                         android:layout_height="8dp"
                         android:progress="20"
@@ -357,12 +369,14 @@
                         android:layout_marginBottom="12dp" />
 
                     <LinearLayout
+                        android:id="@+id/layoutVentaProyecto4"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoNombre4"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -370,6 +384,7 @@
                             android:textColor="@color/text_primary" />
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoMonto4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="S/6,700"
@@ -378,6 +393,7 @@
                     </LinearLayout>
 
                     <ProgressBar
+                        android:id="@+id/progressVentaProyecto4"
                         android:layout_width="match_parent"
                         android:layout_height="8dp"
                         android:progress="10"

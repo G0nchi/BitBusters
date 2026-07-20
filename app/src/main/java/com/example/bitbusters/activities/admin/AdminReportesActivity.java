@@ -2,6 +2,8 @@ package com.example.bitbusters.activities.admin;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.example.bitbusters.R;
 import com.example.bitbusters.data.SeparacionesRepository;
@@ -11,9 +13,13 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.firestore.ListenerRegistration;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class AdminReportesActivity extends AdminMainActivity {
 
@@ -25,6 +31,10 @@ public class AdminReportesActivity extends AdminMainActivity {
     private TextView tvReporteAprobadas;
     private TextView tvReportePendientes;
     private TextView tvReporteRechazadas;
+    private View[] layoutVentasProyecto;
+    private TextView[] tvVentaProyectoNombre;
+    private TextView[] tvVentaProyectoMonto;
+    private ProgressBar[] progressVentaProyecto;
     private ListenerRegistration separacionesListener;
 
     @Override
@@ -58,6 +68,30 @@ public class AdminReportesActivity extends AdminMainActivity {
         tvReportePendientes = findViewById(R.id.tvReportePendientes);
         tvReporteRechazadas = findViewById(R.id.tvReporteRechazadas);
         tvTendenciaTitle = findViewById(R.id.tvTendenciaTitle);
+        layoutVentasProyecto = new View[] {
+                findViewById(R.id.layoutVentaProyecto1),
+                findViewById(R.id.layoutVentaProyecto2),
+                findViewById(R.id.layoutVentaProyecto3),
+                findViewById(R.id.layoutVentaProyecto4)
+        };
+        tvVentaProyectoNombre = new TextView[] {
+                findViewById(R.id.tvVentaProyectoNombre1),
+                findViewById(R.id.tvVentaProyectoNombre2),
+                findViewById(R.id.tvVentaProyectoNombre3),
+                findViewById(R.id.tvVentaProyectoNombre4)
+        };
+        tvVentaProyectoMonto = new TextView[] {
+                findViewById(R.id.tvVentaProyectoMonto1),
+                findViewById(R.id.tvVentaProyectoMonto2),
+                findViewById(R.id.tvVentaProyectoMonto3),
+                findViewById(R.id.tvVentaProyectoMonto4)
+        };
+        progressVentaProyecto = new ProgressBar[] {
+                findViewById(R.id.progressVentaProyecto1),
+                findViewById(R.id.progressVentaProyecto2),
+                findViewById(R.id.progressVentaProyecto3),
+                findViewById(R.id.progressVentaProyecto4)
+        };
     }
 
     private void setupListeners() {
@@ -118,6 +152,68 @@ public class AdminReportesActivity extends AdminMainActivity {
         setText(tvReporteAprobadas, String.valueOf(aprobadas));
         setText(tvReportePendientes, String.valueOf(pendientes));
         setText(tvReporteRechazadas, String.valueOf(rechazadas));
+        actualizarVentasPorProyecto(separaciones);
+    }
+
+    private void actualizarVentasPorProyecto(List<AdminSeparacion> separaciones) {
+        Map<String, Double> ventasPorProyecto = new LinkedHashMap<>();
+        if (separaciones != null) {
+            for (AdminSeparacion separacion : separaciones) {
+                if (!"Aprobada".equalsIgnoreCase(separacion.getEstado())) continue;
+                String proyecto = separacion.getNombreProyecto();
+                if (proyecto == null || proyecto.trim().isEmpty()) {
+                    proyecto = "Proyecto sin nombre";
+                }
+                double monto = parseMonto(separacion.getMonto());
+                ventasPorProyecto.put(
+                        proyecto,
+                        ventasPorProyecto.containsKey(proyecto)
+                                ? ventasPorProyecto.get(proyecto) + monto
+                                : monto
+                );
+            }
+        }
+
+        List<Map.Entry<String, Double>> ordenadas = new ArrayList<>(ventasPorProyecto.entrySet());
+        Collections.sort(ordenadas, (a, b) -> Double.compare(b.getValue(), a.getValue()));
+
+        if (ordenadas.isEmpty()) {
+            mostrarFilaVentaProyecto(0, "Sin ventas aprobadas", 0, 0);
+            for (int i = 1; i < 4; i++) ocultarFilaVentaProyecto(i);
+            return;
+        }
+
+        double max = ordenadas.get(0).getValue();
+        for (int i = 0; i < 4; i++) {
+            if (i >= ordenadas.size()) {
+                ocultarFilaVentaProyecto(i);
+                continue;
+            }
+            Map.Entry<String, Double> item = ordenadas.get(i);
+            int progreso = max > 0 ? (int) Math.max(5, Math.round((item.getValue() / max) * 100)) : 0;
+            mostrarFilaVentaProyecto(i, item.getKey(), item.getValue(), progreso);
+        }
+    }
+
+    private void mostrarFilaVentaProyecto(int index, String proyecto, double monto, int progreso) {
+        if (layoutVentasProyecto != null && layoutVentasProyecto[index] != null) {
+            layoutVentasProyecto[index].setVisibility(View.VISIBLE);
+        }
+        if (progressVentaProyecto != null && progressVentaProyecto[index] != null) {
+            progressVentaProyecto[index].setVisibility(View.VISIBLE);
+            progressVentaProyecto[index].setProgress(progreso);
+        }
+        setText(tvVentaProyectoNombre[index], proyecto);
+        setText(tvVentaProyectoMonto[index], formatearSoles(monto));
+    }
+
+    private void ocultarFilaVentaProyecto(int index) {
+        if (layoutVentasProyecto != null && layoutVentasProyecto[index] != null) {
+            layoutVentasProyecto[index].setVisibility(View.GONE);
+        }
+        if (progressVentaProyecto != null && progressVentaProyecto[index] != null) {
+            progressVentaProyecto[index].setVisibility(View.GONE);
+        }
     }
 
     private double parseMonto(String monto) {
