@@ -39,6 +39,7 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -174,6 +175,7 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
             sessionData.estado          = p.getEstado();
             sessionData.tipologias      = new ArrayList<>(p.getTipologias());
             sessionData.asesoresAsignados = new ArrayList<>(p.getAsesores());
+            sessionData.uidAsesoresAsignados = new ArrayList<>(p.getUidAsesores());
 
             // Cargar imágenes existentes. Las rutas locales se convierten a file:// URI
             // para que Glide y la lógica de guardado las distingan de nuevas imágenes (content://).
@@ -443,6 +445,7 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
 
         LinearLayout filaActual = null;
         for (int i = 0; i < lista.size(); i++) {
+            final int index = i;
             final String nombre = lista.get(i);
             if (i % 2 == 0) {
                 filaActual = new LinearLayout(this);
@@ -470,6 +473,10 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
 
             chip.setOnCloseIconClickListener(v -> {
                 sessionData.asesoresAsignados.remove(nombre);
+                if (sessionData.uidAsesoresAsignados != null
+                        && sessionData.uidAsesoresAsignados.size() > index) {
+                    sessionData.uidAsesoresAsignados.remove(index);
+                }
                 renderizarAsesores();
             });
 
@@ -670,13 +677,80 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
                 existente != null ? existente.getFechaCreacion() : ""
         );
         actualizado.setQrCode(qrCode);
+        actualizado.setUidAsesores(new ArrayList<>(sessionData.uidAsesoresAsignados));
+        poblarCamposCompartidosEdicion(actualizado, existente, uriStrings);
 
-        AdminProyectosRepository.actualizar(actualizado);
-        AdminProyectosRepository.guardar(this);
+        setSavingState(true);
+        AdminProyectosRepository.actualizarEnFirestore(actualizado,
+                new AdminProyectosRepository.GuardarCallback() {
+                    @Override
+                    public void onSuccess(String proyectoIdActualizado) {
+                        AdminProyectosRepository.guardar(AdminEditarProyectoActivity.this);
+                        sessionData.clear();
+                        mostrarToast("Proyecto actualizado correctamente");
+                        finish();
+                    }
 
-        sessionData.clear();
-        mostrarToast("Proyecto actualizado correctamente");
-        finish();
+                    @Override
+                    public void onError(String mensaje) {
+                        setSavingState(false);
+                        mostrarToast("No se pudo actualizar en Firebase: "
+                                + (mensaje != null && !mensaje.isEmpty() ? mensaje : "intenta de nuevo"));
+                    }
+                });
+    }
+
+    /**
+     * Al editar reconstruimos el objeto desde el formulario. Este helper conserva
+     * campos compartidos que Cliente/Asesor consumen desde Firestore y que no
+     * pertenecen directamente al formulario visible de edición.
+     */
+    private void poblarCamposCompartidosEdicion(AdminProyecto actualizado,
+                                                AdminProyecto existente,
+                                                List<String> imagenes) {
+        String precioPublicado = !actualizado.getPrecioPublicado().isEmpty()
+                ? actualizado.getPrecioPublicado()
+                : (!actualizado.getPrecioTotal().isEmpty() ? "S/ " + actualizado.getPrecioTotal() : "");
+        String imageUrl = imagenes != null && !imagenes.isEmpty() ? imagenes.get(0) : "";
+        String ubicacion = actualizado.getDireccion().isEmpty()
+                ? actualizado.getDistrito()
+                : actualizado.getDireccion()
+                + (actualizado.getDistrito().isEmpty() ? "" : ", " + actualizado.getDistrito());
+        String fechaActualizacion = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                .format(new Date());
+
+        actualizado.setPrecio(precioPublicado);
+        actualizado.setPrecioPublicado(precioPublicado);
+        actualizado.setUbicacion(ubicacion);
+        actualizado.setImageUrl(imageUrl);
+        actualizado.setFechaActualizacion(fechaActualizacion);
+
+        if (existente != null) {
+            actualizado.setAdminUid(existente.getAdminUid());
+            actualizado.setInmobiliariaId(existente.getInmobiliariaId());
+            actualizado.setInmobiliariaNombre(existente.getInmobiliariaNombre());
+            actualizado.setTipo(!existente.getTipo().isEmpty() ? existente.getTipo() : "Departamento");
+            actualizado.setLatitud(existente.getLatitud());
+            actualizado.setLongitud(existente.getLongitud());
+            actualizado.setVisible(existente.getVisible() != null ? existente.getVisible() : true);
+            actualizado.setActivo(existente.getActivo() != null ? existente.getActivo() : true);
+            actualizado.setRatingPromedio(existente.getRatingPromedio() != null ? existente.getRatingPromedio() : 0.0);
+            actualizado.setTotalResenas(existente.getTotalResenas() != null ? existente.getTotalResenas() : 0);
+        } else {
+            actualizado.setAdminUid(AdminProyectosRepository.obtenerAdminUidActual());
+            actualizado.setTipo("Departamento");
+            actualizado.setVisible(true);
+            actualizado.setActivo(true);
+            actualizado.setRatingPromedio(0.0);
+            actualizado.setTotalResenas(0);
+        }
+    }
+
+    private void setSavingState(boolean saving) {
+        if (btnSaveChanges != null) {
+            btnSaveChanges.setEnabled(!saving);
+            btnSaveChanges.setText(saving ? "Guardando..." : "Guardar cambios");
+        }
     }
 
     // ── Cancelar ──────────────────────────────────────────────────────────────

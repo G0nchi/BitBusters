@@ -20,7 +20,7 @@ public class AdminAsesorAdapter extends RecyclerView.Adapter<AdminAsesorAdapter.
 
     private List<AdminAsesor> asesorList;
     private OnAsesorCheckedListener listener;
-    private final Set<String> selectedNames = new HashSet<>();
+    private final Set<String> selectedIds = new HashSet<>();
 
     public interface OnAsesorCheckedListener {
         void onAsesorChecked(int position, boolean isChecked);
@@ -43,7 +43,7 @@ public class AdminAsesorAdapter extends RecyclerView.Adapter<AdminAsesorAdapter.
         AdminAsesor asesor = asesorList.get(position);
 
         holder.cbAsesor.setOnCheckedChangeListener(null);
-        holder.cbAsesor.setChecked(selectedNames.contains(asesor.getNombre()));
+        holder.cbAsesor.setChecked(selectedIds.contains(asesor.getId()));
 
         holder.cbAsesor.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (listener != null) {
@@ -66,10 +66,10 @@ public class AdminAsesorAdapter extends RecyclerView.Adapter<AdminAsesorAdapter.
         notifyDataSetChanged();
     }
 
-    public void setSelectedNames(Set<String> names) {
-        selectedNames.clear();
-        if (names != null) {
-            selectedNames.addAll(names);
+    public void setSelectedIds(Set<String> ids) {
+        selectedIds.clear();
+        if (ids != null) {
+            selectedIds.addAll(ids);
         }
         notifyDataSetChanged();
     }

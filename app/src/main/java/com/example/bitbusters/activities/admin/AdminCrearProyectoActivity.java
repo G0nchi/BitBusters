@@ -1330,6 +1330,7 @@ public class AdminCrearProyectoActivity extends AppCompatActivity implements OnM
         // Agregar un LinearLayout horizontal por cada par de asesores
         LinearLayout filaActual = null;
         for (int i = 0; i < lista.size(); i++) {
+            final int index = i;
             final String nombreAsesor = lista.get(i);
 
             if (i % 2 == 0) {
@@ -1363,6 +1364,10 @@ public class AdminCrearProyectoActivity extends AppCompatActivity implements OnM
             // X del chip elimina el asesor de la sesión
             chip.setOnCloseIconClickListener(v -> {
                 sessionData.asesoresAsignados.remove(nombreAsesor);
+                if (sessionData.uidAsesoresAsignados != null
+                        && sessionData.uidAsesoresAsignados.size() > index) {
+                    sessionData.uidAsesoresAsignados.remove(index);
+                }
                 renderizarAsesores();
             });
 
@@ -1756,6 +1761,7 @@ public class AdminCrearProyectoActivity extends AppCompatActivity implements OnM
                 fechaCreacion
         );
         proyecto.setQrCode(qrPath != null ? qrPath : "");
+        proyecto.setUidAsesores(new ArrayList<>(sessionData.uidAsesoresAsignados));
         poblarCamposCompartidos(proyecto, uriStrings, coordenadas, fechaCreacion);
 
         AdminProyectosRepository.guardarEnFirestore(proyecto,

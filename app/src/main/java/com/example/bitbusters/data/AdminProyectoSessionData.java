@@ -31,6 +31,7 @@ public class AdminProyectoSessionData {
 
     // ── Parte 2: asesores asignados desde AdminAsignarAsesoresActivity ───────
     public List<String> asesoresAsignados = new ArrayList<>();
+    public List<String> uidAsesoresAsignados = new ArrayList<>();
 
     /** Constructor privado — solo se accede por getInstance() */
     private AdminProyectoSessionData() {}
@@ -61,5 +62,6 @@ public class AdminProyectoSessionData {
         estado            = "";
         tipologias        = new ArrayList<>();
         asesoresAsignados = new ArrayList<>();
+        uidAsesoresAsignados = new ArrayList<>();
     }
 }
