@@ -10,7 +10,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.bitbusters.R;
 import com.example.bitbusters.repository.ClienteSeparacionRepository;
-import com.example.bitbusters.workers.ClienteWorkHelper;
 import com.example.bitbusters.utils.NotificationHelper;
 import com.example.bitbusters.utils.PreferencesManager;
 import com.google.firebase.auth.FirebaseAuth;
@@ -23,6 +22,7 @@ public class PaymentMethodActivity extends AppCompatActivity {
     public static final String EXTRA_UID_ASESOR = "extra_uid_asesor";
     public static final String EXTRA_INMOBILIARIA_ID = "extra_inmobiliaria_id";
     public static final String EXTRA_MONTO_SEPARACION = "extra_monto_separacion";
+    public static final String EXTRA_PAGO_VENCE_EN_MILLIS = "extra_pago_vence_en_millis";
 
     private EditText etNombreTitular;
     private EditText etNumeroTarjeta;
@@ -39,6 +39,7 @@ public class PaymentMethodActivity extends AppCompatActivity {
     private String uidAsesor;
     private String inmobiliariaId;
     private String montoSeparacion;
+    private long pagoVenceEnMillis;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +66,7 @@ public class PaymentMethodActivity extends AppCompatActivity {
         uidAsesor = getIntent().getStringExtra(EXTRA_UID_ASESOR);
         inmobiliariaId = getIntent().getStringExtra(EXTRA_INMOBILIARIA_ID);
         montoSeparacion = getIntent().getStringExtra(EXTRA_MONTO_SEPARACION);
+        pagoVenceEnMillis = getIntent().getLongExtra(EXTRA_PAGO_VENCE_EN_MILLIS, 0L);
     }
 
     private void enlazarVistas() {
@@ -199,7 +201,14 @@ public class PaymentMethodActivity extends AppCompatActivity {
                         registrarPagoSeparacionAprobada(ultimos4);
                         return;
                     } else if (hayFlujoSeparacionProyecto()) {
-                        crearSeparacionPendiente(ultimos4);
+                        Toast.makeText(
+                                this,
+                                "La separación debe ser registrada por un asesor y aprobada por administración antes del pago.",
+                                Toast.LENGTH_LONG
+                        ).show();
+                        startActivity(new Intent(this, HomeActivity.class));
+                        finish();
+                        return;
                     }
 
                     // Lanzar notificación de método de pago guardado
@@ -240,6 +249,20 @@ public class PaymentMethodActivity extends AppCompatActivity {
         String nombreCliente = PreferencesManager.obtenerNombre(this);
         double monto = parseMontoSeparacion(montoSeparacion);
 
+        if (pagoVenceEnMillis > 0 && System.currentTimeMillis() > pagoVenceEnMillis) {
+            separacionRepository.marcarSeparacionVencida(separacionId)
+                    .addOnCompleteListener(task -> {
+                        Toast.makeText(
+                                this,
+                                "El tiempo para pagar esta separación venció.",
+                                Toast.LENGTH_LONG
+                        ).show();
+                        startActivity(new Intent(this, HomeActivity.class));
+                        finish();
+                    });
+            return;
+        }
+
         separacionRepository.registrarPagoDeSeparacionAprobada(
             separacionId,
             new ClienteSeparacionRepository.SeparacionPendienteRequest(
@@ -264,41 +287,6 @@ public class PaymentMethodActivity extends AppCompatActivity {
         Toast.makeText(this, "Pago registrado para la separación.", Toast.LENGTH_LONG).show();
         startActivity(intentHome);
         finish();
-    }
-
-    private void crearSeparacionPendiente(String ultimos4) {
-        String uidCliente = FirebaseAuth.getInstance().getCurrentUser() != null
-                ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
-        if (uidCliente == null || uidCliente.isEmpty()) {
-            Toast.makeText(this, "Debes iniciar sesión para crear una separación.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String nombreCliente = PreferencesManager.obtenerNombre(this);
-        double monto = parseMontoSeparacion(montoSeparacion);
-
-        separacionRepository.crearSeparacionPendiente(
-            new ClienteSeparacionRepository.SeparacionPendienteRequest(
-                new ClienteSeparacionRepository.ClienteInfo(uidCliente, nombreCliente),
-                new ClienteSeparacionRepository.ProyectoInfo(uidAsesor, proyectoId, proyectoNombre, inmobiliariaId),
-                new ClienteSeparacionRepository.PagoInfo(monto, "tarjeta", ultimos4)))
-                .addOnSuccessListener(ref -> {
-                PreferencesManager.guardarSeparacionActiva(
-                    this,
-                    ref.getId(),
-                    proyectoNombre,
-                    System.currentTimeMillis() + 10 * 60 * 1000L);
-                    ClienteWorkHelper.scheduleSeparacionDeadline(
-                            this,
-                            ref.getId(),
-                            ref.getId(),
-                            proyectoNombre);
-                Toast.makeText(this,
-                    "Separación creada. Tienes 10 minutos para completar el pago.",
-                    Toast.LENGTH_LONG).show();
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "No se pudo registrar la separación.", Toast.LENGTH_SHORT).show());
     }
 
     private void guardarTarjetaLocal(String nombreTitular, String ultimos4, String fechaVencimiento) {

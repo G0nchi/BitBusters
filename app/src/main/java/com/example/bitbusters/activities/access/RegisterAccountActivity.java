@@ -2,20 +2,27 @@ package com.example.bitbusters.activities.access;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.bumptech.glide.Glide;
 import com.example.bitbusters.R;
 import com.example.bitbusters.utils.ImmersiveMode;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -30,15 +37,36 @@ public class RegisterAccountActivity extends AppCompatActivity {
 
     // Claves de extras propagadas a RegisterOtpActivity (y de ahí a la creación de cuenta).
     public static final String EXTRA_FULL_NAME  = "fullName";
+    public static final String EXTRA_FIRST_NAMES = "firstNames";
+    public static final String EXTRA_LAST_NAMES  = "lastNames";
     public static final String EXTRA_EMAIL      = "email";
     public static final String EXTRA_PHONE      = "phone";
     public static final String EXTRA_DNI        = "dni";
+    public static final String EXTRA_DOC_TYPE   = "docType";
+    public static final String EXTRA_ADDRESS    = "address";
     public static final String EXTRA_BIRTH_DATE = "birthDate";
     public static final String EXTRA_PASSWORD   = "password";
+    public static final String EXTRA_PHOTO_URI  = "photoUri";
 
-    private EditText fullNameInput, emailInput, phoneInput, dniInput,
+    private EditText fullNameInput, lastNameInput, emailInput, phoneInput, dniInput, addressInput,
             birthDateInput, passwordInput, repeatPasswordInput;
+    private ChipGroup docTypeChipGroup;
+    private ImageView imgSelectedProfile;
+    private TextView tvPhotoStatus;
     private View rootLayout;
+    private Uri selectedPhotoUri;
+
+    private final ActivityResultLauncher<String> pickProfilePhotoLauncher =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+                if (uri == null) return;
+                selectedPhotoUri = uri;
+                if (imgSelectedProfile != null) {
+                    Glide.with(this).load(uri).centerCrop().into(imgSelectedProfile);
+                }
+                if (tvPhotoStatus != null) {
+                    tvPhotoStatus.setText("Foto seleccionada");
+                }
+            });
 
     /** Fecha elegida en el calendario; arranca en la fecha actual. */
     private final Calendar fechaSeleccionada = Calendar.getInstance();
@@ -53,12 +81,17 @@ public class RegisterAccountActivity extends AppCompatActivity {
 
         // Campos del formulario
         fullNameInput       = findViewById(R.id.fullNameInput);
+        lastNameInput       = findViewById(R.id.lastNameInput);
         emailInput          = findViewById(R.id.emailInput);
         phoneInput          = findViewById(R.id.phoneInput);
         dniInput            = findViewById(R.id.dniInput);
+        addressInput        = findViewById(R.id.addressInput);
         birthDateInput      = findViewById(R.id.birthDateInput);
         passwordInput       = findViewById(R.id.passwordInput);
         repeatPasswordInput = findViewById(R.id.repeatPasswordInput);
+        docTypeChipGroup    = findViewById(R.id.docTypeChipGroup);
+        imgSelectedProfile  = findViewById(R.id.imgSelectedProfile);
+        tvPhotoStatus       = findViewById(R.id.tvPhotoStatus);
         rootLayout          = findViewById(R.id.main);
 
         MaterialButton backButton     = findViewById(R.id.backButton);
@@ -71,6 +104,10 @@ public class RegisterAccountActivity extends AppCompatActivity {
         // La fecha de nacimiento se elige con un calendario (no se escribe a mano).
         if (birthDateInput != null) {
             birthDateInput.setOnClickListener(v -> mostrarCalendarioFechaNacimiento());
+        }
+        View photoPickerContainer = findViewById(R.id.photoPickerContainer);
+        if (photoPickerContainer != null) {
+            photoPickerContainer.setOnClickListener(v -> pickProfilePhotoLauncher.launch("image/*"));
         }
 
         // Botón Registrarme → valida y pasa a la verificación por código (OTP).
@@ -110,13 +147,24 @@ public class RegisterAccountActivity extends AppCompatActivity {
     private void irAVerificacionOtp() {
         if (!validateFields()) return;
 
+        String nombres = fullNameInput.getText().toString().trim();
+        String apellidos = lastNameInput.getText().toString().trim();
+        String nombreCompleto = (nombres + " " + apellidos).trim();
+
         Intent intent = new Intent(this, RegisterOtpActivity.class);
-        intent.putExtra(EXTRA_FULL_NAME,  fullNameInput.getText().toString().trim());
+        intent.putExtra(EXTRA_FULL_NAME,  nombreCompleto);
+        intent.putExtra(EXTRA_FIRST_NAMES, nombres);
+        intent.putExtra(EXTRA_LAST_NAMES, apellidos);
         intent.putExtra(EXTRA_EMAIL,      emailInput.getText().toString().trim());
         intent.putExtra(EXTRA_PHONE,      phoneInput.getText().toString().trim());
         intent.putExtra(EXTRA_DNI,        dniInput.getText().toString().trim());
+        intent.putExtra(EXTRA_DOC_TYPE,   obtenerTipoDocumentoSeleccionado());
+        intent.putExtra(EXTRA_ADDRESS,    addressInput.getText().toString().trim());
         intent.putExtra(EXTRA_BIRTH_DATE, birthDateInput.getText().toString().trim());
         intent.putExtra(EXTRA_PASSWORD,   passwordInput.getText().toString());
+        if (selectedPhotoUri != null) {
+            intent.putExtra(EXTRA_PHOTO_URI, selectedPhotoUri.toString());
+        }
         startActivity(intent);
     }
 
@@ -125,7 +173,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
     private boolean validateFields() {
         boolean isValid = true;
 
-        // Nombre (mínimo 3 caracteres)
+        // Nombres
         String nombre = fullNameInput != null ? fullNameInput.getText().toString().trim() : "";
         if (nombre.isEmpty()) {
             setInputError(fullNameInput, getString(R.string.validation_required));
@@ -135,6 +183,18 @@ public class RegisterAccountActivity extends AppCompatActivity {
             isValid = false;
         } else {
             clearInputError(fullNameInput);
+        }
+
+        // Apellidos
+        String apellidos = lastNameInput != null ? lastNameInput.getText().toString().trim() : "";
+        if (apellidos.isEmpty()) {
+            setInputError(lastNameInput, getString(R.string.validation_required));
+            isValid = false;
+        } else if (apellidos.length() < 3) {
+            setInputError(lastNameInput, "Mínimo 3 caracteres");
+            isValid = false;
+        } else {
+            clearInputError(lastNameInput);
         }
 
         // Email
@@ -161,16 +221,35 @@ public class RegisterAccountActivity extends AppCompatActivity {
             clearInputError(phoneInput);
         }
 
-        // DNI (exactamente 8 dígitos numéricos)
+        // Documento según tipo seleccionado
         String dni = dniInput != null ? dniInput.getText().toString().trim() : "";
+        String tipoDoc = obtenerTipoDocumentoSeleccionado();
         if (dni.isEmpty()) {
             setInputError(dniInput, getString(R.string.validation_required));
             isValid = false;
-        } else if (!dni.matches("\\d{8}")) {
+        } else if ("DNI".equals(tipoDoc) && !dni.matches("\\d{8}")) {
             setInputError(dniInput, "El DNI debe tener exactamente 8 dígitos");
+            isValid = false;
+        } else if ("Pasaporte".equals(tipoDoc) && !dni.matches("[A-Za-z0-9]{6,12}")) {
+            setInputError(dniInput, "El pasaporte debe tener entre 6 y 12 caracteres");
+            isValid = false;
+        } else if ("Carnet de extranjería".equals(tipoDoc) && !dni.matches("[A-Za-z0-9]{9,12}")) {
+            setInputError(dniInput, "El carnet debe tener entre 9 y 12 caracteres");
             isValid = false;
         } else {
             clearInputError(dniInput);
+        }
+
+        // Domicilio
+        String domicilio = addressInput != null ? addressInput.getText().toString().trim() : "";
+        if (domicilio.isEmpty()) {
+            setInputError(addressInput, getString(R.string.validation_required));
+            isValid = false;
+        } else if (domicilio.length() < 5) {
+            setInputError(addressInput, "Ingresa un domicilio válido");
+            isValid = false;
+        } else {
+            clearInputError(addressInput);
         }
 
         // Fecha de nacimiento (obligatoria; se elige desde el calendario)
@@ -216,5 +295,17 @@ public class RegisterAccountActivity extends AppCompatActivity {
 
     private void clearInputError(EditText input) {
         if (input != null) input.setError(null);
+    }
+
+    private String obtenerTipoDocumentoSeleccionado() {
+        if (docTypeChipGroup == null) return "DNI";
+        int checkedId = docTypeChipGroup.getCheckedChipId();
+        Chip chip = checkedId != View.NO_ID ? findViewById(checkedId) : null;
+        if (chip == null || chip.getText() == null) return "DNI";
+        String value = chip.getText().toString();
+        if ("Carnet extranjería".equalsIgnoreCase(value)) {
+            return "Carnet de extranjería";
+        }
+        return value;
     }
 }

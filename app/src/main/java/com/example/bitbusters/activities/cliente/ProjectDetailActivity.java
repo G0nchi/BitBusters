@@ -2,7 +2,6 @@ package com.example.bitbusters.activities.cliente;
 
 import android.Manifest;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
@@ -34,7 +33,6 @@ import com.example.bitbusters.models.Proyecto;
 import com.example.bitbusters.repository.ChatRepository;
 import com.example.bitbusters.repository.ProyectoRepository;
 import com.example.bitbusters.repository.UbicacionRepository;
-import com.example.bitbusters.utils.AsesorDatabase;
 import com.example.bitbusters.utils.ImageUrls;
 import com.example.bitbusters.utils.NotificationHelper;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -60,13 +58,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Executors;
 
 public class ProjectDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final String EXTRA_PROYECTO = "proyecto";
     private static final String EXTRA_PROYECTO_ID = "proyecto_id";
-    private static final String PREF_SEED_DONE = "comentarios_seed_done";
     private static final int    REQUEST_LOCATION = 100;
 
     // Proyecto
@@ -81,8 +77,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
     private View scrollProjectContent;
     private ChatRepository chatRepository;
 
-    // Comentarios (Room)
-    private AsesorDatabase   db;
+    // Comentarios / valoraciones Firestore
     private ComentariosAdapter adapter;
     private TextView         tvRatingPromedio;
 
@@ -120,6 +115,14 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         mostrarCargandoProyecto();
         cargarDatosProyecto();
         configurarNavegacion();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (comentariosConfigurados) {
+            cargarComentarios();
+        }
     }
 
     // ── UI del proyecto ────────────────────────────────────────────────────────
@@ -344,10 +347,9 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         }
     }
 
-    // ── Comentarios (Room) ─────────────────────────────────────────────────────
+    // ── Comentarios / valoraciones Firestore ───────────────────────────────────
 
     private void configurarComentarios() {
-        db = AsesorDatabase.getInstance(this);
         tvRatingPromedio = findViewById(R.id.tvRatingPromedio);
 
         RecyclerView rvComentarios = findViewById(R.id.rvComentarios);
@@ -355,56 +357,50 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         adapter = new ComentariosAdapter(this, new ArrayList<>());
         rvComentarios.setAdapter(adapter);
 
-        // Abre DialogFragment en lugar de AddCommentActivity
         findViewById(R.id.btnAgregarComentario).setOnClickListener(v -> {
-            AgregarComentarioDialog dialog = AgregarComentarioDialog.newInstance(nombreProyecto);
-            dialog.setOnComentarioPublicadoListener(this::cargarComentarios);
-            dialog.show(getSupportFragmentManager(), "AgregarComentario");
+            Intent intent = new Intent(this, AddCommentActivity.class);
+            intent.putExtra("proyecto", nombreProyecto);
+            intent.putExtra("proyectoId", proyectoId != null ? proyectoId : "");
+            intent.putExtra("uidAsesor", obtenerPrimerAsesorUid());
+            startActivity(intent);
         });
 
-        cargarComentariosConSeed();
-    }
-
-    /** Inserta 3 comentarios de demo la primera vez que corre la app. */
-    private void sembrarComentariosDemo() {
-        SharedPreferences prefs = getSharedPreferences("bitbusters_prefs", MODE_PRIVATE);
-        if (prefs.getBoolean(PREF_SEED_DONE, false)) return;
-
-        long ahora = System.currentTimeMillis();
-        long dia   = 24L * 60 * 60 * 1000;
-
-        db.comentarioDao().insertar(new ComentarioEntity(
-                "Catalina Ventor", "maria_g", "María González", null,
-                5, "Excelente proyecto, muy buena ubicación y atención del asesor.",
-                ahora - 2 * dia));
-        db.comentarioDao().insertar(new ComentarioEntity(
-                "Catalina Ventor", "carlos_m", "Carlos Mendoza", null,
-                4, "Los acabados son buenos. El precio me parece razonable para la zona.",
-                ahora - 5 * dia));
-        db.comentarioDao().insertar(new ComentarioEntity(
-                "Catalina Ventor", "andrea_s", "Andrea Silva", null,
-                5, "Recién visité el departamento, me encantó.",
-                ahora - 7 * dia));
-
-        prefs.edit().putBoolean(PREF_SEED_DONE, true).apply();
-    }
-
-    private void cargarComentariosConSeed() {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            sembrarComentariosDemo();
-            fetchYActualizar();
-        });
+        cargarComentarios();
     }
 
     private void cargarComentarios() {
-        Executors.newSingleThreadExecutor().execute(this::fetchYActualizar);
-    }
+        com.google.firebase.firestore.Query query;
+        if (proyectoId != null && !proyectoId.trim().isEmpty()) {
+            query = FirebaseFirestore.getInstance()
+                    .collection("valoraciones")
+                    .whereEqualTo("proyectoId", proyectoId);
+        } else {
+            query = FirebaseFirestore.getInstance()
+                    .collection("valoraciones")
+                    .whereEqualTo("proyecto", nombreProyecto);
+        }
 
-    private void fetchYActualizar() {
-        List<ComentarioEntity> lista = db.comentarioDao().obtenerPorProyecto(nombreProyecto);
-        Float  promedio = db.comentarioDao().obtenerRatingPromedio(nombreProyecto);
-        int    total    = db.comentarioDao().contarPorProyecto(nombreProyecto);
-        runOnUiThread(() -> actualizarUIComentarios(lista, promedio, total));
+        query.get()
+                .addOnSuccessListener(snapshot -> {
+                    List<ComentarioEntity> lista = new ArrayList<>();
+                    int total = 0;
+                    int suma = 0;
+                    for (DocumentSnapshot doc : snapshot.getDocuments()) {
+                        ComentarioEntity comentario = mapComentario(doc);
+                        lista.add(comentario);
+                        total++;
+                        suma += comentario.rating;
+                    }
+                    lista.sort((a, b) -> Long.compare(b.timestamp, a.timestamp));
+                    Float promedio = total > 0 ? (float) suma / total : null;
+                    actualizarUIComentarios(lista, promedio, total);
+                })
+                .addOnFailureListener(e -> {
+                    adapter.actualizarLista(new ArrayList<>());
+                    if (tvRatingPromedio != null) {
+                        tvRatingPromedio.setText("No se pudieron cargar reseñas");
+                    }
+                });
     }
 
     private void actualizarUIComentarios(List<ComentarioEntity> lista, Float promedio, int total) {
@@ -416,6 +412,41 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
             tvRatingPromedio.setText(String.format(Locale.getDefault(), "%.1f (%d %s)",
                     promedio, total, total == 1 ? "reseña" : "reseñas"));
         }
+    }
+
+    private ComentarioEntity mapComentario(DocumentSnapshot doc) {
+        String nombre = firstNonEmpty(
+                doc.getString("clienteNombre"),
+                doc.getString("nombreCliente"),
+                "Cliente");
+        String uid = firstNonEmpty(doc.getString("uidCliente"), "", "");
+        String texto = firstNonEmpty(doc.getString("comentario"), doc.getString("texto"), "");
+        Long calificacionLong = doc.getLong("calificacion");
+        int rating = calificacionLong != null ? calificacionLong.intValue() : 0;
+        com.google.firebase.Timestamp ts = doc.getTimestamp("timestamp");
+        long fecha = ts != null ? ts.toDate().getTime() : System.currentTimeMillis();
+        return new ComentarioEntity(
+                firstNonEmpty(proyectoId, nombreProyecto, ""),
+                uid,
+                nombre,
+                null,
+                rating,
+                texto,
+                fecha);
+    }
+
+    private String obtenerPrimerAsesorUid() {
+        if (proyectoActual == null || proyectoActual.getUidAsesores() == null
+                || proyectoActual.getUidAsesores().isEmpty()) {
+            return "";
+        }
+        return proyectoActual.getUidAsesores().get(0);
+    }
+
+    private String firstNonEmpty(String primary, String secondary, String fallback) {
+        if (primary != null && !primary.trim().isEmpty()) return primary;
+        if (secondary != null && !secondary.trim().isEmpty()) return secondary;
+        return fallback != null ? fallback : "";
     }
 
     // ── Métodos auxiliares ─────────────────────────────────────────────────────

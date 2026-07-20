@@ -216,7 +216,7 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
         Collections.sort(asesoresOrdenados, (a, b) -> Double.compare(b.monto, a.monto));
 
         if (asesoresOrdenados.isEmpty()) {
-            mostrarFilaAsesor(0, "Sin asesores con ventas", "0 sep · S/0", 0);
+            mostrarFilaAsesor(0, "Sin asesores con pagos", "0 pagos · S/0", 0);
             ocultarFilaAsesor(1);
             return;
         }
@@ -232,7 +232,7 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
             mostrarFilaAsesor(
                     i,
                     asesor.nombre,
-                    asesor.separaciones + " sep · " + formatearSolesCompacto(asesor.monto),
+                    asesor.separaciones + " pagos · " + formatearSolesCompacto(asesor.monto),
                     progreso
             );
         }
@@ -384,13 +384,22 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
         long inicio = ahora - obtenerDuracionPeriodoMillis();
         for (AdminSeparacion separacion : separacionesActuales) {
             if (separacion == null) continue;
-            if (!"Aprobada".equalsIgnoreCase(separacion.getEstado())) continue;
+            if (!esPagoConfirmado(separacion)) continue;
             if (!selectedProyecto.equals(separacion.getNombreProyecto())) continue;
             long fecha = fechaParaReporte(separacion);
             if (fecha <= 0 || fecha < inicio || fecha > ahora) continue;
             resultado.add(separacion);
         }
         return resultado;
+    }
+
+    private boolean esPagoConfirmado(AdminSeparacion separacion) {
+        if (separacion == null) return false;
+        String estadoPago = separacion.getEstadoPago();
+        String estado = separacion.getEstado();
+        return "Pagado".equalsIgnoreCase(estadoPago)
+                || "Pagada".equalsIgnoreCase(estadoPago)
+                || "pago_registrado".equalsIgnoreCase(estado);
     }
 
     private long fechaParaReporte(AdminSeparacion separacion) {

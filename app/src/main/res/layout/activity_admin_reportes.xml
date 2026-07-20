@@ -147,7 +147,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="Ventas del periodo"
+                            android:text="Pagos registrados"
                             android:textColor="@color/neutral_dark"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -281,7 +281,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ventas por proyecto"
+                android:text="Ganancias por proyecto"
                 android:textColor="@color/text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -313,7 +313,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Sin ventas aprobadas"
+                            android:text="Sin pagos registrados"
                             android:textColor="@color/text_primary" />
 
                         <TextView

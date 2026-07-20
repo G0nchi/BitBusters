@@ -259,7 +259,7 @@ public class AdminMainActivity extends AppCompatActivity {
             String estado = separacion.getEstado() == null ? "" : separacion.getEstado();
             if ("Pendiente".equalsIgnoreCase(estado)) pendientes++;
             long fecha = fechaDashboard(separacion);
-            if ("Aprobada".equalsIgnoreCase(estado)
+            if (esPagoConfirmado(separacion)
                     && fecha >= inicioMes
                     && fecha <= ahora) {
                 ventasMes += parseMonto(separacion.getMonto());
@@ -311,6 +311,7 @@ public class AdminMainActivity extends AppCompatActivity {
         String proyecto = separacion.getNombreProyecto();
         if (proyecto == null || proyecto.trim().isEmpty()) proyecto = "proyecto";
         String estado = separacion.getEstado() == null ? "" : separacion.getEstado();
+        if (esPagoConfirmado(separacion)) return "Pago registrado · " + proyecto;
         if ("Aprobada".equalsIgnoreCase(estado)) return "Separación aprobada · " + proyecto;
         if ("Rechazada".equalsIgnoreCase(estado)) return "Separación rechazada · " + proyecto;
         return "Separación pendiente · " + proyecto;
@@ -320,6 +321,15 @@ public class AdminMainActivity extends AppCompatActivity {
         if (separacion == null) return 0L;
         if (separacion.getFechaActualizacionMillis() > 0) return separacion.getFechaActualizacionMillis();
         return separacion.getFechaRegistroMillis();
+    }
+
+    private boolean esPagoConfirmado(AdminSeparacion separacion) {
+        if (separacion == null) return false;
+        String estadoPago = separacion.getEstadoPago();
+        String estado = separacion.getEstado();
+        return "Pagado".equalsIgnoreCase(estadoPago)
+                || "Pagada".equalsIgnoreCase(estadoPago)
+                || "pago_registrado".equalsIgnoreCase(estado);
     }
 
     private String tiempoRelativo(long fecha) {

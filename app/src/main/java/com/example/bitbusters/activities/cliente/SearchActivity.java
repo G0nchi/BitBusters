@@ -46,6 +46,8 @@ public class SearchActivity extends AppCompatActivity {
 
     // Modo especial: mostrar todos sin necesidad de query de texto
     private boolean modoTodos = false;
+    private String filtroInmobiliariaId = null;
+    private String filtroInmobiliariaNombre = null;
 
     // Fuente de datos en tiempo real desde Firestore (reemplaza la lista hardcoded anterior)
     private final List<Proyecto> todosLosProyectos = new ArrayList<>();
@@ -107,6 +109,8 @@ public class SearchActivity extends AppCompatActivity {
 
         // Leer intent: mostrar_todos (desde HomeActivity) o query inicial
         modoTodos = getIntent().getBooleanExtra("mostrar_todos", false);
+        filtroInmobiliariaId = getIntent().getStringExtra("inmobiliaria_id");
+        filtroInmobiliariaNombre = getIntent().getStringExtra("inmobiliaria_nombre");
         String queryInicial = getIntent().getStringExtra("query");
         if (modoTodos) {
             ejecutarBusqueda();
@@ -199,7 +203,8 @@ public class SearchActivity extends AppCompatActivity {
         String query = etBuscar.getText().toString().trim();
 
         // Si no hay query, no hay filtros y no es modo "todos", mostrar estado vacío
-        if (query.isEmpty() && !modoTodos && filtroTipo == null && filtroPrecio == 0) {
+        if (query.isEmpty() && !modoTodos && filtroTipo == null && filtroPrecio == 0
+                && (filtroInmobiliariaId == null || filtroInmobiliariaId.trim().isEmpty())) {
             mostrarVacio(0);
             return;
         }
@@ -228,8 +233,11 @@ public class SearchActivity extends AppCompatActivity {
 
         // Filtro de precio
         boolean matchPrecio = (filtroPrecio == 0) || coincideConFiltroPrecio(p.precio, filtroPrecio);
+        boolean matchInmobiliaria = filtroInmobiliariaId == null || filtroInmobiliariaId.trim().isEmpty()
+                || filtroInmobiliariaId.equals(p.getInmobiliariaId())
+                || filtroInmobiliariaId.equals(p.getAdminUid());
 
-        return matchTexto && matchTipo && matchPrecio;
+        return matchTexto && matchTipo && matchPrecio && matchInmobiliaria;
     }
 
     private boolean coincideConFiltroPrecio(String precioStr, int filtro) {
