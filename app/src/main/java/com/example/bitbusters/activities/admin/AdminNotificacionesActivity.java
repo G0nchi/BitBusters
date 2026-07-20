@@ -84,7 +84,7 @@ public class AdminNotificacionesActivity extends AppCompatActivity {
             listaActual = AdminNotificacionesRepository.getLista();
             adapter = new AdminNotificationsAdapter(
                     listaActual,
-                    notificacion -> { /* sin acción adicional al tocar un ítem */ }
+                    this::marcarNotificacionLeida
             );
             rvNotificaciones.setAdapter(adapter);
         }
@@ -148,5 +148,17 @@ public class AdminNotificacionesActivity extends AppCompatActivity {
         if (rvNotificaciones != null) {
             rvNotificaciones.setVisibility(vacia ? View.GONE : View.VISIBLE);
         }
+    }
+
+    private void marcarNotificacionLeida(AdminNotificacion notificacion) {
+        AdminNotificacionesRepository.marcarComoLeida(
+                notificacion,
+                new AdminNotificacionesRepository.ActualizarCallback() {
+                    @Override
+                    public void onSuccess() { }
+
+                    @Override
+                    public void onError(String mensaje) { }
+                });
     }
 }

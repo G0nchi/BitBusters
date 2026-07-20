@@ -36,6 +36,11 @@ public final class AdminNotificacionesRepository {
         void onError(String mensaje);
     }
 
+    public interface ActualizarCallback {
+        void onSuccess();
+        void onError(String mensaje);
+    }
+
     // Constructor privado — no instanciar
     private AdminNotificacionesRepository() {}
 
@@ -156,7 +161,29 @@ public final class AdminNotificacionesRepository {
                 formatearTimestamp(doc.getTimestamp("createdAt")),
                 formatearTimestamp(doc.getTimestamp("timestamp"))
         );
-        return new AdminNotificacion(titulo, mensaje, timestamp);
+        return new AdminNotificacion(doc.getId(), titulo, mensaje, timestamp, true);
+    }
+
+    public static void marcarComoLeida(AdminNotificacion notificacion, ActualizarCallback callback) {
+        if (notificacion == null || !notificacion.isRemota()) {
+            if (callback != null) callback.onSuccess();
+            return;
+        }
+
+        FirebaseFirestore.getInstance()
+                .collection(COLECCION_NOTIFICACIONES)
+                .document(notificacion.getId())
+                .update("read", true)
+                .addOnSuccessListener(unused -> {
+                    if (callback != null) callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    if (callback != null) {
+                        callback.onError(e.getMessage() != null
+                                ? e.getMessage()
+                                : "No se pudo marcar la notificación como leída");
+                    }
+                });
     }
 
     private static boolean perteneceAlAdmin(
