@@ -1,134 +1,192 @@
 package com.example.bitbusters.activities.cliente;
 
-import com.example.bitbusters.R;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import com.example.bitbusters.R;
+import com.example.bitbusters.models.Proyecto;
+import com.example.bitbusters.repository.ProyectoRepository;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.firestore.ListenerRegistration;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ViewOnMapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    private static final int PERMISO_UBICACION = 100;
-        private static final String EXTRA_PROYECTO = "proyecto";
-    private GoogleMap mMap;
-        private String nombreProyecto;
+    public static final String EXTRA_PROYECTO = "proyecto";
+    public static final String EXTRA_LATITUD = "latitud";
+    public static final String EXTRA_LONGITUD = "longitud";
 
-    // Coordenadas del proyecto (La Perla, Callao)
-    private final LatLng coordProyecto = new LatLng(-12.0600, -77.1200);
+    private static final int PERMISO_UBICACION = 100;
+    private static final LatLng LIMA_DEFAULT = new LatLng(-12.0464, -77.0428);
+
+    private GoogleMap mMap;
+    private TextView tvUbicacionActual;
+    private TextView tvDireccion;
+    private final ProyectoRepository proyectoRepository = new ProyectoRepository();
+    private ListenerRegistration listenerProyectos;
+    private final List<Proyecto> proyectosConUbicacion = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_on_map);
 
-                nombreProyecto = getIntent().getStringExtra(EXTRA_PROYECTO);
-                if (nombreProyecto != null && !nombreProyecto.isEmpty()) {
-                        ((TextView) findViewById(R.id.tvUbicacionActual)).setText(nombreProyecto);
-                }
+        tvUbicacionActual = findViewById(R.id.tvUbicacionActual);
+        tvDireccion = findViewById(R.id.tvDireccion);
 
-        // Inicializar mapa
+        String nombreProyecto = getIntent().getStringExtra(EXTRA_PROYECTO);
+        if (nombreProyecto != null && !nombreProyecto.trim().isEmpty()) {
+            tvUbicacionActual.setText(nombreProyecto);
+        } else {
+            tvUbicacionActual.setText("Mapa de proyectos");
+        }
+
         SupportMapFragment mapFragment = (SupportMapFragment)
                 getSupportFragmentManager().findFragmentById(R.id.mapFragment);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
 
-        // Botón volver
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
-
-        // Botón centrar en ubicación del proyecto
-        findViewById(R.id.btnCentrar).setOnClickListener(v -> {
-            if (mMap != null) {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(coordProyecto, 15f));
-            }
-        });
-
-        // Chips de filtro
+        findViewById(R.id.btnCentrar).setOnClickListener(v -> centrarMapa());
         findViewById(R.id.chipHospital).setOnClickListener(v ->
-                Toast.makeText(this, "1 Hospital cercano", Toast.LENGTH_SHORT).show());
+                Toast.makeText(this, "Mostrando proyectos reales con ubicación registrada", Toast.LENGTH_SHORT).show());
         findViewById(R.id.chipGrifos).setOnClickListener(v ->
-                Toast.makeText(this, "2 Grifos cercanos", Toast.LENGTH_SHORT).show());
+                Toast.makeText(this, proyectosConUbicacion.size() + " proyectos con coordenadas", Toast.LENGTH_SHORT).show());
         findViewById(R.id.chipColegio).setOnClickListener(v ->
-                Toast.makeText(this, "1 Colegio cercano", Toast.LENGTH_SHORT).show());
+                Toast.makeText(this, "Los puntos cercanos dependen de Google Maps", Toast.LENGTH_SHORT).show());
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (listenerProyectos != null) {
+            listenerProyectos.remove();
+            listenerProyectos = null;
+        }
     }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
-
-        // Estilo del mapa
         mMap.getUiSettings().setZoomControlsEnabled(false);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        habilitarUbicacionSiPermiso();
 
-        // Centrar cámara en el proyecto
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(coordProyecto, 14f));
+        if (hayCoordenadasEnIntent()) {
+            mostrarProyectoIntent();
+        } else {
+            escucharProyectos();
+        }
+    }
 
-        // Marcador del proyecto principal
+    private boolean hayCoordenadasEnIntent() {
+        return getIntent().hasExtra(EXTRA_LATITUD) && getIntent().hasExtra(EXTRA_LONGITUD);
+    }
+
+    private void mostrarProyectoIntent() {
+        double lat = getIntent().getDoubleExtra(EXTRA_LATITUD, LIMA_DEFAULT.latitude);
+        double lng = getIntent().getDoubleExtra(EXTRA_LONGITUD, LIMA_DEFAULT.longitude);
+        String nombre = getIntent().getStringExtra(EXTRA_PROYECTO);
+        LatLng ubicacion = new LatLng(lat, lng);
+        mMap.clear();
         mMap.addMarker(new MarkerOptions()
-                .position(coordProyecto)
-                .title(nombreProyecto != null ? nombreProyecto : "Torres Unidas")
+                .position(ubicacion)
+                .title(nombre != null ? nombre : "Proyecto")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ubicacion, 15f));
+        tvDireccion.setText(nombre != null ? nombre : "Proyecto seleccionado");
+    }
 
-        // Círculo de radio alrededor del proyecto
-        mMap.addCircle(new CircleOptions()
-                .center(coordProyecto)
-                .radius(800)
-                .strokeColor(0x551A2E44)
-                .fillColor(0x221A2E44)
-                .strokeWidth(2f));
+    private void escucharProyectos() {
+        listenerProyectos = proyectoRepository.escucharProyectosCliente(new ProyectoRepository.ProyectosListener() {
+            @Override
+            public void onProyectosActualizados(List<Proyecto> proyectos) {
+                proyectosConUbicacion.clear();
+                if (proyectos != null) {
+                    for (Proyecto proyecto : proyectos) {
+                        if (proyecto.getLatitud() != null && proyecto.getLongitud() != null) {
+                            proyectosConUbicacion.add(proyecto);
+                        }
+                    }
+                }
+                dibujarProyectos();
+            }
 
-        // Marcadores de propiedades cercanas
-        LatLng prop1 = new LatLng(-12.0550, -77.1150);
-        LatLng prop2 = new LatLng(-12.0620, -77.1100);
-        LatLng prop3 = new LatLng(-12.0650, -77.1250);
+            @Override
+            public void onError(String mensaje) {
+                Toast.makeText(ViewOnMapActivity.this, "No se pudo cargar el mapa: " + mensaje, Toast.LENGTH_LONG).show();
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LIMA_DEFAULT, 11f));
+            }
+        });
+    }
 
-        mMap.addMarker(new MarkerOptions()
-                .position(prop1)
-                .title("Propiedad 1")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-        mMap.addMarker(new MarkerOptions()
-                .position(prop2)
-                .title("Propiedad 2")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-        mMap.addMarker(new MarkerOptions()
-                .position(prop3)
-                .title("Propiedad 3")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+    private void dibujarProyectos() {
+        if (mMap == null) return;
+        mMap.clear();
 
-        // Línea de ruta desde usuario hasta proyecto
-        LatLng coordUsuario = new LatLng(-12.0480, -77.1300);
-        mMap.addPolyline(new PolylineOptions()
-                .add(coordUsuario, coordProyecto)
-                .color(0xFF4CAF50)
-                .width(6f));
+        if (proyectosConUbicacion.isEmpty()) {
+            tvDireccion.setText("No hay proyectos con coordenadas registradas.");
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LIMA_DEFAULT, 11f));
+            return;
+        }
 
-        // Marcador del usuario
-        mMap.addMarker(new MarkerOptions()
-                .position(coordUsuario)
-                .title("Tu ubicación")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+        LatLngBounds.Builder bounds = LatLngBounds.builder();
+        for (Proyecto proyecto : proyectosConUbicacion) {
+            LatLng ubicacion = new LatLng(proyecto.getLatitud(), proyecto.getLongitud());
+            bounds.include(ubicacion);
+            mMap.addMarker(new MarkerOptions()
+                    .position(ubicacion)
+                    .title(proyecto.getNombre())
+                    .snippet(proyecto.getInmobiliariaNombre())
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+        }
 
-        // Click en marcador muestra dirección en panel
+        centrarMapa();
+        tvDireccion.setText(proyectosConUbicacion.size() + " proyectos activos con ubicación.");
         mMap.setOnMarkerClickListener(marker -> {
-            ((TextView) findViewById(R.id.tvDireccion)).setText(marker.getTitle());
+            tvDireccion.setText(marker.getTitle());
             return false;
         });
+    }
 
-        // Pedir permiso de ubicación
+    private void centrarMapa() {
+        if (mMap == null) return;
+        if (proyectosConUbicacion.isEmpty()) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LIMA_DEFAULT, 11f));
+            return;
+        }
+        if (proyectosConUbicacion.size() == 1) {
+            Proyecto proyecto = proyectosConUbicacion.get(0);
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(proyecto.getLatitud(), proyecto.getLongitud()), 15f));
+            return;
+        }
+        LatLngBounds.Builder bounds = LatLngBounds.builder();
+        for (Proyecto proyecto : proyectosConUbicacion) {
+            bounds.include(new LatLng(proyecto.getLatitud(), proyecto.getLongitud()));
+        }
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 120));
+    }
+
+    private void habilitarUbicacionSiPermiso() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
@@ -140,13 +198,16 @@ public class ViewOnMapActivity extends AppCompatActivity implements OnMapReadyCa
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISO_UBICACION &&
-                grantResults.length > 0 &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                        mMap.setMyLocationEnabled(ActivityCompat.checkSelfPermission(this,
-                                        Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED);
+        if (requestCode == PERMISO_UBICACION
+                && grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                && mMap != null
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
         }
     }
 }

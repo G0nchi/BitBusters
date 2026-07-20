@@ -2,6 +2,7 @@ package com.example.bitbusters.activities.admin;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -16,6 +17,11 @@ import com.example.bitbusters.utils.AdminPreferencesManager;
 import com.example.bitbusters.utils.AdminStorageManager;
 import com.example.bitbusters.utils.NotificationHelper;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Pantalla de detalle de una separación específica.
@@ -28,7 +34,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 public class AdminDetallesSeparacionActivity extends AppCompatActivity {
 
     private TextView tvProjectName, tvUbication, tvMonto,
-                     tvClienteName, tvClienteDNI, tvClientePhone, tvClienteEmail, tvAsesorName;
+                     tvClienteName, tvClienteDNI, tvClientePhone, tvClienteEmail, tvAsesorName,
+                     tvEstado, tvMetodoPago, tvComprobante, tvObservacion;
     private Button btnAprobar, btnRechazar;
 
     /** ID de la separación actualmente mostrada; null si vino por extras legacy. */
@@ -53,6 +60,10 @@ public class AdminDetallesSeparacionActivity extends AppCompatActivity {
         tvClientePhone = findViewById(R.id.tvClientePhone);
         tvClienteEmail = findViewById(R.id.tvClienteEmail);
         tvAsesorName   = findViewById(R.id.tvAsesorName);
+        tvEstado       = findViewById(R.id.tvEstado);
+        tvMetodoPago   = findViewById(R.id.tvMetodoPago);
+        tvComprobante  = findViewById(R.id.tvComprobante);
+        tvObservacion  = findViewById(R.id.tvObservacion);
 
         btnAprobar  = findViewById(R.id.btnAprobar);
         btnRechazar = findViewById(R.id.btnRechazar);
@@ -76,10 +87,17 @@ public class AdminDetallesSeparacionActivity extends AppCompatActivity {
             if (separacion != null) {
                 setTextSafe(tvProjectName, separacion.getNombreProyecto());
                 setTextSafe(tvMonto,       separacion.getMonto());
-                setTextSafe(tvAsesorName,  separacion.getCliente());
+                String asesor = !separacion.getAsesorNombre().isEmpty()
+                        ? separacion.getAsesorNombre()
+                        : (!separacion.getUidAsesor().isEmpty()
+                                ? separacion.getUidAsesor()
+                                : "No registrado");
+                setTextSafe(tvAsesorName,  asesor);
                 setTextSafe(tvUbication,   separacion.getFecha());
                 // Nombre del cliente
                 setTextSafe(tvClienteName, separacion.getCliente());
+                configurarEstadoSeparacion(separacion);
+                configurarDatosPago(separacion);
                 return; // datos cargados desde repositorio, no continuar
             }
         }
@@ -92,6 +110,10 @@ public class AdminDetallesSeparacionActivity extends AppCompatActivity {
         setTextSafe(tvProjectName, nombreProyecto);
         setTextSafe(tvMonto,       precio);
         setTextSafe(tvAsesorName,  asesor);
+        setTextSafe(tvEstado,      "Pendiente de aprobación");
+        setTextSafe(tvMetodoPago,  "No registrado");
+        setTextSafe(tvComprobante, "No registrado");
+        setTextSafe(tvObservacion, "Pendiente de revisión");
     }
 
     private void setupListeners() {
@@ -125,6 +147,23 @@ public class AdminDetallesSeparacionActivity extends AppCompatActivity {
                 // Esto hace que la lista muestre "Aprobada" (en verde) al volver
                 if (separacionId != null) {
                     SeparacionesRepository.actualizarEstado(separacionId, "Aprobada");
+                    SeparacionesRepository.actualizarEstadoEnFirestore(
+                            separacionId,
+                            "Aprobada",
+                            new SeparacionesRepository.ActualizarEstadoCallback() {
+                                @Override
+                                public void onSuccess() { }
+
+                                @Override
+                                public void onError(String mensaje) {
+                                    Toast.makeText(
+                                            AdminDetallesSeparacionActivity.this,
+                                            "Cambio guardado localmente. No se pudo sincronizar Firebase.",
+                                            Toast.LENGTH_LONG
+                                    ).show();
+                                }
+                            }
+                    );
                 }
 
                 // ── Corrección 3: Notificación con ID para que la lista haga scroll ─
@@ -148,6 +187,7 @@ public class AdminDetallesSeparacionActivity extends AppCompatActivity {
             .show();
     }
 
+    
     private void showRechazarDialog() {
         new MaterialAlertDialogBuilder(this)
             .setTitle("Confirmar rechazo")
@@ -157,6 +197,23 @@ public class AdminDetallesSeparacionActivity extends AppCompatActivity {
                 // Actualizar estado en el repositorio
                 if (separacionId != null) {
                     SeparacionesRepository.actualizarEstado(separacionId, "Rechazada");
+                    SeparacionesRepository.actualizarEstadoEnFirestore(
+                            separacionId,
+                            "Rechazada",
+                            new SeparacionesRepository.ActualizarEstadoCallback() {
+                                @Override
+                                public void onSuccess() { }
+
+                                @Override
+                                public void onError(String mensaje) {
+                                    Toast.makeText(
+                                            AdminDetallesSeparacionActivity.this,
+                                            "Cambio guardado localmente. No se pudo sincronizar Firebase.",
+                                            Toast.LENGTH_LONG
+                                    ).show();
+                                }
+                            }
+                    );
                 }
                 // Decrementar pendientes (la separación ya no está pendiente)
                 AdminPreferencesManager.decrementarSeparacionesPendientes(this);
@@ -179,5 +236,74 @@ public class AdminDetallesSeparacionActivity extends AppCompatActivity {
         if (tv != null && valor != null) {
             tv.setText(valor);
         }
+    }
+
+    private void configurarEstadoSeparacion(AdminSeparacion separacion) {
+        if (separacion == null) return;
+
+        String estado = separacion.getEstado();
+        String textoEstado;
+        int colorRes;
+
+        if ("Aprobada".equalsIgnoreCase(estado)) {
+            textoEstado = "Separación aprobada";
+            colorRes = R.color.brand_lime;
+        } else if ("Rechazada".equalsIgnoreCase(estado)) {
+            textoEstado = "Separación rechazada";
+            colorRes = R.color.status_error;
+        } else {
+            textoEstado = "Pendiente de aprobación";
+            colorRes = R.color.status_warning;
+        }
+
+        setTextSafe(tvEstado, textoEstado);
+        if (tvEstado != null) {
+            tvEstado.setTextColor(getColor(colorRes));
+        }
+
+        boolean pendiente = "Pendiente".equalsIgnoreCase(estado);
+        if (btnAprobar != null) {
+            btnAprobar.setEnabled(pendiente);
+            btnAprobar.setVisibility(pendiente ? View.VISIBLE : View.GONE);
+        }
+        if (btnRechazar != null) {
+            btnRechazar.setEnabled(pendiente);
+            btnRechazar.setVisibility(pendiente ? View.VISIBLE : View.GONE);
+        }
+        if (btnAprobar != null && btnAprobar.getParent() instanceof View) {
+            ((View) btnAprobar.getParent()).setVisibility(pendiente ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private void configurarDatosPago(AdminSeparacion separacion) {
+        if (separacion == null) return;
+
+        String metodoPago = !separacion.getMetodoPago().isEmpty()
+                ? separacion.getMetodoPago()
+                : "No registrado";
+        String comprobante = !separacion.getComprobantePago().isEmpty()
+                ? separacion.getComprobantePago()
+                : "No registrado";
+        String observacion = !separacion.getObservacionPago().isEmpty()
+                ? separacion.getObservacionPago()
+                : observacionPorEstadoPago(separacion);
+
+        setTextSafe(tvMetodoPago, metodoPago);
+        setTextSafe(tvComprobante, comprobante);
+        setTextSafe(tvObservacion, observacion);
+    }
+
+    private String observacionPorEstadoPago(AdminSeparacion separacion) {
+        String estadoPago = separacion.getEstadoPago();
+        if ("Pagado".equalsIgnoreCase(estadoPago)) {
+            return "Pago completado por el cliente";
+        }
+        if ("Pendiente".equalsIgnoreCase(estadoPago)) {
+            return "Pendiente de pago por parte del cliente";
+        }
+        if ("Rechazado".equalsIgnoreCase(estadoPago)) {
+            return "Pago rechazado o fallido";
+        }
+        return "El pago se habilita cuando la separación es aprobada";
     }
 }

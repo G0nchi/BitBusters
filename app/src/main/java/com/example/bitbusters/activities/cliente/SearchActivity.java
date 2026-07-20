@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -45,11 +46,18 @@ public class SearchActivity extends AppCompatActivity {
 
     // Modo especial: mostrar todos sin necesidad de query de texto
     private boolean modoTodos = false;
+    private String filtroInmobiliariaId = null;
+    private String filtroInmobiliariaNombre = null;
 
     // Fuente de datos en tiempo real desde Firestore (reemplaza la lista hardcoded anterior)
     private final List<Proyecto> todosLosProyectos = new ArrayList<>();
     private ProyectoRepository proyectoRepository;
     private ListenerRegistration listenerProyectos;
+
+    private ProgressBar progressSearch;
+    private android.view.View layoutSearchError;
+    private TextView tvSearchError;
+    private android.view.View layoutSearchContent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +109,8 @@ public class SearchActivity extends AppCompatActivity {
 
         // Leer intent: mostrar_todos (desde HomeActivity) o query inicial
         modoTodos = getIntent().getBooleanExtra("mostrar_todos", false);
+        filtroInmobiliariaId = getIntent().getStringExtra("inmobiliaria_id");
+        filtroInmobiliariaNombre = getIntent().getStringExtra("inmobiliaria_nombre");
         String queryInicial = getIntent().getStringExtra("query");
         if (modoTodos) {
             ejecutarBusqueda();
@@ -110,11 +120,25 @@ public class SearchActivity extends AppCompatActivity {
         } else {
             mostrarVacio(0);
         }
+
+        progressSearch = findViewById(R.id.progressSearch);
+        layoutSearchError = findViewById(R.id.layoutSearchError);
+        tvSearchError = findViewById(R.id.tvSearchError);
+        layoutSearchContent = findViewById(R.id.layoutSearchContent);
+        findViewById(R.id.btnRetrySearch).setOnClickListener(v -> retryCargarProyectos());
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        mostrarCargando();
+        iniciarListenerProyectos();
+    }
+
+    private void iniciarListenerProyectos() {
+        if (todosLosProyectos.isEmpty()) {
+            mostrarCargando();
+        }
         listenerProyectos = proyectoRepository.escucharProyectosCliente(
             new ProyectoRepository.ProyectosListener() {
                 @Override
@@ -122,14 +146,45 @@ public class SearchActivity extends AppCompatActivity {
                     todosLosProyectos.clear();
                     todosLosProyectos.addAll(proyectos);
                     Log.d("SearchActivity", "Proyectos Firestore recibidos: " + proyectos.size());
+                    mostrarContenido();
                     ejecutarBusqueda();
                 }
 
                 @Override
                 public void onError(String mensaje) {
                     Log.e("SearchActivity", "Error cargando proyectos: " + mensaje);
+                    mostrarError("Error al cargar proyectos: " + mensaje);
                 }
             });
+    }
+
+    private void retryCargarProyectos() {
+        if (listenerProyectos != null) {
+            listenerProyectos.remove();
+            listenerProyectos = null;
+        }
+        iniciarListenerProyectos();
+    }
+
+    private void mostrarCargando() {
+        if (progressSearch != null) progressSearch.setVisibility(android.view.View.VISIBLE);
+        if (layoutSearchError != null) layoutSearchError.setVisibility(android.view.View.GONE);
+        if (layoutSearchContent != null) layoutSearchContent.setVisibility(android.view.View.GONE);
+    }
+
+    private void mostrarError(String mensaje) {
+        if (progressSearch != null) progressSearch.setVisibility(android.view.View.GONE);
+        if (layoutSearchContent != null) layoutSearchContent.setVisibility(android.view.View.GONE);
+        if (layoutSearchError != null) {
+            layoutSearchError.setVisibility(android.view.View.VISIBLE);
+            if (tvSearchError != null) tvSearchError.setText(mensaje);
+        }
+    }
+
+    private void mostrarContenido() {
+        if (progressSearch != null) progressSearch.setVisibility(android.view.View.GONE);
+        if (layoutSearchError != null) layoutSearchError.setVisibility(android.view.View.GONE);
+        if (layoutSearchContent != null) layoutSearchContent.setVisibility(android.view.View.VISIBLE);
     }
 
     @Override
@@ -148,7 +203,8 @@ public class SearchActivity extends AppCompatActivity {
         String query = etBuscar.getText().toString().trim();
 
         // Si no hay query, no hay filtros y no es modo "todos", mostrar estado vacío
-        if (query.isEmpty() && !modoTodos && filtroTipo == null && filtroPrecio == 0) {
+        if (query.isEmpty() && !modoTodos && filtroTipo == null && filtroPrecio == 0
+                && (filtroInmobiliariaId == null || filtroInmobiliariaId.trim().isEmpty())) {
             mostrarVacio(0);
             return;
         }
@@ -177,8 +233,11 @@ public class SearchActivity extends AppCompatActivity {
 
         // Filtro de precio
         boolean matchPrecio = (filtroPrecio == 0) || coincideConFiltroPrecio(p.precio, filtroPrecio);
+        boolean matchInmobiliaria = filtroInmobiliariaId == null || filtroInmobiliariaId.trim().isEmpty()
+                || filtroInmobiliariaId.equals(p.getInmobiliariaId())
+                || filtroInmobiliariaId.equals(p.getAdminUid());
 
-        return matchTexto && matchTipo && matchPrecio;
+        return matchTexto && matchTipo && matchPrecio && matchInmobiliaria;
     }
 
     private boolean coincideConFiltroPrecio(String precioStr, int filtro) {

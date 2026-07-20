@@ -46,88 +46,146 @@
             android:padding="16dp"
             android:paddingBottom="72dp">
 
-            <!-- Tab Buttons: Pendientes, Aprobadas, Rechazadas -->
-            <LinearLayout
+            <!-- Estados -->
+            <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="12dp"
+                android:fillViewport="false"
+                android:overScrollMode="never"
+                android:scrollbars="none">
 
-                <Button
-                    android:id="@+id/btnPendientes"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:text="Pendientes (3)"
-                    android:textSize="12sp"
-                    android:textColor="@color/neutral_medium"
-                    android:background="@drawable/button_outline_state_bg"
-                    android:layout_marginEnd="4dp" />
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupEstadosSeparacion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleLine="true"
+                    app:singleSelection="true"
+                    app:selectionRequired="true">
 
-                <Button
-                    android:id="@+id/btnAprobadas"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:text="Aprobadas (12)"
-                    android:textSize="12sp"
-                    android:textColor="@color/white"
-                    android:background="@color/brand_deep_blue"
-                    android:layout_marginEnd="4dp"
-                    android:layout_marginStart="4dp" />
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipEstadoTodos"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Todos" />
 
-                <Button
-                    android:id="@+id/btnRechazadas"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:text="Rechazadas"
-                    android:textSize="12sp"
-                    android:textColor="@color/neutral_medium"
-                    android:background="@drawable/button_outline_state_bg"
-                    android:layout_marginStart="4dp" />
-            </LinearLayout>
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipEstadoPendientes"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Pendientes" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipEstadoAprobadas"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Aprobadas" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipEstadoRechazadas"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Rechazadas" />
+                </com.google.android.material.chip.ChipGroup>
+            </HorizontalScrollView>
 
             <!-- Filtros -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:layout_marginBottom="16dp">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                    android:text="Proyecto"
+                    android:textColor="@color/neutral_dark"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
 
-                    <AutoCompleteTextView
-                        android:id="@+id/actvProyectoFilter"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Todos los proyectos"
-                        android:inputType="none"
-                        android:textSize="12sp"
-                        android:textColor="@color/neutral_dark" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="12dp"
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
 
-                    <AutoCompleteTextView
-                        android:id="@+id/actvFechaFilter"
-                        android:layout_width="match_parent"
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupProyectoFilter"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Este mes"
-                        android:inputType="none"
-                        android:textSize="12sp"
-                        android:textColor="@color/neutral_dark" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        app:singleLine="true"
+                        app:singleSelection="true"
+                        app:selectionRequired="true" />
+                </HorizontalScrollView>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Periodo"
+                    android:textColor="@color/neutral_dark"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupFechaFilter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:singleLine="true"
+                        app:singleSelection="true"
+                        app:selectionRequired="true">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipFechaTodo"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:text="Todo el tiempo" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipFechaSemana"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Esta semana" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipFechaMes"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Este mes" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipFechaBimestre"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Este bimestre" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipFechaAnio"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Este año" />
+                    </com.google.android.material.chip.ChipGroup>
+                </HorizontalScrollView>
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -136,21 +194,19 @@
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false" />
 
+            <TextView
+                android:id="@+id/tvSeparacionesEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center"
+                android:text="No hay separaciones pendientes"
+                android:textColor="@color/neutral_medium"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <!-- Botón Lab 5 — Simula que un asesor registra una nueva separación.
-         Ubicado entre el scroll y el nav para que siempre sea visible. -->
-    <Button
-        android:id="@+id/btnSimularSeparacion"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
-        style="@style/Widget.BitBusters.PrimaryButton"
-        android:backgroundTint="@color/brand_deep_blue"
-        android:text="Simular: Asesor registra una separación" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"

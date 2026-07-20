@@ -2,7 +2,6 @@ package com.example.bitbusters.activities.cliente;
 
 import android.Manifest;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
@@ -15,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,7 +33,6 @@ import com.example.bitbusters.models.Proyecto;
 import com.example.bitbusters.repository.ChatRepository;
 import com.example.bitbusters.repository.ProyectoRepository;
 import com.example.bitbusters.repository.UbicacionRepository;
-import com.example.bitbusters.utils.AsesorDatabase;
 import com.example.bitbusters.utils.ImageUrls;
 import com.example.bitbusters.utils.NotificationHelper;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -59,13 +58,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Executors;
 
 public class ProjectDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final String EXTRA_PROYECTO = "proyecto";
     private static final String EXTRA_PROYECTO_ID = "proyecto_id";
-    private static final String PREF_SEED_DONE = "comentarios_seed_done";
     private static final int    REQUEST_LOCATION = 100;
 
     // Proyecto
@@ -74,12 +71,13 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
     private Proyecto proyectoActual;
     private ProyectoRepository proyectoRepository;
     private boolean comentariosConfigurados = false;
-
-    // Chat
+    private ProgressBar progressProject;
+    private View layoutProjectError;
+    private TextView tvProjectError;
+    private View scrollProjectContent;
     private ChatRepository chatRepository;
 
-    // Comentarios (Room)
-    private AsesorDatabase   db;
+    // Comentarios / valoraciones Firestore
     private ComentariosAdapter adapter;
     private TextView         tvRatingPromedio;
 
@@ -97,8 +95,14 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
 
         NotificationHelper.crearCanal(this);
 
-        chatRepository = new ChatRepository();
         proyectoRepository = new ProyectoRepository();
+        chatRepository = new ChatRepository();
+
+        progressProject = findViewById(R.id.progressProject);
+        layoutProjectError = findViewById(R.id.layoutProjectError);
+        tvProjectError = findViewById(R.id.tvProjectError);
+        scrollProjectContent = findViewById(R.id.scrollProjectContent);
+        findViewById(R.id.btnRetryProject).setOnClickListener(v -> cargarDatosProyecto());
 
         nombreProyecto = resolverNombreProyecto();
         if (nombreProyecto == null || nombreProyecto.isEmpty()) {
@@ -108,8 +112,17 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         }
 
         configurarUIProyecto();
+        mostrarCargandoProyecto();
         cargarDatosProyecto();
         configurarNavegacion();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (comentariosConfigurados) {
+            cargarComentarios();
+        }
     }
 
     // ── UI del proyecto ────────────────────────────────────────────────────────
@@ -139,8 +152,6 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
 
         findViewById(R.id.btnCompartir).setOnClickListener(v -> { /* TODO compartir */ });
         findViewById(R.id.btnFavorito).setOnClickListener(v -> { /* TODO favoritos */ });
-        findViewById(R.id.btnRentar).setOnClickListener(v -> { /* TODO renta */ });
-        findViewById(R.id.btnComprar).setOnClickListener(v -> { /* TODO separación */ });
         findViewById(R.id.btnQR).setOnClickListener(v -> mostrarDialogoQR());
 
         findViewById(R.id.btnChatAsesor).setOnClickListener(v -> abrirChatConAsesor());
@@ -157,17 +168,6 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         }
 
         findViewById(R.id.tvVerCostos).setOnClickListener(v -> mostrarDesgloseCostos());
-
-        // Botón Separar Inmueble (bottom bar)
-        findViewById(R.id.btnSeparar).setOnClickListener(v -> {
-            Intent intentAgenda = new Intent(this, AgendaCitaActivity.class);
-            NotificationHelper.lanzarNotificacion(this,
-                    "Separación Pendiente",
-                    "Tienes 10 minutos para completar el pago",
-                    NotificationHelper.NOTIF_SEPARACION,
-                    intentAgenda);
-            startActivity(new Intent(this, PaymentMethodActivity.class));
-        });
 
         // Botón Cómo llegar → Google Maps externo
         findViewById(R.id.btnComoLlegar).setOnClickListener(v -> {
@@ -193,6 +193,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
     // ── Mapa interactivo ───────────────────────────────────────────────────────
 
     private void cargarMapa(String idProyecto) {
+        mostrarCargaSecundaria(true);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         new UbicacionRepository(this).obtenerCoordenadasProyecto(idProyecto,
@@ -213,6 +214,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
 
                     @Override
                     public void onError(String mensaje) {
+                        mostrarCargaSecundaria(false);
                         View cardMapa     = findViewById(R.id.cardMapa);
                         View btnComoLlegar = findViewById(R.id.btnComoLlegar);
                         if (cardMapa != null)      cardMapa.setVisibility(View.GONE);
@@ -267,6 +269,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
     }
 
     private void solicitarUbicacionActual() {
+        mostrarCargaSecundaria(true);
         try {
             CancellationTokenSource cancellationToken = new CancellationTokenSource();
             fusedLocationClient.getCurrentLocation(
@@ -276,11 +279,13 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
                 if (location != null) {
                     procesarUbicacion(location);
                 } else {
+                    mostrarCargaSecundaria(false);
                     TextView tvDistancia = findViewById(R.id.tvDistancia);
                     if (tvDistancia != null)
                         tvDistancia.setText("No se pudo obtener tu ubicación. Verifica el GPS.");
                 }
             }).addOnFailureListener(e -> {
+                mostrarCargaSecundaria(false);
                 TextView tvDistancia = findViewById(R.id.tvDistancia);
                 if (tvDistancia != null)
                     tvDistancia.setText("Error al obtener ubicación");
@@ -322,6 +327,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
                 .include(ubicacionProyecto)
                 .build();
         googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 200));
+        mostrarCargaSecundaria(false);
     }
 
     @Override
@@ -333,6 +339,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 obtenerUbicacionUsuario();
             } else {
+                mostrarCargaSecundaria(false);
                 TextView tvDistancia = findViewById(R.id.tvDistancia);
                 if (tvDistancia != null)
                     tvDistancia.setText("Activa el GPS para ver la distancia");
@@ -340,10 +347,9 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         }
     }
 
-    // ── Comentarios (Room) ─────────────────────────────────────────────────────
+    // ── Comentarios / valoraciones Firestore ───────────────────────────────────
 
     private void configurarComentarios() {
-        db = AsesorDatabase.getInstance(this);
         tvRatingPromedio = findViewById(R.id.tvRatingPromedio);
 
         RecyclerView rvComentarios = findViewById(R.id.rvComentarios);
@@ -351,56 +357,50 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         adapter = new ComentariosAdapter(this, new ArrayList<>());
         rvComentarios.setAdapter(adapter);
 
-        // Abre DialogFragment en lugar de AddCommentActivity
         findViewById(R.id.btnAgregarComentario).setOnClickListener(v -> {
-            AgregarComentarioDialog dialog = AgregarComentarioDialog.newInstance(nombreProyecto);
-            dialog.setOnComentarioPublicadoListener(this::cargarComentarios);
-            dialog.show(getSupportFragmentManager(), "AgregarComentario");
+            Intent intent = new Intent(this, AddCommentActivity.class);
+            intent.putExtra("proyecto", nombreProyecto);
+            intent.putExtra("proyectoId", proyectoId != null ? proyectoId : "");
+            intent.putExtra("uidAsesor", obtenerPrimerAsesorUid());
+            startActivity(intent);
         });
 
-        cargarComentariosConSeed();
-    }
-
-    /** Inserta 3 comentarios de demo la primera vez que corre la app. */
-    private void sembrarComentariosDemo() {
-        SharedPreferences prefs = getSharedPreferences("bitbusters_prefs", MODE_PRIVATE);
-        if (prefs.getBoolean(PREF_SEED_DONE, false)) return;
-
-        long ahora = System.currentTimeMillis();
-        long dia   = 24L * 60 * 60 * 1000;
-
-        db.comentarioDao().insertar(new ComentarioEntity(
-                "Catalina Ventor", "maria_g", "María González", null,
-                5, "Excelente proyecto, muy buena ubicación y atención del asesor.",
-                ahora - 2 * dia));
-        db.comentarioDao().insertar(new ComentarioEntity(
-                "Catalina Ventor", "carlos_m", "Carlos Mendoza", null,
-                4, "Los acabados son buenos. El precio me parece razonable para la zona.",
-                ahora - 5 * dia));
-        db.comentarioDao().insertar(new ComentarioEntity(
-                "Catalina Ventor", "andrea_s", "Andrea Silva", null,
-                5, "Recién visité el departamento, me encantó.",
-                ahora - 7 * dia));
-
-        prefs.edit().putBoolean(PREF_SEED_DONE, true).apply();
-    }
-
-    private void cargarComentariosConSeed() {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            sembrarComentariosDemo();
-            fetchYActualizar();
-        });
+        cargarComentarios();
     }
 
     private void cargarComentarios() {
-        Executors.newSingleThreadExecutor().execute(this::fetchYActualizar);
-    }
+        com.google.firebase.firestore.Query query;
+        if (proyectoId != null && !proyectoId.trim().isEmpty()) {
+            query = FirebaseFirestore.getInstance()
+                    .collection("valoraciones")
+                    .whereEqualTo("proyectoId", proyectoId);
+        } else {
+            query = FirebaseFirestore.getInstance()
+                    .collection("valoraciones")
+                    .whereEqualTo("proyecto", nombreProyecto);
+        }
 
-    private void fetchYActualizar() {
-        List<ComentarioEntity> lista = db.comentarioDao().obtenerPorProyecto(nombreProyecto);
-        Float  promedio = db.comentarioDao().obtenerRatingPromedio(nombreProyecto);
-        int    total    = db.comentarioDao().contarPorProyecto(nombreProyecto);
-        runOnUiThread(() -> actualizarUIComentarios(lista, promedio, total));
+        query.get()
+                .addOnSuccessListener(snapshot -> {
+                    List<ComentarioEntity> lista = new ArrayList<>();
+                    int total = 0;
+                    int suma = 0;
+                    for (DocumentSnapshot doc : snapshot.getDocuments()) {
+                        ComentarioEntity comentario = mapComentario(doc);
+                        lista.add(comentario);
+                        total++;
+                        suma += comentario.rating;
+                    }
+                    lista.sort((a, b) -> Long.compare(b.timestamp, a.timestamp));
+                    Float promedio = total > 0 ? (float) suma / total : null;
+                    actualizarUIComentarios(lista, promedio, total);
+                })
+                .addOnFailureListener(e -> {
+                    adapter.actualizarLista(new ArrayList<>());
+                    if (tvRatingPromedio != null) {
+                        tvRatingPromedio.setText("No se pudieron cargar reseñas");
+                    }
+                });
     }
 
     private void actualizarUIComentarios(List<ComentarioEntity> lista, Float promedio, int total) {
@@ -412,6 +412,41 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
             tvRatingPromedio.setText(String.format(Locale.getDefault(), "%.1f (%d %s)",
                     promedio, total, total == 1 ? "reseña" : "reseñas"));
         }
+    }
+
+    private ComentarioEntity mapComentario(DocumentSnapshot doc) {
+        String nombre = firstNonEmpty(
+                doc.getString("clienteNombre"),
+                doc.getString("nombreCliente"),
+                "Cliente");
+        String uid = firstNonEmpty(doc.getString("uidCliente"), "", "");
+        String texto = firstNonEmpty(doc.getString("comentario"), doc.getString("texto"), "");
+        Long calificacionLong = doc.getLong("calificacion");
+        int rating = calificacionLong != null ? calificacionLong.intValue() : 0;
+        com.google.firebase.Timestamp ts = doc.getTimestamp("timestamp");
+        long fecha = ts != null ? ts.toDate().getTime() : System.currentTimeMillis();
+        return new ComentarioEntity(
+                firstNonEmpty(proyectoId, nombreProyecto, ""),
+                uid,
+                nombre,
+                null,
+                rating,
+                texto,
+                fecha);
+    }
+
+    private String obtenerPrimerAsesorUid() {
+        if (proyectoActual == null || proyectoActual.getUidAsesores() == null
+                || proyectoActual.getUidAsesores().isEmpty()) {
+            return "";
+        }
+        return proyectoActual.getUidAsesores().get(0);
+    }
+
+    private String firstNonEmpty(String primary, String secondary, String fallback) {
+        if (primary != null && !primary.trim().isEmpty()) return primary;
+        if (secondary != null && !secondary.trim().isEmpty()) return secondary;
+        return fallback != null ? fallback : "";
     }
 
     // ── Métodos auxiliares ─────────────────────────────────────────────────────
@@ -596,6 +631,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
     // ── Datos dinámicos del proyecto ──────────────────────────────────────────────
 
     private void cargarDatosProyecto() {
+        mostrarCargandoProyecto();
         ProyectoRepository.ProyectoCallback callback = new ProyectoRepository.ProyectoCallback() {
             @Override
             public void onSuccess(Proyecto p) {
@@ -604,6 +640,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
                     nombreProyecto = p.getNombre();
                 }
                 configurarUIProyecto();
+                mostrarContenidoProyecto();
                 pintarDatosProyecto();
                 configurarComentariosSiHaceFalta();
                 cargarMapaDesdeProyecto();
@@ -615,10 +652,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
             @Override
             public void onError(String mensaje) {
                 Log.e("DetalleProyecto", "Error cargando datos: " + mensaje);
-                Toast.makeText(ProjectDetailActivity.this,
-                        "No se pudo cargar el proyecto", Toast.LENGTH_SHORT).show();
-                configurarComentariosSiHaceFalta();
-                cargarMapa(nombreProyecto);
+                mostrarErrorProyecto("No se pudo cargar el proyecto: " + mensaje);
             }
         };
 
@@ -626,6 +660,31 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
             proyectoRepository.obtenerPorId(proyectoId, callback);
         } else {
             proyectoRepository.obtenerPorNombre(nombreProyecto, callback);
+        }
+    }
+
+    private void mostrarCargandoProyecto() {
+        if (progressProject != null) progressProject.setVisibility(View.VISIBLE);
+        if (layoutProjectError != null) layoutProjectError.setVisibility(View.GONE);
+        if (scrollProjectContent != null) scrollProjectContent.setVisibility(View.GONE);
+    }
+
+    private void mostrarContenidoProyecto() {
+        if (progressProject != null) progressProject.setVisibility(View.GONE);
+        if (layoutProjectError != null) layoutProjectError.setVisibility(View.GONE);
+        if (scrollProjectContent != null) scrollProjectContent.setVisibility(View.VISIBLE);
+    }
+
+    private void mostrarErrorProyecto(String mensaje) {
+        if (progressProject != null) progressProject.setVisibility(View.GONE);
+        if (scrollProjectContent != null) scrollProjectContent.setVisibility(View.GONE);
+        if (layoutProjectError != null) layoutProjectError.setVisibility(View.VISIBLE);
+        if (tvProjectError != null) tvProjectError.setText(mensaje);
+    }
+
+    private void mostrarCargaSecundaria(boolean loading) {
+        if (progressProject != null && scrollProjectContent != null && scrollProjectContent.getVisibility() == View.VISIBLE) {
+            progressProject.setVisibility(loading ? View.VISIBLE : View.GONE);
         }
     }
 

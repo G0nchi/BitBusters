@@ -10,6 +10,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -83,6 +84,30 @@ public class AdminProyectosRepository {
                 .collection(COLECCION_PROYECTOS)
                 .document(proyecto.getId())
                 .set(proyecto)
+                .addOnSuccessListener(unused -> {
+                    agregarOReemplazarLocal(proyecto);
+                    if (callback != null) callback.onSuccess(proyecto.getId());
+                })
+                .addOnFailureListener(e -> {
+                    if (callback != null) callback.onError(e.getMessage());
+                });
+    }
+
+    /**
+     * Actualiza un proyecto existente en Firestore sin eliminar campos que puedan
+     * haber agregado otros módulos. También actualiza la lista local para que las
+     * pantallas Admin existentes sigan usando getById() sin desincronizarse.
+     */
+    public static void actualizarEnFirestore(AdminProyecto proyecto, GuardarCallback callback) {
+        if (proyecto == null || proyecto.getId().isEmpty()) {
+            if (callback != null) callback.onError("Proyecto inválido");
+            return;
+        }
+
+        FirebaseFirestore.getInstance()
+                .collection(COLECCION_PROYECTOS)
+                .document(proyecto.getId())
+                .set(proyecto, SetOptions.merge())
                 .addOnSuccessListener(unused -> {
                     agregarOReemplazarLocal(proyecto);
                     if (callback != null) callback.onSuccess(proyecto.getId());

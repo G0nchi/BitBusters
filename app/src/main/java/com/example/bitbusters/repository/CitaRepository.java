@@ -10,7 +10,6 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -65,6 +64,18 @@ public class CitaRepository {
         return proyectoId + "_" + fecha + "_" + hora24;
     }
 
+    private static String generarClienteSlotId(String uidCliente, Date fechaTimestamp) {
+        Calendar cal = Calendar.getInstance(LIMA);
+        cal.setTime(fechaTimestamp);
+        return "cliente_" + uidCliente + "_"
+                + String.format(Locale.US, "%04d%02d%02d_%02d%02d",
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH) + 1,
+                    cal.get(Calendar.DAY_OF_MONTH),
+                    cal.get(Calendar.HOUR_OF_DAY),
+                    cal.get(Calendar.MINUTE));
+    }
+
     /**
      * Calcula el java.util.Date de la cita en zona America/Lima.
      * @param month0based mes (0=enero…11=diciembre), igual que Calendar.MONTH
@@ -102,6 +113,8 @@ public class CitaRepository {
                                     String uidAsesor, String proyectoId, String proyectoNombre,
                                     String slotId, Date fechaTimestamp) {
         DocumentReference slotRef = db.collection(SLOTS).document(slotId);
+        String clienteSlotId = generarClienteSlotId(uidCliente, fechaTimestamp);
+        DocumentReference clienteSlotRef = db.collection(SLOTS).document(clienteSlotId);
         DocumentReference citaRef = db.collection(CITAS).document(); // ID pre-generado
 
         return db.runTransaction(tx -> {
@@ -109,6 +122,11 @@ public class CitaRepository {
             if (slotSnap.exists() && Boolean.TRUE.equals(slotSnap.getBoolean("ocupado"))) {
                 throw new FirebaseFirestoreException(
                         "Slot ya reservado", FirebaseFirestoreException.Code.ABORTED);
+            }
+            DocumentSnapshot clienteSlotSnap = tx.get(clienteSlotRef);
+            if (clienteSlotSnap.exists() && Boolean.TRUE.equals(clienteSlotSnap.getBoolean("ocupado"))) {
+                throw new FirebaseFirestoreException(
+                        "Ya tienes una cita en este horario", FirebaseFirestoreException.Code.ABORTED);
             }
 
             Map<String, Object> slotData = new HashMap<>();
@@ -120,6 +138,17 @@ public class CitaRepository {
             slotData.put("creadoEn",       FieldValue.serverTimestamp());
             tx.set(slotRef, slotData);
 
+            Map<String, Object> clienteSlotData = new HashMap<>();
+            clienteSlotData.put("ocupado",        true);
+            clienteSlotData.put("citaId",         citaRef.getId());
+            clienteSlotData.put("uidCliente",     uidCliente);
+            clienteSlotData.put("proyectoId",     proyectoId);
+            clienteSlotData.put("slotProyectoId", slotId);
+            clienteSlotData.put("fechaTimestamp", fechaTimestamp);
+            clienteSlotData.put("tipo",           "cliente_global");
+            clienteSlotData.put("creadoEn",       FieldValue.serverTimestamp());
+            tx.set(clienteSlotRef, clienteSlotData);
+
             Map<String, Object> citaData = new HashMap<>();
             citaData.put("uidCliente",                 uidCliente);
             citaData.put("uidAsesor",                  uidAsesor);
@@ -127,6 +156,7 @@ public class CitaRepository {
             citaData.put("proyectoNombre",             proyectoNombre);
             citaData.put("nombreCliente",              nombreCliente);
             citaData.put("slotId",                     slotId);
+            citaData.put("clienteSlotId",              clienteSlotId);
             citaData.put("fechaTimestamp",             fechaTimestamp);
             citaData.put("estado",                     Cita.ESTADO_PENDIENTE);
             citaData.put("creadoEn",                   FieldValue.serverTimestamp());
@@ -141,24 +171,25 @@ public class CitaRepository {
     // ── Cancelar cita (WriteBatch) ──────────────────────────────────────────────
 
     public Task<Void> cancelarCita(String citaId, String slotId, String motivoCancelacion) {
-        WriteBatch batch = db.batch();
-
         DocumentReference citaRef = db.collection(CITAS).document(citaId);
-        Map<String, Object> citaUpdates = new HashMap<>();
-        citaUpdates.put("estado",              Cita.ESTADO_CANCELADA);
-        citaUpdates.put("actualizadoEn",       FieldValue.serverTimestamp());
-        citaUpdates.put("motivoCancelacion",   motivoCancelacion);
-        batch.update(citaRef, citaUpdates);
+        return db.runTransaction(tx -> {
+            DocumentSnapshot citaSnap = tx.get(citaRef);
+            String clienteSlotId = citaSnap.getString("clienteSlotId");
 
-        if (slotId != null && !slotId.isEmpty()) {
-            DocumentReference slotRef = db.collection(SLOTS).document(slotId);
-            batch.update(slotRef,
-                    "ocupado",        false,
-                    "canceladoEn",    FieldValue.serverTimestamp(),
-                    "citaIdAnterior", citaId);
-        }
+            Map<String, Object> citaUpdates = new HashMap<>();
+            citaUpdates.put("estado",              Cita.ESTADO_CANCELADA);
+            citaUpdates.put("actualizadoEn",       FieldValue.serverTimestamp());
+            citaUpdates.put("motivoCancelacion",   motivoCancelacion);
+            tx.update(citaRef, citaUpdates);
 
-        return batch.commit();
+            if (slotId != null && !slotId.isEmpty()) {
+                liberarSlot(tx, db.collection(SLOTS).document(slotId), citaId);
+            }
+            if (clienteSlotId != null && !clienteSlotId.isEmpty()) {
+                liberarSlot(tx, db.collection(SLOTS).document(clienteSlotId), citaId);
+            }
+            return null;
+        });
     }
 
     // ── Reagendar cita (runTransaction) ─────────────────────────────────────────
@@ -183,6 +214,14 @@ public class CitaRepository {
             String slotAnterior  = citaSnap.getString("slotId");
             String uidCliente    = citaSnap.getString("uidCliente");
             String proyectoId    = citaSnap.getString("proyectoId");
+            String clienteSlotAnterior = citaSnap.getString("clienteSlotId");
+            String nuevoClienteSlotId = generarClienteSlotId(uidCliente, nuevaFechaTimestamp);
+            DocumentReference nuevoClienteSlotRef = db.collection(SLOTS).document(nuevoClienteSlotId);
+            DocumentSnapshot nuevoClienteSlotSnap = tx.get(nuevoClienteSlotRef);
+            if (nuevoClienteSlotSnap.exists() && Boolean.TRUE.equals(nuevoClienteSlotSnap.getBoolean("ocupado"))) {
+                throw new FirebaseFirestoreException(
+                        "Ya tienes una cita en este horario", FirebaseFirestoreException.Code.ABORTED);
+            }
 
             Map<String, Object> histEntry = new HashMap<>();
             histEntry.put("slotAnterior",           slotAnterior != null ? slotAnterior : slotIdAnterior);
@@ -191,11 +230,10 @@ public class CitaRepository {
 
             // 3. Liberar slot anterior
             if (slotIdAnterior != null && !slotIdAnterior.isEmpty()) {
-                Map<String, Object> slotAntUpdate = new HashMap<>();
-                slotAntUpdate.put("ocupado",        false);
-                slotAntUpdate.put("canceladoEn",    FieldValue.serverTimestamp());
-                slotAntUpdate.put("citaIdAnterior", citaId);
-                tx.update(slotAntRef, slotAntUpdate);
+                liberarSlot(tx, slotAntRef, citaId);
+            }
+            if (clienteSlotAnterior != null && !clienteSlotAnterior.isEmpty()) {
+                liberarSlot(tx, db.collection(SLOTS).document(clienteSlotAnterior), citaId);
             }
 
             // 4. Ocupar nuevo slot
@@ -208,9 +246,21 @@ public class CitaRepository {
             nuevoSlotData.put("creadoEn",       FieldValue.serverTimestamp());
             tx.set(nuevoSlotRef, nuevoSlotData);
 
+            Map<String, Object> nuevoClienteSlotData = new HashMap<>();
+            nuevoClienteSlotData.put("ocupado",        true);
+            nuevoClienteSlotData.put("citaId",         citaId);
+            nuevoClienteSlotData.put("uidCliente",     uidCliente);
+            nuevoClienteSlotData.put("proyectoId",     proyectoId);
+            nuevoClienteSlotData.put("slotProyectoId", nuevoSlotId);
+            nuevoClienteSlotData.put("fechaTimestamp", nuevaFechaTimestamp);
+            nuevoClienteSlotData.put("tipo",           "cliente_global");
+            nuevoClienteSlotData.put("creadoEn",       FieldValue.serverTimestamp());
+            tx.set(nuevoClienteSlotRef, nuevoClienteSlotData);
+
             // 5. Actualizar la cita
             Map<String, Object> citaUpdate = new HashMap<>();
             citaUpdate.put("slotId",                    nuevoSlotId);
+            citaUpdate.put("clienteSlotId",             nuevoClienteSlotId);
             citaUpdate.put("fechaTimestamp",            nuevaFechaTimestamp);
             citaUpdate.put("actualizadoEn",             FieldValue.serverTimestamp());
             citaUpdate.put("historialReagendamientos",  FieldValue.arrayUnion(histEntry));
@@ -218,6 +268,16 @@ public class CitaRepository {
 
             return null;
         });
+    }
+
+    private void liberarSlot(com.google.firebase.firestore.Transaction tx,
+                             DocumentReference slotRef,
+                             String citaId) {
+        Map<String, Object> slotUpdate = new HashMap<>();
+        slotUpdate.put("ocupado",        false);
+        slotUpdate.put("canceladoEn",    FieldValue.serverTimestamp());
+        slotUpdate.put("citaIdAnterior", citaId);
+        tx.set(slotRef, slotUpdate, com.google.firebase.firestore.SetOptions.merge());
     }
 
     // ── Confirmar / completar cita (Asesor) ──────────────────────────────────────

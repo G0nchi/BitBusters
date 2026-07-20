@@ -1,6 +1,7 @@
 package com.example.bitbusters.activities.access;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.text.Editable;
@@ -21,6 +22,8 @@ import com.example.bitbusters.utils.PreferencesManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -194,7 +197,14 @@ public class RegisterOtpActivity extends AppCompatActivity {
 
         FirebaseAuth.getInstance()
                 .createUserWithEmailAndPassword(email, password)
-                .addOnSuccessListener(result -> guardarPerfil(result.getUser().getUid(), extras))
+                .addOnSuccessListener(result -> {
+                    if (result.getUser() == null) {
+                        verifyButton.setEnabled(true);
+                        Toast.makeText(this, "No se pudo crear el usuario.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    guardarPerfil(result.getUser().getUid(), extras);
+                })
                 .addOnFailureListener(e -> {
                     verifyButton.setEnabled(true);
                     String msg = e.getMessage();
@@ -207,18 +217,60 @@ public class RegisterOtpActivity extends AppCompatActivity {
     }
 
     private void guardarPerfil(String uid, Bundle extras) {
-        String nombre = extras.getString(RegisterAccountActivity.EXTRA_FULL_NAME, "");
+        String nombre = extras != null ? extras.getString(RegisterAccountActivity.EXTRA_FULL_NAME, "") : "";
+        String fotoUri = extras != null ? extras.getString(RegisterAccountActivity.EXTRA_PHOTO_URI, "") : "";
 
         Map<String, Object> user = new HashMap<>();
         user.put("nombre",          nombre);
+        user.put("nombres",         extras != null ? extras.getString(RegisterAccountActivity.EXTRA_FIRST_NAMES, "") : "");
+        user.put("apellidos",       extras != null ? extras.getString(RegisterAccountActivity.EXTRA_LAST_NAMES, "") : "");
         user.put("email",           email);
-        user.put("telefono",        extras.getString(RegisterAccountActivity.EXTRA_PHONE, ""));
-        user.put("numDoc",          extras.getString(RegisterAccountActivity.EXTRA_DNI, ""));
-        user.put("tipoDoc",         "DNI");
-        user.put("fechaNacimiento", extras.getString(RegisterAccountActivity.EXTRA_BIRTH_DATE, ""));
+        user.put("telefono",        extras != null ? extras.getString(RegisterAccountActivity.EXTRA_PHONE, "") : "");
+        user.put("numDoc",          extras != null ? extras.getString(RegisterAccountActivity.EXTRA_DNI, "") : "");
+        user.put("numeroDocumento", extras != null ? extras.getString(RegisterAccountActivity.EXTRA_DNI, "") : "");
+        user.put("tipoDoc",         extras != null ? extras.getString(RegisterAccountActivity.EXTRA_DOC_TYPE, "DNI") : "DNI");
+        user.put("tipoDocumento",   extras != null ? extras.getString(RegisterAccountActivity.EXTRA_DOC_TYPE, "DNI") : "DNI");
+        user.put("domicilio",       extras != null ? extras.getString(RegisterAccountActivity.EXTRA_ADDRESS, "") : "");
+        user.put("direccion",       extras != null ? extras.getString(RegisterAccountActivity.EXTRA_ADDRESS, "") : "");
+        user.put("fechaNacimiento", extras != null ? extras.getString(RegisterAccountActivity.EXTRA_BIRTH_DATE, "") : "");
+        user.put("fotoUrl",         "");
         user.put("role",   "cliente");
         user.put("status", "active");
+        user.put("activo", true);
 
+        if (fotoUri != null && !fotoUri.trim().isEmpty()) {
+            subirFotoYGuardarPerfil(uid, Uri.parse(fotoUri), user, nombre);
+            return;
+        }
+
+        guardarPerfilFirestore(uid, user, nombre);
+    }
+
+    private void subirFotoYGuardarPerfil(String uid, Uri fotoUri, Map<String, Object> user, String nombre) {
+        StorageReference ref = FirebaseStorage.getInstance()
+                .getReference()
+                .child("users")
+                .child(uid)
+                .child("profile.jpg");
+
+        ref.putFile(fotoUri)
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful() && task.getException() != null) {
+                        throw task.getException();
+                    }
+                    return ref.getDownloadUrl();
+                })
+                .addOnSuccessListener(downloadUri -> {
+                    user.put("fotoUrl", downloadUri.toString());
+                    guardarPerfilFirestore(uid, user, nombre);
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "No se pudo subir foto de perfil; se guardará perfil sin fotoUrl", e);
+                    guardarPerfilFirestore(uid, user, nombre);
+                });
+    }
+
+    private void guardarPerfilFirestore(String uid, Map<String, Object> user, String nombre) {
         FirebaseFirestore.getInstance()
                 .collection("users")
                 .document(uid)

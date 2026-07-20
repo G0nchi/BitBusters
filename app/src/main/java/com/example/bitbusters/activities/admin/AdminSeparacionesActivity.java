@@ -2,28 +2,28 @@ package com.example.bitbusters.activities.admin;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
+import android.view.View;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.AdminSeparacionAdapter;
+import com.example.bitbusters.data.AdminProyectosRepository;
 import com.example.bitbusters.data.SeparacionesRepository;
+import com.example.bitbusters.models.AdminProyecto;
 import com.example.bitbusters.models.AdminSeparacion;
 import com.example.bitbusters.utils.AdminPreferencesManager;
-import com.example.bitbusters.utils.AdminStorageManager;
-import com.example.bitbusters.utils.NotificationHelper;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Random;
 
 /**
  * Pantalla de lista de separaciones del Administrador.
@@ -31,7 +31,6 @@ import java.util.Random;
  *
  * Correcciones Lab 5:
  *  - Usa SeparacionesRepository como fuente única de datos (no AdminDataRepository directo)
- *  - Botón "Simular" crea separación nueva y lanza notificación (Corrección 2)
  *  - onNewIntent/onResume: al recibir "separacion_id" hace scroll al item y lo resalta (Corrección 3)
  */
 public class AdminSeparacionesActivity extends AdminMainActivity {
@@ -39,20 +38,16 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
     // Clave del Intent extra para scroll/resalte post-notificación
     public static final String EXTRA_SEPARACION_ID = "separacion_id";
 
-    private Button btnPendientes, btnAprobadas, btnRechazadas;
-    private AutoCompleteTextView actvProyectoFilter, actvFechaFilter;
+    private ChipGroup chipGroupEstadosSeparacion, chipGroupProyectoFilter, chipGroupFechaFilter;
+    private Chip chipEstadoTodos, chipEstadoPendientes, chipEstadoAprobadas, chipEstadoRechazadas;
+    private TextView tvSeparacionesEmpty;
     private RecyclerView rvSeparaciones;
     private AdminSeparacionAdapter adapter;
-    private String currentEstadoFilter = null;
-
-    // Proyectos ficticios para la simulación (Corrección 2)
-    private static final String[] PROYECTOS_DEMO = {
-        "Edificio Los Álamos",
-        "Mirador de Surco",
-        "Alto San Felipe",
-        "Residencial Verde",
-        "Torres Unidas"
-    };
+    private String currentEstadoFilter = "Pendiente";
+    private String currentProyectoFilter = "Todos los proyectos";
+    private String currentFechaFilter = "Todo el tiempo";
+    private ListenerRegistration separacionesListener;
+    private ListenerRegistration proyectosListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,43 +77,76 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
      * Verifica si hay un "separacion_id" en el Intent para hacer scroll y resaltar.
      */
     @Override
+    protected void onStart() {
+        super.onStart();
+        iniciarListenerSeparaciones();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (separacionesListener != null) {
+            separacionesListener.remove();
+            separacionesListener = null;
+        }
+        if (proyectosListener != null) {
+            proyectosListener.remove();
+            proyectosListener = null;
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        renderSeparaciones();
         procesarIntentSeparacionId();
     }
 
     // ── Inicialización ───────────────────────────────────────────────────────
 
     private void initializeViews() {
-        btnPendientes = findViewById(R.id.btnPendientes);
-        btnAprobadas  = findViewById(R.id.btnAprobadas);
-        btnRechazadas = findViewById(R.id.btnRechazadas);
+        chipGroupEstadosSeparacion = findViewById(R.id.chipGroupEstadosSeparacion);
+        chipGroupProyectoFilter = findViewById(R.id.chipGroupProyectoFilter);
+        chipGroupFechaFilter = findViewById(R.id.chipGroupFechaFilter);
+        chipEstadoTodos = findViewById(R.id.chipEstadoTodos);
+        chipEstadoPendientes = findViewById(R.id.chipEstadoPendientes);
+        chipEstadoAprobadas = findViewById(R.id.chipEstadoAprobadas);
+        chipEstadoRechazadas = findViewById(R.id.chipEstadoRechazadas);
 
-        actvProyectoFilter = findViewById(R.id.actvProyectoFilter);
-        actvFechaFilter    = findViewById(R.id.actvFechaFilter);
         rvSeparaciones     = findViewById(R.id.rvSeparaciones);
+        tvSeparacionesEmpty = findViewById(R.id.tvSeparacionesEmpty);
 
-        setupDropdowns();
+        setupChips();
     }
 
-    private void setupDropdowns() {
-        String[] proyectos = {
-            "Todos los proyectos",
-            "Edificio Los Álamos",
-            "Mirador de Surco",
-            "Alto San Felipe",
-            "Residencial Verde"
-        };
-        ArrayAdapter<String> adapterProyectos = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, proyectos);
-        actvProyectoFilter.setAdapter(adapterProyectos);
-        actvProyectoFilter.setOnClickListener(v -> actvProyectoFilter.showDropDown());
+    private void setupChips() {
+        if (chipGroupEstadosSeparacion != null) {
+            chipGroupEstadosSeparacion.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (checkedIds == null || checkedIds.isEmpty()) return;
+                int checkedId = checkedIds.get(0);
+                if (checkedId == R.id.chipEstadoTodos) {
+                    currentEstadoFilter = null;
+                } else if (checkedId == R.id.chipEstadoAprobadas) {
+                    currentEstadoFilter = "Aprobada";
+                } else if (checkedId == R.id.chipEstadoRechazadas) {
+                    currentEstadoFilter = "Rechazada";
+                } else {
+                    currentEstadoFilter = "Pendiente";
+                }
+                renderSeparaciones();
+            });
+        }
 
-        String[] fechas = {"Este mes", "Esta semana", "Este año", "Este bimestre"};
-        ArrayAdapter<String> adapterFechas = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, fechas);
-        actvFechaFilter.setAdapter(adapterFechas);
-        actvFechaFilter.setOnClickListener(v -> actvFechaFilter.showDropDown());
+        if (chipGroupFechaFilter != null) {
+            chipGroupFechaFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (checkedIds == null || checkedIds.isEmpty()) return;
+                Chip selected = group.findViewById(checkedIds.get(0));
+                currentFechaFilter = selected != null ? selected.getText().toString() : "Todo el tiempo";
+                renderSeparaciones();
+            });
+        }
+
+        actualizarOpcionesProyecto();
     }
 
     private void setupRecyclerView() {
@@ -143,19 +171,49 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
         rvSeparaciones.setAdapter(adapter);
     }
 
-    private void setupListeners() {
-        if (btnPendientes != null)
-            btnPendientes.setOnClickListener(v -> filtrarPorEstado("Pendiente"));
-        if (btnAprobadas != null)
-            btnAprobadas.setOnClickListener(v -> filtrarPorEstado("Aprobada"));
-        if (btnRechazadas != null)
-            btnRechazadas.setOnClickListener(v -> filtrarPorEstado("Rechazada"));
-
-        // ── Corrección 2: Botón de simulación de separación ─────────────────
-        Button btnSimularSeparacion = findViewById(R.id.btnSimularSeparacion);
-        if (btnSimularSeparacion != null) {
-            btnSimularSeparacion.setOnClickListener(v -> simularNuevaSeparacion());
+    private void iniciarListenerSeparaciones() {
+        if (separacionesListener != null) {
+            separacionesListener.remove();
         }
+        separacionesListener = SeparacionesRepository.escucharDesdeFirestore(
+                AdminPreferencesManager.obtenerInmobiliariaId(this),
+                new SeparacionesRepository.SeparacionesListener() {
+                    @Override
+                    public void onSeparacionesActualizadas(List<AdminSeparacion> separaciones) {
+                        actualizarOpcionesProyecto();
+                        renderSeparaciones();
+                    }
+
+                    @Override
+                    public void onError(String mensaje) {
+                        actualizarOpcionesProyecto();
+                        renderSeparaciones();
+                    }
+                });
+
+        if (proyectosListener != null) {
+            proyectosListener.remove();
+        }
+        String inmobiliariaId = AdminPreferencesManager.obtenerInmobiliariaId(this);
+        proyectosListener = AdminProyectosRepository.escucharPorAdministrador(
+                null,
+                inmobiliariaId,
+                new AdminProyectosRepository.ProyectosListener() {
+                    @Override
+                    public void onProyectosActualizados(List<AdminProyecto> proyectos) {
+                        actualizarOpcionesProyecto();
+                        renderSeparaciones();
+                    }
+
+                    @Override
+                    public void onError(String mensaje) {
+                        actualizarOpcionesProyecto();
+                        renderSeparaciones();
+                    }
+                });
+    }
+
+    private void setupListeners() {
     }
 
     private void setupNotificationsButton() {
@@ -167,88 +225,178 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
         }
     }
 
-    // ── Simulación de nueva separación (Corrección 2) ────────────────────────
-
-    /**
-     * Crea una separación ficticia, la agrega al repositorio,
-     * refresca el RecyclerView y lanza la notificación correspondiente.
-     * El Intent de la notificación incluye el ID para que al tocarla
-     * se haga scroll hasta esa separación.
-     */
-    private void simularNuevaSeparacion() {
-        // Generar datos ficticios
-        String proyectoAleatorio = PROYECTOS_DEMO[new Random().nextInt(PROYECTOS_DEMO.length)];
-        String nuevoId = "SIM_" + System.currentTimeMillis();
-        String timestamp = new SimpleDateFormat("dd/MMM/yyyy", Locale.getDefault())
-                .format(new Date());
-
-        AdminSeparacion nueva = new AdminSeparacion(
-                nuevoId,
-                proyectoAleatorio,
-                "S/ 5,000",
-                timestamp,
-                "Cliente Demo",
-                "Pendiente"
-        );
-
-        // Agregar al repositorio compartido
-        SeparacionesRepository.agregar(nueva);
-
-        // Actualizar contadores en SharedPreferences e Internal Storage
-        AdminPreferencesManager.incrementarSeparacionesPendientes(this);
-        AdminStorageManager.actualizarContador(
-                this, AdminStorageManager.CAMPO_SEPARACIONES_PENDIENTES);
-
-        // Limpiar filtro activo y mostrar toda la lista con la nueva separación al inicio
-        currentEstadoFilter = null;
-        adapter.setData(new ArrayList<>(SeparacionesRepository.getLista()));
-
-        // ── Corrección 2: notificación con separacion_id que abre el DETALLE ──
-        // Al tocarla → AdminDetallesSeparacionActivity carga el item por ID para que el admin apruebe
-        Intent destinoNotif = new Intent(this, AdminDetallesSeparacionActivity.class);
-        destinoNotif.putExtra(EXTRA_SEPARACION_ID, nuevoId);
-        NotificationHelper.lanzarNotificacionAdmin(
-                this,
-                "Nueva Separación",
-                "Un asesor ha registrado una nueva separación. Revisa y aprueba el monto",
-                NotificationHelper.NOTIF_ADMIN_NUEVA_SEPARACION,
-                destinoNotif
-        );
-    }
-
     // ── Filtros ────────────────────────────────────────────────────────────
 
     private void filtrarPorEstado(String estado) {
         currentEstadoFilter = estado;
-        seleccionarTab(estado);
+        seleccionarChipEstado(estado);
+        renderSeparaciones();
+    }
+
+    private void renderSeparaciones() {
+        if (adapter == null) return;
         List<AdminSeparacion> filtradas = new ArrayList<>();
         for (AdminSeparacion sep : SeparacionesRepository.getLista()) {
-            if (sep.getEstado().equals(estado)) {
+            if (cumpleFiltroEstado(sep)
+                    && cumpleFiltroProyecto(sep)
+                    && cumpleFiltroFecha(sep)) {
                 filtradas.add(sep);
             }
         }
         adapter.setData(filtradas);
+        actualizarEmptyState(filtradas.isEmpty());
+        actualizarContadoresTabs();
+        seleccionarChipEstado(currentEstadoFilter);
     }
 
-    private void seleccionarTab(String estadoSeleccionado) {
-        // Resetear todos los botones al estilo inactivo
-        btnPendientes.setBackground(getDrawable(R.drawable.button_outline_state_bg));
-        btnAprobadas.setBackground(getDrawable(R.drawable.button_outline_state_bg));
-        btnRechazadas.setBackground(getDrawable(R.drawable.button_outline_state_bg));
-        btnPendientes.setTextColor(getColor(R.color.neutral_medium));
-        btnAprobadas.setTextColor(getColor(R.color.neutral_medium));
-        btnRechazadas.setTextColor(getColor(R.color.neutral_medium));
+    private boolean cumpleFiltroEstado(AdminSeparacion separacion) {
+        if (currentEstadoFilter == null || currentEstadoFilter.trim().isEmpty()) return true;
+        return separacion != null && currentEstadoFilter.equals(separacion.getEstado());
+    }
 
-        // Resaltar el botón seleccionado
-        Button seleccionado = null;
-        if ("Pendiente".equals(estadoSeleccionado))  seleccionado = btnPendientes;
-        else if ("Aprobada".equals(estadoSeleccionado))  seleccionado = btnAprobadas;
-        else if ("Rechazada".equals(estadoSeleccionado)) seleccionado = btnRechazadas;
-
-        if (seleccionado != null) {
-            seleccionado.setBackground(getDrawable(R.color.brand_deep_blue));
-            seleccionado.setTextColor(getColor(android.R.color.white));
+    private boolean cumpleFiltroProyecto(AdminSeparacion separacion) {
+        if (currentProyectoFilter == null
+                || currentProyectoFilter.trim().isEmpty()
+                || "Todos los proyectos".equals(currentProyectoFilter)) {
+            return true;
         }
+        return separacion != null && currentProyectoFilter.equals(separacion.getNombreProyecto());
+    }
+
+    private boolean cumpleFiltroFecha(AdminSeparacion separacion) {
+        if (currentFechaFilter == null
+                || currentFechaFilter.trim().isEmpty()
+                || "Todo el tiempo".equals(currentFechaFilter)) {
+            return true;
+        }
+        long fecha = fechaParaFiltro(separacion);
+        if (fecha <= 0) return false;
+        long ahora = System.currentTimeMillis();
+        long inicio = ahora - obtenerDuracionFiltroMillis();
+        return fecha >= inicio && fecha <= ahora;
+    }
+
+    private long fechaParaFiltro(AdminSeparacion separacion) {
+        if (separacion == null) return 0L;
+        if (separacion.getFechaActualizacionMillis() > 0) {
+            return separacion.getFechaActualizacionMillis();
+        }
+        return separacion.getFechaRegistroMillis();
+    }
+
+    private long obtenerDuracionFiltroMillis() {
+        long dia = 24L * 60L * 60L * 1000L;
+        if ("Esta semana".equals(currentFechaFilter)) return 7L * dia;
+        if ("Este bimestre".equals(currentFechaFilter)) return 60L * dia;
+        if ("Este año".equals(currentFechaFilter)) return 365L * dia;
+        return 30L * dia;
+    }
+
+    private void actualizarOpcionesProyecto() {
+        if (chipGroupProyectoFilter == null) return;
+
+        LinkedHashSet<String> nombres = new LinkedHashSet<>();
+        for (AdminProyecto proyecto : AdminProyectosRepository.getTodos()) {
+            if (proyecto == null) continue;
+            String nombre = proyecto.getNombre();
+            if (nombre != null && !nombre.trim().isEmpty()) {
+                nombres.add(nombre.trim());
+            }
+        }
+        for (AdminSeparacion sep : SeparacionesRepository.getLista()) {
+            if (sep == null) continue;
+            String proyecto = sep.getNombreProyecto();
+            if (proyecto != null && !proyecto.trim().isEmpty()) {
+                nombres.add(proyecto.trim());
+            }
+        }
+
+        List<String> opciones = new ArrayList<>(nombres);
+        Collections.sort(opciones);
+        opciones.add(0, "Todos los proyectos");
+
+        if (!opciones.contains(currentProyectoFilter)) {
+            currentProyectoFilter = "Todos los proyectos";
+        }
+
+        chipGroupProyectoFilter.removeAllViews();
+        for (String opcion : opciones) {
+            Chip chip = crearChipFiltro(opcion);
+            chip.setChecked(opcion.equals(currentProyectoFilter));
+            chip.setOnClickListener(v -> {
+                currentProyectoFilter = ((Chip) v).getText().toString();
+                renderSeparaciones();
+            });
+            chipGroupProyectoFilter.addView(chip);
+        }
+    }
+
+    private void actualizarContadoresTabs() {
+        int total = 0;
+        int pendientes = 0;
+        int aprobadas = 0;
+        int rechazadas = 0;
+
+        for (AdminSeparacion sep : SeparacionesRepository.getLista()) {
+            if (!cumpleFiltroProyecto(sep) || !cumpleFiltroFecha(sep)) continue;
+            total++;
+            if ("Aprobada".equalsIgnoreCase(sep.getEstado())) {
+                aprobadas++;
+            } else if ("Rechazada".equalsIgnoreCase(sep.getEstado())) {
+                rechazadas++;
+            } else {
+                pendientes++;
+            }
+        }
+
+        if (chipEstadoTodos != null) chipEstadoTodos.setText("Todos (" + total + ")");
+        if (chipEstadoPendientes != null) chipEstadoPendientes.setText("Pendientes (" + pendientes + ")");
+        if (chipEstadoAprobadas != null) chipEstadoAprobadas.setText("Aprobadas (" + aprobadas + ")");
+        if (chipEstadoRechazadas != null) chipEstadoRechazadas.setText("Rechazadas (" + rechazadas + ")");
+    }
+
+    private void seleccionarChipEstado(String estadoSeleccionado) {
+        if (chipGroupEstadosSeparacion == null) return;
+        int chipId;
+        if ("Aprobada".equals(estadoSeleccionado)) {
+            chipId = R.id.chipEstadoAprobadas;
+        } else if ("Rechazada".equals(estadoSeleccionado)) {
+            chipId = R.id.chipEstadoRechazadas;
+        } else if ("Pendiente".equals(estadoSeleccionado)) {
+            chipId = R.id.chipEstadoPendientes;
+        } else {
+            chipId = R.id.chipEstadoTodos;
+        }
+        if (chipGroupEstadosSeparacion.getCheckedChipId() != chipId) {
+            chipGroupEstadosSeparacion.check(chipId);
+        }
+    }
+
+    private Chip crearChipFiltro(String texto) {
+        Chip chip = new Chip(this, null, com.google.android.material.R.style.Widget_Material3_Chip_Filter);
+        chip.setText(texto);
+        chip.setCheckable(true);
+        chip.setCheckedIconVisible(false);
+        chip.setEnsureMinTouchTargetSize(true);
+        return chip;
+    }
+
+    private void actualizarEmptyState(boolean listaVacia) {
+        if (tvSeparacionesEmpty == null || rvSeparaciones == null) return;
+
+        tvSeparacionesEmpty.setText(obtenerMensajeVacio());
+        tvSeparacionesEmpty.setVisibility(listaVacia ? View.VISIBLE : View.GONE);
+        rvSeparaciones.setVisibility(listaVacia ? View.GONE : View.VISIBLE);
+    }
+
+    private String obtenerMensajeVacio() {
+        if ("Pendiente".equals(currentEstadoFilter)) return "No hay separaciones pendientes";
+        if ("Aprobada".equals(currentEstadoFilter)) return "No hay separaciones aprobadas";
+        if ("Rechazada".equals(currentEstadoFilter)) return "No hay separaciones rechazadas";
+        if (!"Todos los proyectos".equals(currentProyectoFilter)) {
+            return "No hay separaciones para " + currentProyectoFilter;
+        }
+        return "No hay separaciones para los filtros seleccionados";
     }
 
     // ── Scroll / Resalte tras notificación (Corrección 3) ───────────────────
@@ -268,6 +416,9 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
         if (adapter != null) {
             adapter.setData(new ArrayList<>(SeparacionesRepository.getLista()));
         }
+        actualizarEmptyState(SeparacionesRepository.getLista().isEmpty());
+        seleccionarChipEstado(currentEstadoFilter);
+        actualizarContadoresTabs();
 
         // Hacer scroll hasta la posición del ítem resaltado
         int posicion = SeparacionesRepository.getPosicion(separacionId);

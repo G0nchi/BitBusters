@@ -5,13 +5,18 @@ import android.content.Context;
 import com.example.bitbusters.models.AdminAsesorInmobiliaria;
 import com.example.bitbusters.utils.AdminPreferencesManager;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -21,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 public class FirestoreAsesoresRepository {
 
@@ -30,18 +36,21 @@ public class FirestoreAsesoresRepository {
     }
 
     public interface GuardarAsesorCallback {
-        void onSuccess();
+        void onSuccess(String mensaje);
         void onError(String mensaje);
     }
 
     private static final String COLECCION_USERS_LEGACY = "users";
-
-    /** Nombre de la instancia secundaria de FirebaseApp usada solo para crear
-     *  la cuenta de Auth del asesor sin cerrar la sesión del Admin. */
-    private static final String APP_SECUNDARIA_ASESOR = "AsesorRegistro";
+    private static final String COLECCION_USUARIOS = "usuarios";
 
     private final FirebaseFirestore firestore = FirebaseFirestore.getInstance();
 
+    /**
+     * Registra un asesor: crea su cuenta de Firebase Auth con una contraseña
+     * aleatoria (usando una instancia secundaria de FirebaseApp para no cerrar
+     * la sesión del Admin) y le envía un correo para que la configure él mismo.
+     * Escribe el perfil completo en users/{uid} (y usuarios/{uid} por compatibilidad).
+     */
     public void registrarAsesor(
             Context context,
             String nombre,
@@ -52,24 +61,44 @@ public class FirestoreAsesoresRepository {
             String numDoc,
             String fechaNacimiento,
             String domicilio,
-            String passwordTemporal,
             GuardarAsesorCallback callback
     ) {
         String inmobiliariaNombre = AdminPreferencesManager.obtenerInmobiliaria(context);
-        String inmobiliariaId = AdminProyectosRepository.crearInmobiliariaId(inmobiliariaNombre);
+        String inmobiliariaId = AdminPreferencesManager.obtenerInmobiliariaId(context);
         String emailNormalizado = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
 
+        verificarEmailDisponible(emailNormalizado, callback, () ->
+                crearCuentaAuthYPerfilAsesor(
+                        context,
+                        nombre,
+                        apellidos,
+                        emailNormalizado,
+                        telefono,
+                        tipoDoc,
+                        numDoc,
+                        fechaNacimiento,
+                        domicilio,
+                        inmobiliariaNombre,
+                        inmobiliariaId,
+                        callback
+                ));
+    }
+
+    private void verificarEmailDisponible(
+            String emailNormalizado,
+            GuardarAsesorCallback callback,
+            Runnable onDisponible
+    ) {
         firestore.collection(COLECCION_USERS_LEGACY)
                 .whereEqualTo("email", emailNormalizado)
+                .limit(1)
                 .get()
-                .addOnSuccessListener(existentes -> {
-                    if (!existentes.isEmpty()) {
-                        if (callback != null) callback.onError("Ya existe un asesor con este correo");
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        if (callback != null) callback.onError("Ya existe una cuenta con este correo");
                         return;
                     }
-                    crearCuentaAuthYPerfil(context, nombre, apellidos, emailNormalizado, telefono,
-                            tipoDoc, numDoc, fechaNacimiento, domicilio, passwordTemporal,
-                            inmobiliariaId, inmobiliariaNombre, callback);
+                    onDisponible.run();
                 })
                 .addOnFailureListener(e -> {
                     if (callback != null) {
@@ -80,101 +109,208 @@ public class FirestoreAsesoresRepository {
                 });
     }
 
-    /**
-     * Crea la cuenta de Firebase Auth del asesor usando una instancia secundaria
-     * de FirebaseApp (no afecta la sesión del Admin en la instancia default) y,
-     * con el UID real devuelto, escribe el perfil completo en {@code users/{uid}}.
-     */
-    private void crearCuentaAuthYPerfil(
+    private void crearCuentaAuthYPerfilAsesor(
             Context context,
             String nombre,
             String apellidos,
-            String email,
+            String emailNormalizado,
             String telefono,
             String tipoDoc,
             String numDoc,
             String fechaNacimiento,
             String domicilio,
-            String passwordTemporal,
-            String inmobiliariaId,
             String inmobiliariaNombre,
+            String inmobiliariaId,
             GuardarAsesorCallback callback
     ) {
-        FirebaseApp appSecundaria;
+        FirebaseApp secondaryApp;
         try {
-            appSecundaria = FirebaseApp.getInstance(APP_SECUNDARIA_ASESOR);
-        } catch (IllegalStateException notInitialized) {
-            appSecundaria = FirebaseApp.initializeApp(
-                    context.getApplicationContext(),
-                    FirebaseApp.getInstance().getOptions(),
-                    APP_SECUNDARIA_ASESOR);
+            secondaryApp = crearSecondaryFirebaseApp(context);
+        } catch (Exception e) {
+            if (callback != null) callback.onError("No se pudo preparar el registro del asesor");
+            return;
         }
 
-        FirebaseAuth authSecundario = FirebaseAuth.getInstance(appSecundaria);
-        FirebaseApp appSecundariaFinal = appSecundaria;
+        FirebaseAuth secondaryAuth = FirebaseAuth.getInstance(secondaryApp);
+        String passwordTemporal = generarPasswordTemporal();
 
-        authSecundario.createUserWithEmailAndPassword(email, passwordTemporal)
-                .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful() || task.getResult() == null
-                            || task.getResult().getUser() == null) {
-                        limpiarInstanciaSecundaria(authSecundario, appSecundariaFinal);
-                        Exception ex = task.getException();
-                        String mensaje = "No se pudo crear la cuenta del asesor";
-                        if (ex instanceof FirebaseAuthUserCollisionException) {
-                            mensaje = "Ya existe una cuenta de acceso con este correo";
-                        } else if (ex != null && ex.getMessage() != null) {
-                            mensaje = ex.getMessage();
-                        }
-                        if (callback != null) callback.onError(mensaje);
+        secondaryAuth.createUserWithEmailAndPassword(emailNormalizado, passwordTemporal)
+                .addOnSuccessListener(authResult -> {
+                    FirebaseUser authUser = authResult.getUser();
+                    if (authUser == null) {
+                        limpiarSecondaryApp(secondaryApp);
+                        if (callback != null) callback.onError("No se pudo crear la cuenta del asesor");
                         return;
                     }
 
-                    String uid = task.getResult().getUser().getUid();
-                    limpiarInstanciaSecundaria(authSecundario, appSecundariaFinal);
-
-                    Map<String, Object> data = new HashMap<>();
-                    data.put("uid", uid);
-                    data.put("nombre", nombre == null ? "" : nombre.trim());
-                    data.put("apellidos", apellidos == null ? "" : apellidos.trim());
-                    data.put("email", email);
-                    data.put("telefono", telefono == null ? "" : telefono.trim());
-                    data.put("tipoDoc", tipoDoc == null ? "" : tipoDoc.trim());
-                    data.put("numDoc", numDoc == null ? "" : numDoc.trim());
-                    data.put("dni", numDoc == null ? "" : numDoc.trim());
-                    data.put("fechaNacimiento", fechaNacimiento == null ? "" : fechaNacimiento.trim());
-                    data.put("domicilio", domicilio == null ? "" : domicilio.trim());
-                    data.put("fotoUrl", "");
-                    data.put("role", "asesor");
-                    data.put("status", "pending");
-                    // Campos legacy exigidos por las reglas de Firestore desplegadas
-                    // (ver PENDING_COORDINATION.md PC-01 — convención "rol"/"activo" en mayúscula).
-                    data.put("rol", "ASESOR");
-                    data.put("activo", false);
-                    data.put("habilitado", false);
-                    data.put("inmobiliaria", inmobiliariaNombre);
-                    data.put("inmobiliariaId", inmobiliariaId);
-                    data.put("inmobiliariaNombre", inmobiliariaNombre);
-                    data.put("fechaRegistro", FieldValue.serverTimestamp());
-                    data.put("createdAt", FieldValue.serverTimestamp());
-                    data.put("updatedAt", FieldValue.serverTimestamp());
-
-                    firestore.collection(COLECCION_USERS_LEGACY).document(uid).set(data)
-                            .addOnSuccessListener(unused -> {
-                                if (callback != null) callback.onSuccess();
-                            })
-                            .addOnFailureListener(e -> {
-                                if (callback != null) {
-                                    callback.onError(e.getMessage() != null
-                                            ? e.getMessage()
-                                            : "Cuenta creada, pero no se pudo guardar el perfil");
-                                }
-                            });
+                    guardarPerfilAsesor(
+                            secondaryAuth,
+                            secondaryApp,
+                            authUser,
+                            nombre,
+                            apellidos,
+                            emailNormalizado,
+                            telefono,
+                            tipoDoc,
+                            numDoc,
+                            fechaNacimiento,
+                            domicilio,
+                            inmobiliariaNombre,
+                            inmobiliariaId,
+                            callback
+                    );
+                })
+                .addOnFailureListener(e -> {
+                    limpiarSecondaryApp(secondaryApp);
+                    if (callback != null) callback.onError(mapearErrorAuthAsesor(e));
                 });
     }
 
-    private void limpiarInstanciaSecundaria(FirebaseAuth auth, FirebaseApp app) {
-        try { auth.signOut(); } catch (Exception ignored) {}
-        try { app.delete(); } catch (Exception ignored) {}
+    private FirebaseApp crearSecondaryFirebaseApp(Context context) {
+        FirebaseOptions options = FirebaseApp.getInstance().getOptions();
+        String appName = "advisor-registration-" + UUID.randomUUID();
+        return FirebaseApp.initializeApp(context.getApplicationContext(), options, appName);
+    }
+
+    private void guardarPerfilAsesor(
+            FirebaseAuth secondaryAuth,
+            FirebaseApp secondaryApp,
+            FirebaseUser authUser,
+            String nombre,
+            String apellidos,
+            String emailNormalizado,
+            String telefono,
+            String tipoDoc,
+            String numDoc,
+            String fechaNacimiento,
+            String domicilio,
+            String inmobiliariaNombre,
+            String inmobiliariaId,
+            GuardarAsesorCallback callback
+    ) {
+        String uid = authUser.getUid();
+        String nombreLimpio = nombre == null ? "" : nombre.trim();
+        String apellidosLimpio = apellidos == null ? "" : apellidos.trim();
+        String telefonoLimpio = telefono == null ? "" : telefono.trim();
+        String tipoDocLimpio = tipoDoc == null ? "" : tipoDoc.trim();
+        String numDocLimpio = numDoc == null ? "" : numDoc.trim();
+        String fechaNacimientoLimpia = fechaNacimiento == null ? "" : fechaNacimiento.trim();
+        String domicilioLimpio = domicilio == null ? "" : domicilio.trim();
+        String adminUid = AdminProyectosRepository.obtenerAdminUidActual();
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("uid", uid);
+        data.put("email", emailNormalizado);
+        data.put("correo", emailNormalizado);
+        data.put("inmobiliaria", inmobiliariaNombre);
+        data.put("inmobiliariaNombre", inmobiliariaNombre);
+        data.put("inmobiliariaId", inmobiliariaId);
+        data.put("empresa", inmobiliariaNombre);
+        data.put("nombre", nombreLimpio);
+        data.put("apellidos", apellidosLimpio);
+        data.put("role", "asesor");
+        data.put("rol", "ASESOR");
+        data.put("status", "pending");
+        data.put("estado", "Pendiente");
+        data.put("activo", false);
+        data.put("habilitado", false);
+        data.put("telefono", telefonoLimpio);
+        data.put("phone", telefonoLimpio);
+        data.put("tipoDoc", tipoDocLimpio);
+        data.put("numDoc", numDocLimpio);
+        data.put("dni", numDocLimpio);
+        data.put("fechaNacimiento", fechaNacimientoLimpia);
+        data.put("domicilio", domicilioLimpio);
+        data.put("fotoUrl", "");
+        data.put("createdByAdminUid", adminUid);
+        data.put("requiereAprobacionSuperadmin", true);
+        data.put("debeConfigurarPassword", true);
+        data.put("fechaRegistro", FieldValue.serverTimestamp());
+        data.put("createdAt", FieldValue.serverTimestamp());
+
+        Map<String, Object> usuario = new HashMap<>();
+        usuario.put("uid", uid);
+        usuario.put("nombre", nombreLimpio);
+        usuario.put("apellidos", apellidosLimpio);
+        usuario.put("email", emailNormalizado);
+        usuario.put("telefono", telefonoLimpio);
+        usuario.put("dni", numDocLimpio);
+        usuario.put("rol", "ASESOR");
+        usuario.put("fotoUrl", null);
+        usuario.put("fechaRegistro", FieldValue.serverTimestamp());
+        usuario.put("activo", false);
+
+        DocumentReference userRef = firestore.collection(COLECCION_USERS_LEGACY).document(uid);
+        DocumentReference usuarioRef = firestore.collection(COLECCION_USUARIOS).document(uid);
+
+        WriteBatch batch = firestore.batch();
+        batch.set(userRef, data, SetOptions.merge());
+        batch.set(usuarioRef, usuario, SetOptions.merge());
+
+        batch.commit()
+                .addOnSuccessListener(unused ->
+                        enviarCorreoConfiguracionPassword(secondaryAuth, secondaryApp, emailNormalizado, callback))
+                .addOnFailureListener(e ->
+                        rollbackAuthYResponder(
+                                authUser,
+                                secondaryApp,
+                                callback,
+                                e.getMessage() != null
+                                        ? e.getMessage()
+                                        : "No se pudo guardar el perfil del asesor"
+                        ));
+    }
+
+    private void enviarCorreoConfiguracionPassword(
+            FirebaseAuth secondaryAuth,
+            FirebaseApp secondaryApp,
+            String emailNormalizado,
+            GuardarAsesorCallback callback
+    ) {
+        secondaryAuth.sendPasswordResetEmail(emailNormalizado)
+                .addOnCompleteListener(task -> {
+                    limpiarSecondaryApp(secondaryApp);
+                    if (callback != null) {
+                        if (task.isSuccessful()) {
+                            callback.onSuccess("Asesor registrado. Se envió un correo para configurar su contraseña.");
+                        } else {
+                            callback.onSuccess("Asesor registrado como pendiente. No se pudo enviar el correo de contraseña.");
+                        }
+                    }
+                });
+    }
+
+    private void rollbackAuthYResponder(
+            FirebaseUser authUser,
+            FirebaseApp secondaryApp,
+            GuardarAsesorCallback callback,
+            String mensaje
+    ) {
+        authUser.delete().addOnCompleteListener(task -> {
+            limpiarSecondaryApp(secondaryApp);
+            if (callback != null) callback.onError(mensaje);
+        });
+    }
+
+    private void limpiarSecondaryApp(FirebaseApp secondaryApp) {
+        try {
+            if (secondaryApp != null) secondaryApp.delete();
+        } catch (Exception ignored) {
+            // No debe bloquear el flujo de registro.
+        }
+    }
+
+    private String generarPasswordTemporal() {
+        return "Tmp1!" + UUID.randomUUID().toString().replace("-", "");
+    }
+
+    private String mapearErrorAuthAsesor(Exception e) {
+        if (e instanceof FirebaseAuthUserCollisionException) {
+            return "Ya existe una cuenta de autenticación con este correo";
+        }
+        return e != null && e.getMessage() != null
+                ? e.getMessage()
+                : "No se pudo crear la cuenta del asesor";
     }
 
     public void obtenerAsesoresRegistrados(Context context, AsesoresCallback callback) {
@@ -187,7 +323,7 @@ public class FirestoreAsesoresRepository {
 
     private void obtenerAsesoresRegistrados(Context context, boolean soloActivos, AsesoresCallback callback) {
         String inmobiliariaNombre = AdminPreferencesManager.obtenerInmobiliaria(context);
-        String inmobiliariaId = AdminProyectosRepository.crearInmobiliariaId(inmobiliariaNombre);
+        String inmobiliariaId = AdminPreferencesManager.obtenerInmobiliariaId(context);
 
         firestore.collection(COLECCION_USERS_LEGACY).get().addOnSuccessListener(snapshot -> {
             List<QuerySnapshot> snapshots = new ArrayList<>();
@@ -242,8 +378,8 @@ public class FirestoreAsesoresRepository {
 
     private boolean estaActivo(DocumentSnapshot doc) {
         String estado = firstNonEmpty(
-                doc.getString("estado"),
-                doc.getString("status")
+                doc.getString("status"),
+                doc.getString("estado")
         );
         if (!isBlank(estado)) {
             String normalized = normalize(estado);
@@ -305,8 +441,8 @@ public class FirestoreAsesoresRepository {
 
     private String buildEstado(DocumentSnapshot doc) {
         String estado = firstNonEmpty(
-                doc.getString("estado"),
-                doc.getString("status")
+                doc.getString("status"),
+                doc.getString("estado")
         );
         if (!isBlank(estado)) {
             String normalized = normalize(estado);

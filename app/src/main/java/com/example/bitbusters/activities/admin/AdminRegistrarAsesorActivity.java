@@ -31,7 +31,6 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
     private TextInputEditText etDniAsesor;
     private TextInputEditText etFechaNacimientoAsesor;
     private TextInputEditText etDomicilioAsesor;
-    private TextInputEditText etPasswordTemporalAsesor;
     private TextView tvInitials;
     private TextView tvPreviewNombre;
     private TextView tvPreviewCorreo;
@@ -63,7 +62,6 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
         etDniAsesor = findViewById(R.id.etDniAsesor);
         etFechaNacimientoAsesor = findViewById(R.id.etFechaNacimientoAsesor);
         etDomicilioAsesor = findViewById(R.id.etDomicilioAsesor);
-        etPasswordTemporalAsesor = findViewById(R.id.etPasswordTemporalAsesor);
         tvInitials = findViewById(R.id.tvInitials);
         tvPreviewNombre = findViewById(R.id.tvPreviewNombre);
         tvPreviewCorreo = findViewById(R.id.tvPreviewCorreo);
@@ -242,16 +240,17 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
         String dni = getText(etDniAsesor);
         String fechaNacimiento = getText(etFechaNacimientoAsesor);
         String domicilio = getText(etDomicilioAsesor);
-        String passwordTemporal = getText(etPasswordTemporalAsesor);
 
         setSavingState(true);
         asesoresRepository.registrarAsesor(this, nombre, apellidos, correo, telefono,
-                tipoDoc, dni, fechaNacimiento, domicilio, passwordTemporal,
+                tipoDoc, dni, fechaNacimiento, domicilio,
                 new FirestoreAsesoresRepository.GuardarAsesorCallback() {
                     @Override
-                    public void onSuccess() {
+                    public void onSuccess(String mensaje) {
                         Toast.makeText(AdminRegistrarAsesorActivity.this,
-                                "Asesor registrado. Comparte el correo y la contraseña temporal para que inicie sesión.",
+                                mensaje != null && !mensaje.isEmpty()
+                                        ? mensaje
+                                        : "Asesor registrado como pendiente",
                                 Toast.LENGTH_LONG).show();
                         finish();
                     }
@@ -283,7 +282,6 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
         String dni = getText(etDniAsesor);
         String fechaNacimiento = getText(etFechaNacimientoAsesor);
         String domicilio = getText(etDomicilioAsesor);
-        String passwordTemporal = getText(etPasswordTemporalAsesor);
 
         if (nombre.isEmpty() || apellidos.isEmpty() || correo.isEmpty() || telefono.isEmpty()
                 || dni.isEmpty() || fechaNacimiento.isEmpty() || domicilio.isEmpty()) {
@@ -292,10 +290,6 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
         }
         if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
             Toast.makeText(this, "Ingresa un correo válido", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        if (passwordTemporal.length() < 6) {
-            Toast.makeText(this, "La contraseña temporal debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;

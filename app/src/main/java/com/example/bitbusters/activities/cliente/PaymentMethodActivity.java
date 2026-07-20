@@ -9,12 +9,37 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.bitbusters.R;
+import com.example.bitbusters.repository.ClienteSeparacionRepository;
 import com.example.bitbusters.utils.NotificationHelper;
+import com.example.bitbusters.utils.PreferencesManager;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class PaymentMethodActivity extends AppCompatActivity {
 
-    private EditText etNombreTitular, etNumeroTarjeta, etFechaVencimiento, etCVV;
-    private TextView tvNumeroTarjeta, tvNombreTarjeta, tvVencimiento;
+    public static final String EXTRA_SEPARACION_ID = "extra_separacion_id";
+    public static final String EXTRA_PROYECTO_ID = "extra_proyecto_id";
+    public static final String EXTRA_PROYECTO_NOMBRE = "extra_proyecto_nombre";
+    public static final String EXTRA_UID_ASESOR = "extra_uid_asesor";
+    public static final String EXTRA_INMOBILIARIA_ID = "extra_inmobiliaria_id";
+    public static final String EXTRA_MONTO_SEPARACION = "extra_monto_separacion";
+    public static final String EXTRA_PAGO_VENCE_EN_MILLIS = "extra_pago_vence_en_millis";
+
+    private EditText etNombreTitular;
+    private EditText etNumeroTarjeta;
+    private EditText etFechaVencimiento;
+    private EditText etCVV;
+    private TextView tvNumeroTarjeta;
+    private TextView tvNombreTarjeta;
+    private TextView tvVencimiento;
+
+    private final ClienteSeparacionRepository separacionRepository = new ClienteSeparacionRepository();
+    private String separacionId;
+    private String proyectoId;
+    private String proyectoNombre;
+    private String uidAsesor;
+    private String inmobiliariaId;
+    private String montoSeparacion;
+    private long pagoVenceEnMillis;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,75 +49,118 @@ public class PaymentMethodActivity extends AppCompatActivity {
         // Crear el canal de notificaciones (necesario para lanzar la notificación de pago)
         NotificationHelper.crearCanal(this);
 
-        etNombreTitular   = findViewById(R.id.etNombreTitular);
-        etNumeroTarjeta   = findViewById(R.id.etNumeroTarjeta);
-        etFechaVencimiento= findViewById(R.id.etFechaVencimiento);
-        etCVV             = findViewById(R.id.etCVV);
-        tvNumeroTarjeta   = findViewById(R.id.tvNumeroTarjeta);
-        tvNombreTarjeta   = findViewById(R.id.tvNombreTarjeta);
-        tvVencimiento     = findViewById(R.id.tvVencimiento);
+        leerExtrasDeSeparacion();
+        enlazarVistas();
+        configurarAcciones();
+        cargarTarjetaGuardada();
+        configurarPreviewsTarjeta();
 
-        // Volver
+        // Guardar tarjeta
+        findViewById(R.id.btnGuardar).setOnClickListener(v -> guardarTarjeta());
+    }
+
+    private void leerExtrasDeSeparacion() {
+        separacionId = getIntent().getStringExtra(EXTRA_SEPARACION_ID);
+        proyectoId = getIntent().getStringExtra(EXTRA_PROYECTO_ID);
+        proyectoNombre = getIntent().getStringExtra(EXTRA_PROYECTO_NOMBRE);
+        uidAsesor = getIntent().getStringExtra(EXTRA_UID_ASESOR);
+        inmobiliariaId = getIntent().getStringExtra(EXTRA_INMOBILIARIA_ID);
+        montoSeparacion = getIntent().getStringExtra(EXTRA_MONTO_SEPARACION);
+        pagoVenceEnMillis = getIntent().getLongExtra(EXTRA_PAGO_VENCE_EN_MILLIS, 0L);
+    }
+
+    private void enlazarVistas() {
+        etNombreTitular = findViewById(R.id.etNombreTitular);
+        etNumeroTarjeta = findViewById(R.id.etNumeroTarjeta);
+        etFechaVencimiento = findViewById(R.id.etFechaVencimiento);
+        etCVV = findViewById(R.id.etCVV);
+        tvNumeroTarjeta = findViewById(R.id.tvNumeroTarjeta);
+        tvNombreTarjeta = findViewById(R.id.tvNombreTarjeta);
+        tvVencimiento = findViewById(R.id.tvVencimiento);
+    }
+
+    private void configurarAcciones() {
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Saltar — ir a Home sin agregar tarjeta
         findViewById(R.id.btnSaltar).setOnClickListener(v -> {
             startActivity(new Intent(this, HomeActivity.class));
             finish();
         });
+    }
 
-        // Preview en tiempo real: nombre
+    private void configurarPreviewsTarjeta() {
+        configurarPreviewNombre();
+        configurarPreviewNumero();
+        configurarPreviewVencimiento();
+    }
+
+    private void configurarPreviewNombre() {
         etNombreTitular.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {}
+            @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {
+                // Sin trabajo previo requerido para la vista previa.
+            }
             @Override public void onTextChanged(CharSequence s, int i, int b, int c) {
                 String nombre = s.toString().trim();
                 tvNombreTarjeta.setText(nombre.isEmpty() ? "Olivia Johns" : nombre);
             }
-            @Override public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {
+                // La actualización ocurre en onTextChanged.
+            }
         });
+    }
 
-        // Preview en tiempo real: número de tarjeta con formato
+    private void configurarPreviewNumero() {
         etNumeroTarjeta.addTextChangedListener(new TextWatcher() {
             private boolean editando = false;
-            @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {}
-            @Override public void onTextChanged(CharSequence s, int i, int b, int c) {}
+            @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {
+                // El formato se resuelve en afterTextChanged.
+            }
+            @Override public void onTextChanged(CharSequence s, int i, int b, int c) {
+                // No se usa; el formateo se hace después para evitar ciclos.
+            }
             @Override public void afterTextChanged(Editable s) {
                 if (editando) return;
                 editando = true;
-
-                // Formatear con espacios cada 4 dígitos
-                String raw = s.toString().replace(" ", "");
-                StringBuilder formateado = new StringBuilder();
-                for (int i = 0; i < raw.length() && i < 16; i++) {
-                    if (i > 0 && i % 4 == 0) formateado.append(" ");
-                    formateado.append(raw.charAt(i));
-                }
+                String formateado = formatearNumeroTarjeta(s.toString());
                 s.replace(0, s.length(), formateado);
-
-                // Preview en la tarjeta visual
-                String preview = formateado.toString();
-                if (preview.length() >= 4) {
-                    String ultimos = preview.substring(Math.max(0, preview.replace(" ","").length() - 4));
-                    tvNumeroTarjeta.setText("**** **** **** " + ultimos);
-                } else {
-                    tvNumeroTarjeta.setText("**** **** **** 1234");
-                }
+                tvNumeroTarjeta.setText(resolverPreviewNumero(formateado));
                 editando = false;
             }
         });
+    }
 
-        // Preview en tiempo real: vencimiento
+    private void configurarPreviewVencimiento() {
         etFechaVencimiento.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {}
+            @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {
+                // No se requiere trabajo previo.
+            }
             @Override public void onTextChanged(CharSequence s, int i, int b, int c) {
                 String fecha = s.toString().trim();
                 tvVencimiento.setText(fecha.isEmpty() ? "01/22" : fecha);
             }
-            @Override public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {
+                // La actualización ocurre en onTextChanged.
+            }
         });
+    }
 
-        // Guardar tarjeta
-        findViewById(R.id.btnGuardar).setOnClickListener(v -> guardarTarjeta());
+    private String formatearNumeroTarjeta(String rawValue) {
+        String raw = rawValue.replace(" ", "");
+        StringBuilder formateado = new StringBuilder();
+        for (int i = 0; i < raw.length() && i < 16; i++) {
+            if (i > 0 && i % 4 == 0) formateado.append(" ");
+            formateado.append(raw.charAt(i));
+        }
+        return formateado.toString();
+    }
+
+    private String resolverPreviewNumero(String preview) {
+        if (preview.length() < 4) {
+            return "**** **** **** 1234";
+        }
+        String limpio = preview.replace(" ", "");
+        String ultimos = limpio.substring(Math.max(0, limpio.length() - 4));
+        return "**** **** **** " + ultimos;
     }
 
     private void guardarTarjeta() {
@@ -127,6 +195,22 @@ public class PaymentMethodActivity extends AppCompatActivity {
                 .setMessage("Tu tarjeta terminada en " + ultimos4 + " fue agregada correctamente.")
                 .setIcon(android.R.drawable.ic_dialog_info)
                 .setPositiveButton("Aceptar", (dialog, which) -> {
+                    guardarTarjetaLocal(nombre, ultimos4, fecha);
+
+                    if (hayFlujoSeparacionAprobada()) {
+                        registrarPagoSeparacionAprobada(ultimos4);
+                        return;
+                    } else if (hayFlujoSeparacionProyecto()) {
+                        Toast.makeText(
+                                this,
+                                "La separación debe ser registrada por un asesor y aprobada por administración antes del pago.",
+                                Toast.LENGTH_LONG
+                        ).show();
+                        startActivity(new Intent(this, HomeActivity.class));
+                        finish();
+                        return;
+                    }
+
                     // Lanzar notificación de método de pago guardado
                     // Al tocarla, abre HomeActivity
                     Intent intentHome = new Intent(this, HomeActivity.class);
@@ -142,5 +226,100 @@ public class PaymentMethodActivity extends AppCompatActivity {
                 })
                 .setCancelable(false)
                 .show();
+    }
+
+    private boolean hayFlujoSeparacionProyecto() {
+        return proyectoId != null && !proyectoId.isEmpty()
+                && proyectoNombre != null && !proyectoNombre.isEmpty();
+    }
+
+    private boolean hayFlujoSeparacionAprobada() {
+        return separacionId != null && !separacionId.isEmpty()
+                && proyectoNombre != null && !proyectoNombre.isEmpty();
+    }
+
+    private void registrarPagoSeparacionAprobada(String ultimos4) {
+        String uidCliente = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (uidCliente == null || uidCliente.isEmpty()) {
+            Toast.makeText(this, "Debes iniciar sesión para registrar el pago.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String nombreCliente = PreferencesManager.obtenerNombre(this);
+        double monto = parseMontoSeparacion(montoSeparacion);
+
+        if (pagoVenceEnMillis > 0 && System.currentTimeMillis() > pagoVenceEnMillis) {
+            separacionRepository.marcarSeparacionVencida(separacionId)
+                    .addOnCompleteListener(task -> {
+                        Toast.makeText(
+                                this,
+                                "El tiempo para pagar esta separación venció.",
+                                Toast.LENGTH_LONG
+                        ).show();
+                        startActivity(new Intent(this, HomeActivity.class));
+                        finish();
+                    });
+            return;
+        }
+
+        separacionRepository.registrarPagoDeSeparacionAprobada(
+            separacionId,
+            new ClienteSeparacionRepository.SeparacionPendienteRequest(
+                new ClienteSeparacionRepository.ClienteInfo(uidCliente, nombreCliente),
+                new ClienteSeparacionRepository.ProyectoInfo(uidAsesor, proyectoId, proyectoNombre, inmobiliariaId),
+                new ClienteSeparacionRepository.PagoInfo(monto, "tarjeta", ultimos4)))
+                .addOnSuccessListener(v ->
+                    finalizarPagoRegistrado())
+                .addOnFailureListener(e ->
+                    Toast.makeText(this, "No se pudo registrar el pago de la separación.", Toast.LENGTH_SHORT).show());
+    }
+
+    private void finalizarPagoRegistrado() {
+        Intent intentHome = new Intent(this, HomeActivity.class);
+        NotificationHelper.lanzarNotificacion(
+                this,
+                "Pago registrado",
+                "Tu pago de separación fue registrado correctamente",
+                NotificationHelper.NOTIF_METODO_PAGO,
+                intentHome
+        );
+        Toast.makeText(this, "Pago registrado para la separación.", Toast.LENGTH_LONG).show();
+        startActivity(intentHome);
+        finish();
+    }
+
+    private void guardarTarjetaLocal(String nombreTitular, String ultimos4, String fechaVencimiento) {
+        getSharedPreferences("bitbusters_prefs", MODE_PRIVATE)
+                .edit()
+                .putBoolean("cliente_tarjeta_guardada", true)
+                .putString("cliente_tarjeta_nombre", nombreTitular)
+                .putString("cliente_tarjeta_ultimos4", ultimos4)
+                .putString("cliente_tarjeta_vencimiento", fechaVencimiento)
+                .apply();
+    }
+
+    private void cargarTarjetaGuardada() {
+        android.content.SharedPreferences prefs = getSharedPreferences("bitbusters_prefs", MODE_PRIVATE);
+        if (!prefs.getBoolean("cliente_tarjeta_guardada", false)) return;
+
+        String nombre = prefs.getString("cliente_tarjeta_nombre", "");
+        String ultimos4 = prefs.getString("cliente_tarjeta_ultimos4", "");
+        String vencimiento = prefs.getString("cliente_tarjeta_vencimiento", "");
+
+        if (etNombreTitular != null && !nombre.isEmpty()) etNombreTitular.setText(nombre);
+        if (etNumeroTarjeta != null && !ultimos4.isEmpty()) etNumeroTarjeta.setText("**** **** **** " + ultimos4);
+        if (etFechaVencimiento != null && !vencimiento.isEmpty()) etFechaVencimiento.setText(vencimiento);
+    }
+
+    private double parseMontoSeparacion(String montoStr) {
+        if (montoStr == null || montoStr.trim().isEmpty()) return 0d;
+        String limpio = montoStr.replaceAll("\\D", "");
+        if (limpio.isEmpty()) return 0d;
+        try {
+            return Double.parseDouble(limpio);
+        } catch (NumberFormatException e) {
+            return 0d;
+        }
     }
 }

@@ -8,6 +8,14 @@ public class Notification {
     private int avatarResId;
     private int propertyResId;
     private boolean isOld;
+    private String tipo;
+    private String separacionId;
+    private String proyectoId;
+    private String proyectoNombre;
+    private String uidAsesor;
+    private String inmobiliariaId;
+    private String montoSeparacion;
+    private long pagoVenceEnMillis;
 
     public Notification(String id, String name, String message, String time, int avatarResId, int propertyResId, boolean isOld) {
         this.id = id;
@@ -17,6 +25,33 @@ public class Notification {
         this.avatarResId = avatarResId;
         this.propertyResId = propertyResId;
         this.isOld = isOld;
+    }
+
+    public Notification(String id, String name, String message, String time,
+                        int avatarResId, int propertyResId, boolean isOld,
+                        String tipo, String separacionId, String proyectoId,
+                        String proyectoNombre, String uidAsesor,
+                        String inmobiliariaId, String montoSeparacion) {
+        this(id, name, message, time, avatarResId, propertyResId, isOld,
+                tipo, separacionId, proyectoId, proyectoNombre, uidAsesor,
+                inmobiliariaId, montoSeparacion, 0L);
+    }
+
+    public Notification(String id, String name, String message, String time,
+                        int avatarResId, int propertyResId, boolean isOld,
+                        String tipo, String separacionId, String proyectoId,
+                        String proyectoNombre, String uidAsesor,
+                        String inmobiliariaId, String montoSeparacion,
+                        long pagoVenceEnMillis) {
+        this(id, name, message, time, avatarResId, propertyResId, isOld);
+        this.tipo = tipo;
+        this.separacionId = separacionId;
+        this.proyectoId = proyectoId;
+        this.proyectoNombre = proyectoNombre;
+        this.uidAsesor = uidAsesor;
+        this.inmobiliariaId = inmobiliariaId;
+        this.montoSeparacion = montoSeparacion;
+        this.pagoVenceEnMillis = pagoVenceEnMillis;
     }
 
     // Convenience constructor for simple test/sample notifications
@@ -37,4 +72,12 @@ public class Notification {
     public int getAvatarResId() { return avatarResId; }
     public int getPropertyResId() { return propertyResId; }
     public boolean isOld() { return isOld; }
+    public String getTipo() { return tipo; }
+    public String getSeparacionId() { return separacionId; }
+    public String getProyectoId() { return proyectoId; }
+    public String getProyectoNombre() { return proyectoNombre; }
+    public String getUidAsesor() { return uidAsesor; }
+    public String getInmobiliariaId() { return inmobiliariaId; }
+    public String getMontoSeparacion() { return montoSeparacion; }
+    public long getPagoVenceEnMillis() { return pagoVenceEnMillis; }
 }

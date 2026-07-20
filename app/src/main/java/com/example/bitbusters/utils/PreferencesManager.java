@@ -10,6 +10,8 @@ import android.content.SharedPreferences;
  */
 public class PreferencesManager {
 
+    private PreferencesManager() {}
+
     // Nombre del archivo de preferencias
     private static final String NOMBRE_PREFS = "bitbusters_prefs";
 
@@ -18,6 +20,9 @@ public class PreferencesManager {
     private static final String KEY_ULTIMO_ACCESO      = "ultimo_acceso";
     private static final String KEY_TIPOLOGIA_FAVORITA = "tipologia_favorita";
     private static final String KEY_CITAS_CANCELADAS   = "citas_canceladas";
+    private static final String KEY_SEPARACION_ACTIVA_ID = "separacion_activa_id";
+    private static final String KEY_SEPARACION_ACTIVA_PROYECTO = "separacion_activa_proyecto";
+    private static final String KEY_SEPARACION_ACTIVA_VENCE_EN = "separacion_activa_vence_en";
 
     // Devuelve la instancia de SharedPreferences (modo privado)
     private static SharedPreferences getPrefs(Context context) {
@@ -70,6 +75,39 @@ public class PreferencesManager {
     public static java.util.Set<String> obtenerCitasCanceladas(Context context) {
         java.util.Set<String> guardadas = getPrefs(context).getStringSet(KEY_CITAS_CANCELADAS, null);
         return guardadas != null ? new java.util.HashSet<>(guardadas) : new java.util.HashSet<>();
+    }
+
+    // ── Cliente: separación activa ────────────────────────────────────────
+
+    public static void guardarSeparacionActiva(Context context,
+                                               String separacionId,
+                                               String proyectoNombre,
+                                               long venceEnMillis) {
+        getPrefs(context).edit()
+                .putString(KEY_SEPARACION_ACTIVA_ID, separacionId)
+                .putString(KEY_SEPARACION_ACTIVA_PROYECTO, proyectoNombre)
+                .putLong(KEY_SEPARACION_ACTIVA_VENCE_EN, venceEnMillis)
+                .apply();
+    }
+
+    public static String obtenerSeparacionActivaId(Context context) {
+        return getPrefs(context).getString(KEY_SEPARACION_ACTIVA_ID, "");
+    }
+
+    public static String obtenerSeparacionActivaProyecto(Context context) {
+        return getPrefs(context).getString(KEY_SEPARACION_ACTIVA_PROYECTO, "");
+    }
+
+    public static long obtenerSeparacionActivaVenceEn(Context context) {
+        return getPrefs(context).getLong(KEY_SEPARACION_ACTIVA_VENCE_EN, 0L);
+    }
+
+    public static void limpiarSeparacionActiva(Context context) {
+        getPrefs(context).edit()
+                .remove(KEY_SEPARACION_ACTIVA_ID)
+                .remove(KEY_SEPARACION_ACTIVA_PROYECTO)
+                .remove(KEY_SEPARACION_ACTIVA_VENCE_EN)
+                .apply();
     }
 
     // ── Superadmin: sesión ──────────────────────────────────────────────────

@@ -96,7 +96,7 @@
                     android:layout_marginEnd="24dp"
                     android:orientation="vertical">
 
-                    <!-- Nombre completo -->
+                    <!-- Nombres -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="70dp"
@@ -119,7 +119,38 @@
                             android:layout_marginStart="10dp"
                             android:layout_weight="1"
                             android:background="@null"
-                            android:hint="@string/register_full_name_hint"
+                            android:hint="Nombres"
+                            android:inputType="textPersonName|textCapWords"
+                            android:textColor="@color/neutral_dark"
+                            android:textColorHint="@color/text_placeholder"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <!-- Apellidos -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="70dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/auth_input_bg"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_person_20" />
+
+                        <EditText
+                            android:id="@+id/lastNameInput"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:layout_weight="1"
+                            android:background="@null"
+                            android:hint="Apellidos"
                             android:inputType="textPersonName|textCapWords"
                             android:textColor="@color/neutral_dark"
                             android:textColorHint="@color/text_placeholder"
@@ -189,7 +220,39 @@
                             android:textSize="12sp" />
                     </LinearLayout>
 
-                    <!-- DNI -->
+                    <!-- Tipo de documento -->
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/docTypeChipGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        app:singleSelection="true"
+                        app:selectionRequired="true">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipDni"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:text="DNI" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipPasaporte"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pasaporte" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipCarnet"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Carnet extranjería" />
+                    </com.google.android.material.chip.ChipGroup>
+
+                    <!-- Número de documento -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="70dp"
@@ -213,12 +276,86 @@
                             android:layout_marginStart="10dp"
                             android:layout_weight="1"
                             android:background="@null"
-                            android:hint="@string/register_dni_hint"
-                            android:inputType="number"
-                            android:maxLength="8"
+                            android:hint="Número de documento"
+                            android:inputType="textCapCharacters"
+                            android:maxLength="15"
                             android:textColor="@color/neutral_dark"
                             android:textColorHint="@color/text_placeholder"
                             android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <!-- Domicilio -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="70dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/auth_input_bg"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_location_20" />
+
+                        <EditText
+                            android:id="@+id/addressInput"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:layout_weight="1"
+                            android:background="@null"
+                            android:hint="Domicilio"
+                            android:inputType="textPostalAddress|textCapSentences"
+                            android:textColor="@color/neutral_dark"
+                            android:textColorHint="@color/text_placeholder"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <!-- Foto de perfil -->
+                    <LinearLayout
+                        android:id="@+id/photoPickerContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/auth_input_bg"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="12dp">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/imgSelectedProfile"
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:src="@drawable/avatar_jonathan"
+                            app:civ_border_width="1dp"
+                            app:civ_border_color="@color/white" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvPhotoStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Foto de perfil opcional"
+                                android:textColor="@color/neutral_dark"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Toca para seleccionar desde galería"
+                                android:textColor="@color/text_medium"
+                                android:textSize="11sp" />
+                        </LinearLayout>
                     </LinearLayout>
 
                     <!-- Fecha de nacimiento (se elige desde un calendario) -->

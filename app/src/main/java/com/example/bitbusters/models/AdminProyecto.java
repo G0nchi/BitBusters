@@ -23,6 +23,7 @@ public class AdminProyecto {
     private List<Tipologia> tipologias;
     private List<String>    asesores;     // nombres de asesores asignados (solo display)
     private List<String>    uidAsesores;  // UIDs reales de Firebase Auth — ver PC-05
+    private List<String>    areasComunes; // amenidades seleccionadas del proyecto
     private List<String>    imagenesUri;  // URIs de las imágenes del proyecto
     private String          fechaCreacion;// timestamp ej: "01/01/2025"
     private String          qrCode;       // URL remota o ruta local del QR generado
@@ -46,6 +47,7 @@ public class AdminProyecto {
         this.tipologias  = new ArrayList<>();
         this.asesores    = new ArrayList<>();
         this.uidAsesores = new ArrayList<>();
+        this.areasComunes = new ArrayList<>();
         this.imagenesUri = new ArrayList<>();
         this.qrCode      = "";
     }
@@ -74,6 +76,7 @@ public class AdminProyecto {
         this.tipologias      = tipologias  != null ? tipologias  : new ArrayList<>();
         this.asesores        = asesores    != null ? asesores    : new ArrayList<>();
         this.uidAsesores     = new ArrayList<>();
+        this.areasComunes    = new ArrayList<>();
         this.imagenesUri     = imagenesUri != null ? imagenesUri : new ArrayList<>();
         this.fechaCreacion   = fechaCreacion;
     }
@@ -111,6 +114,7 @@ public class AdminProyecto {
     public List<Tipologia> getTipologias()  { return tipologias  != null ? tipologias  : new ArrayList<>(); }
     public List<String>    getAsesores()    { return asesores    != null ? asesores    : new ArrayList<>(); }
     public List<String>    getUidAsesores() { return uidAsesores != null ? uidAsesores : new ArrayList<>(); }
+    public List<String>    getAreasComunes(){ return areasComunes != null ? areasComunes : new ArrayList<>(); }
     public List<String>    getImagenesUri() { return imagenesUri != null ? imagenesUri : new ArrayList<>(); }
 
     // ── Setters ──────────────────────────────────────────────────────────────
@@ -129,6 +133,7 @@ public class AdminProyecto {
     public void setTipologias(List<Tipologia> tipologias)   { this.tipologias      = tipologias; }
     public void setAsesores(List<String> asesores)          { this.asesores        = asesores; }
     public void setUidAsesores(List<String> uidAsesores)    { this.uidAsesores     = uidAsesores; }
+    public void setAreasComunes(List<String> areasComunes)  { this.areasComunes    = areasComunes; }
     public void setImagenesUri(List<String> imagenesUri)    { this.imagenesUri     = imagenesUri; }
     public void setFechaCreacion(String fechaCreacion)      { this.fechaCreacion   = fechaCreacion; }
     public void setQrCode(String qrCode)                    { this.qrCode          = qrCode; }
