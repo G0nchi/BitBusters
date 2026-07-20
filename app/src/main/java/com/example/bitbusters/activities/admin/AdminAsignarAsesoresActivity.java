@@ -212,12 +212,15 @@ public class AdminAsignarAsesoresActivity extends AppCompatActivity {
      * AdminProyectoSessionData y cierra la Activity.
      */
     private void confirmAssignment() {
-        // Extraer solo los nombres para guardarlos en la sesión
+        // Extraer nombres (display) + UID real (para uidAsesores — ver PC-05)
         List<String> nombres = new ArrayList<>();
+        java.util.Map<String, String> uidsPorNombre = new java.util.LinkedHashMap<>();
         for (AdminAsesor asesor : selectedAsesores) {
             nombres.add(asesor.getNombre());
+            uidsPorNombre.put(asesor.getNombre(), asesor.getId());
         }
         AdminProyectoSessionData.getInstance().asesoresAsignados = nombres;
+        AdminProyectoSessionData.getInstance().asesorUidPorNombre = uidsPorNombre;
 
         String msg = selectedCount + " asesor" + (selectedCount != 1 ? "es" : "")
                 + " asignado" + (selectedCount != 1 ? "s" : "");

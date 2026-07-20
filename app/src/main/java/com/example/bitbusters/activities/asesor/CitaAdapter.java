@@ -36,6 +36,13 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.ViewHolder> {
         public final boolean showSeparacion;
         public final boolean showRating;
 
+        // ── Identidad real en Firestore (vacíos para datos puramente locales) ──
+        public String citaId = "";
+        public String uidCliente = "";
+        public String uidAsesor = "";
+        public String proyectoId = "";
+        public String slotId = "";
+
         public Cita(String initials, int avatarColor, String nombre, String proyecto,
                     String fecha, String hora, String badge, int badgeBg, int badgeText,
                     String btnLeft, String btnRight, boolean showSeparacion, boolean showRating) {
@@ -52,6 +59,17 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.ViewHolder> {
             this.btnRight = btnRight;
             this.showSeparacion = showSeparacion;
             this.showRating = showRating;
+        }
+
+        /** Adjunta los identificadores reales de Firestore a esta tarjeta. */
+        public Cita conIdentidad(String citaId, String uidCliente, String uidAsesor,
+                                  String proyectoId, String slotId) {
+            this.citaId = citaId != null ? citaId : "";
+            this.uidCliente = uidCliente != null ? uidCliente : "";
+            this.uidAsesor = uidAsesor != null ? uidAsesor : "";
+            this.proyectoId = proyectoId != null ? proyectoId : "";
+            this.slotId = slotId != null ? slotId : "";
+            return this;
         }
     }
 
@@ -93,6 +111,9 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.ViewHolder> {
         @Override
         public boolean areItemsTheSame(int oldPos, int newPos) {
             Cita o = oldList.get(oldPos), n = newList.get(newPos);
+            if (!o.citaId.isEmpty() || !n.citaId.isEmpty()) {
+                return o.citaId.equals(n.citaId);
+            }
             // Identidad: mismo cliente + misma fecha + misma hora
             return o.nombre.equals(n.nombre)
                 && o.fecha.equals(n.fecha)

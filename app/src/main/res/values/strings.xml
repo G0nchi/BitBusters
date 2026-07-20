@@ -276,8 +276,14 @@
     <!-- Doc Types -->
     <string name="doc_type_dni">DNI</string>
     <string name="doc_type_ce">Carné de extranjería</string>
+    <string name="doc_type_pasaporte">Pasaporte</string>
     <string-array name="doc_types">
         <item>@string/doc_type_dni</item>
+        <item>@string/doc_type_ce</item>
+    </string-array>
+    <string-array name="doc_types_asesor">
+        <item>@string/doc_type_dni</item>
+        <item>@string/doc_type_pasaporte</item>
         <item>@string/doc_type_ce</item>
     </string-array>
 

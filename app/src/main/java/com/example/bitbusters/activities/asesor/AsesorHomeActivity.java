@@ -20,12 +20,11 @@ import com.example.bitbusters.activities.access.LoginActivity;
 import com.example.bitbusters.activities.common.EscanearQRActivity;
 import com.example.bitbusters.databinding.ActivityAsesorHomeBinding;
 import com.example.bitbusters.models.AsesorNotif;
+import com.example.bitbusters.models.Proyecto;
 import com.example.bitbusters.models.ProyectoApi;
-import com.example.bitbusters.utils.ApiClient;
 import com.example.bitbusters.utils.AsesorNotificationHelper;
 import com.example.bitbusters.utils.AuthHelper;
 import com.example.bitbusters.utils.AsesorStorage;
-import com.example.bitbusters.utils.BitBustersApiService;
 import com.example.bitbusters.utils.NotificationHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -34,11 +33,9 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.util.Locale;
 
 public class AsesorHomeActivity extends AppCompatActivity {
 
@@ -47,6 +44,7 @@ public class AsesorHomeActivity extends AppCompatActivity {
     private MaterialButton chipTodos, chipDepartamentos, chipVillas;
     private TextView badgeCampana;
     private ListenerRegistration notifListener;
+    private List<String> proyectoIdsActuales = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,41 +166,81 @@ public class AsesorHomeActivity extends AppCompatActivity {
             binding.rvProyectos.setLayoutManager(new LinearLayoutManager(this));
             binding.rvProyectos.setNestedScrollingEnabled(false);
             proyectoAdapter = new ProyectoAdapter(position -> {
+                if (position < 0 || position >= proyectoIdsActuales.size()) return;
                 Intent intent = new Intent(this, ProyectoDetalleActivity.class);
-                intent.putExtra(ProyectoDetalleActivity.EXTRA_PROYECTO_INDEX, position);
+                intent.putExtra(ProyectoDetalleActivity.EXTRA_PROYECTO_ID,
+                        proyectoIdsActuales.get(position));
                 startActivity(intent);
             });
             binding.rvProyectos.setAdapter(proyectoAdapter);
-            loadProyectosFromApi();
+            cargarProyectosAsignados();
         }
     }
 
     /**
-     * Carga proyectos desde la API (Retrofit + MockInterceptor en esta fase).
-     * Callback en hilo principal: actualiza el adapter con DiffUtil al recibir datos.
+     * Carga desde Firestore los proyectos reales donde el asesor actual está
+     * asignado ({@code proyectos.uidAsesores array-contains uid}), reemplazando
+     * el antiguo listado hardcodeado (Retrofit + MockInterceptor).
      */
-    private void loadProyectosFromApi() {
-        BitBustersApiService api = ApiClient.getApiService();
-        api.getAllProyectos().enqueue(new Callback<List<ProyectoApi>>() {
-            @Override
-            public void onResponse(Call<List<ProyectoApi>> call,
-                                   Response<List<ProyectoApi>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    proyectoAdapter.setProyectos(response.body());
-                    // Reaplicar filtro activo (chip seleccionado)
-                    if (proyectoAdapter != null) {
-                        proyectoAdapter.applyFilter(AsesorStorage.getHomeFilter(
-                            AsesorHomeActivity.this));
-                    }
-                }
-            }
+    private void cargarProyectosAsignados() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
 
-            @Override
-            public void onFailure(Call<List<ProyectoApi>> call, Throwable t) {
-                Log.e("BitBusters", "Error al cargar proyectos: " + t.getMessage());
-                // La lista queda vacía; en producción se mostraría un estado de error
-            }
-        });
+        FirebaseFirestore.getInstance()
+            .collection("proyectos")
+            .whereArrayContains("uidAsesores", user.getUid())
+            .get()
+            .addOnSuccessListener(snapshots -> {
+                List<ProyectoApi> lista = new ArrayList<>();
+                List<String> ids = new ArrayList<>();
+                int idx = 0;
+                for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                    Proyecto p = doc.toObject(Proyecto.class);
+                    if (p == null) continue;
+
+                    ProyectoApi api = new ProyectoApi();
+                    api.id = idx++;
+                    api.nombre = p.getNombre() != null ? p.getNombre() : "";
+                    api.ubicacion = (p.getUbicacion() != null && !p.getUbicacion().isEmpty())
+                            ? p.getUbicacion()
+                            : (p.getDistrito() != null ? p.getDistrito() : "");
+                    api.precio = (p.getPrecio() != null && !p.getPrecio().isEmpty())
+                            ? p.getPrecio()
+                            : (p.getPrecioPublicado() != null ? p.getPrecioPublicado() : "");
+                    api.estado = mapEstadoDisplay(p.getEstado());
+                    api.rating = p.getRatingPromedio() != null
+                            ? String.format(Locale.getDefault(), "%.1f", p.getRatingPromedio())
+                            : (p.getRating() != null ? p.getRating() : "—");
+                    api.tipo = p.getTipo();
+                    api.imageUrl = p.getImageUrl() != null && !p.getImageUrl().isEmpty()
+                            ? p.getImageUrl()
+                            : (p.getImagenesUri() != null && !p.getImagenesUri().isEmpty()
+                                    ? p.getImagenesUri().get(0) : null);
+
+                    lista.add(api);
+                    ids.add(doc.getId());
+                }
+                proyectoIdsActuales = ids;
+                proyectoAdapter.setProyectos(lista);
+                if (proyectoAdapter != null) {
+                    proyectoAdapter.applyFilter(AsesorStorage.getHomeFilter(
+                        AsesorHomeActivity.this));
+                }
+            })
+            .addOnFailureListener(e ->
+                Log.e("BitBusters", "Error al cargar proyectos asignados: " + e.getMessage()));
+    }
+
+    /** Normaliza el estado del proyecto (lowercase en Firestore) al texto que espera la tarjeta. */
+    private static String mapEstadoDisplay(String estado) {
+        if (estado == null) return "En Planos";
+        switch (estado) {
+            case "en_venta":
+            case "En Venta":  return "En Venta";
+            case "preventa":
+            case "Preventa":  return "Preventa";
+            default:          return "En Planos";
+        }
     }
 
     private void setupChips() {

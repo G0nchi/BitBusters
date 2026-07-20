@@ -101,5 +101,5 @@
         app:menu="@menu/bottom_nav_menu"
         app:itemIconTint="@color/nav_icon_color"
         app:itemTextColor="@color/nav_text_color"
-        app:labelVisibilityMode="labeled"/>
+        app:labelVisibilityMode="unlabeled"/>
 </LinearLayout>

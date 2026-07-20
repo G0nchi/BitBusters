@@ -16,15 +16,21 @@ import java.util.Locale;
 
 public class NuevaSeparacionActivity extends AppCompatActivity {
 
-    public static final String EXTRA_CLIENTE  = "extra_cliente";
-    public static final String EXTRA_PROYECTO = "extra_proyecto";
-    public static final String EXTRA_INITIALS = "extra_initials";
-    public static final String EXTRA_COLOR    = "extra_color";
+    public static final String EXTRA_CLIENTE     = "extra_cliente";
+    public static final String EXTRA_PROYECTO    = "extra_proyecto";
+    public static final String EXTRA_INITIALS    = "extra_initials";
+    public static final String EXTRA_COLOR       = "extra_color";
+    public static final String EXTRA_CITA_ID     = "extra_cita_id";
+    public static final String EXTRA_UID_CLIENTE = "extra_uid_cliente";
+    public static final String EXTRA_PROYECTO_ID = "extra_proyecto_id";
 
     private ActivityNuevaSeparacionBinding binding;
 
     private String clienteNombre;
     private String proyectoNombre;
+    private String citaId;
+    private String uidCliente;
+    private String proyectoId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +42,9 @@ public class NuevaSeparacionActivity extends AppCompatActivity {
         proyectoNombre = getIntent().getStringExtra(EXTRA_PROYECTO);
         String initials = getIntent().getStringExtra(EXTRA_INITIALS);
         int    color    = getIntent().getIntExtra(EXTRA_COLOR, Color.parseColor("#4DB6AC"));
+        citaId          = getIntent().getStringExtra(EXTRA_CITA_ID);
+        uidCliente      = getIntent().getStringExtra(EXTRA_UID_CLIENTE);
+        proyectoId      = getIntent().getStringExtra(EXTRA_PROYECTO_ID);
 
         bindHeader(proyectoNombre);
         bindClienteCard(clienteNombre, initials, color);
@@ -63,11 +72,14 @@ public class NuevaSeparacionActivity extends AppCompatActivity {
             }
 
             Intent intent = new Intent(this, PagoSeparacionActivity.class);
-            intent.putExtra(PagoSeparacionActivity.EXTRA_CLIENTE,  clienteNombre);
-            intent.putExtra(PagoSeparacionActivity.EXTRA_PROYECTO, proyectoNombre);
-            intent.putExtra(PagoSeparacionActivity.EXTRA_MONTO,    monto.isEmpty() ? "0" : monto);
-            intent.putExtra(PagoSeparacionActivity.EXTRA_FECHA,    fecha);
-            intent.putExtra(PagoSeparacionActivity.EXTRA_HORA,     hora);
+            intent.putExtra(PagoSeparacionActivity.EXTRA_CLIENTE,     clienteNombre);
+            intent.putExtra(PagoSeparacionActivity.EXTRA_PROYECTO,    proyectoNombre);
+            intent.putExtra(PagoSeparacionActivity.EXTRA_MONTO,       monto.isEmpty() ? "0" : monto);
+            intent.putExtra(PagoSeparacionActivity.EXTRA_FECHA,       fecha);
+            intent.putExtra(PagoSeparacionActivity.EXTRA_HORA,        hora);
+            intent.putExtra(PagoSeparacionActivity.EXTRA_CITA_ID,     citaId);
+            intent.putExtra(PagoSeparacionActivity.EXTRA_UID_CLIENTE, uidCliente);
+            intent.putExtra(PagoSeparacionActivity.EXTRA_PROYECTO_ID, proyectoId);
             startActivity(intent);
         });
     }

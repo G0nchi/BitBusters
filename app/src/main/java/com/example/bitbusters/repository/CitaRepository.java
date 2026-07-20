@@ -220,6 +220,22 @@ public class CitaRepository {
         });
     }
 
+    // ── Confirmar / completar cita (Asesor) ──────────────────────────────────────
+
+    public Task<Void> confirmarCita(String citaId) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("estado", Cita.ESTADO_CONFIRMADA);
+        updates.put("actualizadoEn", FieldValue.serverTimestamp());
+        return db.collection(CITAS).document(citaId).update(updates);
+    }
+
+    public Task<Void> completarCita(String citaId) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("estado", Cita.ESTADO_COMPLETADA);
+        updates.put("actualizadoEn", FieldValue.serverTimestamp());
+        return db.collection(CITAS).document(citaId).update(updates);
+    }
+
     // ── Listeners en tiempo real ─────────────────────────────────────────────────
 
     /**
@@ -253,6 +269,47 @@ public class CitaRepository {
                         }
                     }
                     // Ordenar por fecha descendente (más reciente primero)
+                    lista.sort((a, b) -> {
+                        Date da = a.getFechaTimestamp();
+                        Date db2 = b.getFechaTimestamp();
+                        if (da == null && db2 == null) return 0;
+                        if (da == null) return 1;
+                        if (db2 == null) return -1;
+                        return db2.compareTo(da);
+                    });
+                    listener.onCitasActualizadas(lista);
+                });
+    }
+
+    /**
+     * Escucha las citas asignadas al asesor en tiempo real.
+     * Mismo criterio de orden que {@link #escucharCitasCliente}.
+     */
+    public ListenerRegistration escucharCitasAsesor(String uidAsesor, CitasClienteListener listener) {
+        return db.collection(CITAS)
+                .whereEqualTo("uidAsesor", uidAsesor)
+                .addSnapshotListener((snap, e) -> {
+                    if (e != null) {
+                        Log.e(TAG, "Error escuchando citas del asesor: " + e.getMessage());
+                        listener.onError(e.getMessage());
+                        return;
+                    }
+                    if (snap == null) {
+                        listener.onCitasActualizadas(new ArrayList<>());
+                        return;
+                    }
+                    List<Cita> lista = new ArrayList<>();
+                    for (DocumentSnapshot doc : snap.getDocuments()) {
+                        try {
+                            Cita c = doc.toObject(Cita.class);
+                            if (c != null) {
+                                c.setId(doc.getId());
+                                lista.add(c);
+                            }
+                        } catch (Exception ex) {
+                            Log.w(TAG, "No se pudo deserializar cita " + doc.getId(), ex);
+                        }
+                    }
                     lista.sort((a, b) -> {
                         Date da = a.getFechaTimestamp();
                         Date db2 = b.getFechaTimestamp();

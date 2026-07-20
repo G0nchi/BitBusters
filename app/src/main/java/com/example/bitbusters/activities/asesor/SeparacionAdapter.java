@@ -4,26 +4,33 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.bitbusters.R;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SeparacionAdapter extends RecyclerView.Adapter<SeparacionAdapter.ViewHolder> {
 
     static class Separacion {
-        String referencia;
-        String proyecto;
-        String cliente;
-        String monto;
-        String estado;
-        String fecha;
-        int placeholderColor;
+        final String referencia;
+        final String proyecto;
+        final String cliente;
+        final String monto;
+        final String estado;
+        final String fecha;
+        final int placeholderColor;
+        final String imageUrl;
 
         Separacion(String referencia, String proyecto, String cliente,
-                   String monto, String estado, String fecha, int placeholderColor) {
+                   String monto, String estado, String fecha, int placeholderColor,
+                   String imageUrl) {
             this.referencia = referencia;
             this.proyecto = proyecto;
             this.cliente = cliente;
@@ -31,29 +38,17 @@ public class SeparacionAdapter extends RecyclerView.Adapter<SeparacionAdapter.Vi
             this.estado = estado;
             this.fecha = fecha;
             this.placeholderColor = placeholderColor;
+            this.imageUrl = imageUrl;
         }
     }
 
-    private static final Separacion[] DATA = {
-        new Separacion("SEP-2025-0041", "Vista Marina Residencial",
-            "Carlos Mendoza", "S/ 320,000", "Confirmada", "28 Mar 2025",
-            Color.parseColor("#B8C8D4")),
-        new Separacion("SEP-2025-0042", "Torres del Sol · Dpto 302",
-            "Ana López", "S/ 450,000", "En proceso", "02 Abr 2025",
-            Color.parseColor("#D4B896")),
-        new Separacion("SEP-2025-0043", "Torres del Sol · Dpto 501",
-            "Rosa Torres", "S/ 320,000", "Vencida", "05 Abr 2025",
-            Color.parseColor("#D4B896")),
-        new Separacion("SEP-2025-0044", "Condominio Los Pinos",
-            "Marco Paredes", "S/ 580,000", "Confirmada", "08 Abr 2025",
-            Color.parseColor("#A8C8A0")),
-        new Separacion("SEP-2025-0045", "Vista Marina · Dpto 204",
-            "Sandra Vega", "S/ 320,000", "Pendiente", "10 Abr 2025",
-            Color.parseColor("#B8C8D4")),
-        new Separacion("SEP-2025-0046", "Torres del Sol · Dpto 108",
-            "Luis Vargas", "S/ 450,000", "En proceso", "12 Abr 2025",
-            Color.parseColor("#D4B896"))
-    };
+    private List<Separacion> data = new ArrayList<>();
+
+    /** Reemplaza los datos mostrados (llamado con separaciones reales de Firestore). */
+    public void setData(List<Separacion> nuevaLista) {
+        this.data = nuevaLista != null ? nuevaLista : new ArrayList<>();
+        notifyDataSetChanged();
+    }
 
     @NonNull
     @Override
@@ -65,17 +60,25 @@ public class SeparacionAdapter extends RecyclerView.Adapter<SeparacionAdapter.Vi
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Separacion sep = DATA[position];
+        Separacion sep = data.get(position);
         holder.tvProyecto.setText(sep.proyecto);
         holder.tvCliente.setText(sep.cliente);
         holder.tvMonto.setText(sep.monto);
         holder.tvReferencia.setText(sep.referencia);
         holder.tvFecha.setText(sep.fecha);
-        holder.vPlaceholder.setBackgroundColor(sep.placeholderColor);
+        if (sep.imageUrl != null && !sep.imageUrl.isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                .load(sep.imageUrl)
+                .centerCrop()
+                .into(holder.vPlaceholder);
+        } else {
+            holder.vPlaceholder.setImageDrawable(null);
+            holder.vPlaceholder.setBackgroundColor(sep.placeholderColor);
+        }
 
         holder.tvEstado.setText(sep.estado);
         switch (sep.estado) {
-            case "Confirmada":
+            case "Aprobada":
                 holder.tvEstado.setBackgroundResource(R.drawable.badge_confirmada);
                 holder.tvEstado.setTextColor(Color.parseColor("#186A3B"));
                 break;
@@ -83,6 +86,7 @@ public class SeparacionAdapter extends RecyclerView.Adapter<SeparacionAdapter.Vi
                 holder.tvEstado.setBackgroundResource(R.drawable.badge_pendiente);
                 holder.tvEstado.setTextColor(Color.parseColor("#9A5700"));
                 break;
+            case "Rechazada":
             case "Vencida":
                 holder.tvEstado.setBackgroundResource(R.drawable.badge_cancelada);
                 holder.tvEstado.setTextColor(Color.parseColor("#CC2222"));
@@ -96,11 +100,11 @@ public class SeparacionAdapter extends RecyclerView.Adapter<SeparacionAdapter.Vi
 
     @Override
     public int getItemCount() {
-        return DATA.length;
+        return data.size();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        View vPlaceholder;
+        ImageView vPlaceholder;
         TextView tvProyecto, tvCliente, tvMonto, tvEstado, tvReferencia, tvFecha;
 
         ViewHolder(View itemView) {

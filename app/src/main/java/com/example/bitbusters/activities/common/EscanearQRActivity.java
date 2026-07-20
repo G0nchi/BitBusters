@@ -85,12 +85,8 @@ public class EscanearQRActivity extends AppCompatActivity {
         String rol = getIntent().getStringExtra(EXTRA_ROL);
 
         if (ROL_ASESOR.equals(rol)) {
-            // ProyectoDetalleActivity usa índice entero (0–2); navegar directamente
-            int index = 0;
-            try { index = Integer.parseInt(id); } catch (NumberFormatException ignored) {}
-            index = Math.max(0, Math.min(index, 2));
             Intent intent = new Intent(this, ProyectoDetalleActivity.class);
-            intent.putExtra(ProyectoDetalleActivity.EXTRA_PROYECTO_INDEX, index);
+            intent.putExtra(ProyectoDetalleActivity.EXTRA_PROYECTO_ID, id);
             startActivity(intent);
         } else {
             // Cliente: usar deep link → el sistema enruta a ProjectDetailActivity

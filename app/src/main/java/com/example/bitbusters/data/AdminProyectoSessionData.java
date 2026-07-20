@@ -3,7 +3,9 @@ package com.example.bitbusters.data;
 import com.example.bitbusters.models.Tipologia;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Singleton que guarda temporalmente los datos del proyecto
@@ -31,6 +33,8 @@ public class AdminProyectoSessionData {
 
     // ── Parte 2: asesores asignados desde AdminAsignarAsesoresActivity ───────
     public List<String> asesoresAsignados = new ArrayList<>();
+    /** nombre → UID real de Firebase Auth — ver PENDING_COORDINATION.md § PC-05. */
+    public Map<String, String> asesorUidPorNombre = new LinkedHashMap<>();
 
     /** Constructor privado — solo se accede por getInstance() */
     private AdminProyectoSessionData() {}
@@ -59,7 +63,8 @@ public class AdminProyectoSessionData {
         precioPublicado   = "";
         fechaEntrega      = "";
         estado            = "";
-        tipologias        = new ArrayList<>();
-        asesoresAsignados = new ArrayList<>();
+        tipologias          = new ArrayList<>();
+        asesoresAsignados   = new ArrayList<>();
+        asesorUidPorNombre  = new LinkedHashMap<>();
     }
 }

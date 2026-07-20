@@ -6,7 +6,6 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-import com.example.bitbusters.models.CitaEstadoEntity;
 import com.example.bitbusters.models.ComentarioEntity;
 import com.example.bitbusters.models.DeletedChatEntity;
 import com.example.bitbusters.models.NotificacionEntity;
@@ -23,17 +22,15 @@ import com.example.bitbusters.models.NotificacionEntity;
 @Database(
     entities = {
         NotificacionEntity.class,
-        CitaEstadoEntity.class,
         DeletedChatEntity.class,
         ComentarioEntity.class
     },
-    version  = 2,
+    version  = 3,
     exportSchema = false
 )
 public abstract class AsesorDatabase extends RoomDatabase {
 
     public abstract NotificacionDao notificacionDao();
-    public abstract CitaEstadoDao   citaEstadoDao();
     public abstract DeletedChatDao  deletedChatDao();
     public abstract ComentarioDao   comentarioDao();
 

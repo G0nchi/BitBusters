@@ -112,8 +112,10 @@ public class ProyectoAdapter extends RecyclerView.Adapter<ProyectoAdapter.ViewHo
         holder.tvUbicacion.setText(p.ubicacion);
         holder.tvPrecio.setText(p.precio);
         holder.tvRating.setText(p.rating);
+        String imagen = (p.imageUrl != null && !p.imageUrl.isEmpty())
+                ? p.imageUrl : imageUrlForKey(p.imagenKey);
         Glide.with(holder.itemView.getContext())
-            .load(imageUrlForKey(p.imagenKey))
+            .load(imagen)
             .placeholder(imagenResForKey(p.imagenKey))
             .error(imagenResForKey(p.imagenKey))
             .centerCrop()

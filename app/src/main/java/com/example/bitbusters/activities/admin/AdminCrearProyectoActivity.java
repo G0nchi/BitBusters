@@ -1363,6 +1363,7 @@ public class AdminCrearProyectoActivity extends AppCompatActivity implements OnM
             // X del chip elimina el asesor de la sesión
             chip.setOnCloseIconClickListener(v -> {
                 sessionData.asesoresAsignados.remove(nombreAsesor);
+                sessionData.asesorUidPorNombre.remove(nombreAsesor);
                 renderizarAsesores();
             });
 
@@ -1756,6 +1757,7 @@ public class AdminCrearProyectoActivity extends AppCompatActivity implements OnM
                 fechaCreacion
         );
         proyecto.setQrCode(qrPath != null ? qrPath : "");
+        proyecto.setUidAsesores(new ArrayList<>(sessionData.asesorUidPorNombre.values()));
         poblarCamposCompartidos(proyecto, uriStrings, coordenadas, fechaCreacion);
 
         AdminProyectosRepository.guardarEnFirestore(proyecto,

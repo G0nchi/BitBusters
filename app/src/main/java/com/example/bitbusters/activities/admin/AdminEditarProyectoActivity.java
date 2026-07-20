@@ -174,6 +174,15 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
             sessionData.estado          = p.getEstado();
             sessionData.tipologias      = new ArrayList<>(p.getTipologias());
             sessionData.asesoresAsignados = new ArrayList<>(p.getAsesores());
+            // Reconstruir nombre → UID (alineado por posición) para que "Guardar cambios"
+            // no borre los UIDs ya asignados si el admin no vuelve a abrir "Agregar asesor".
+            sessionData.asesorUidPorNombre = new java.util.LinkedHashMap<>();
+            List<String> nombresExistentes = p.getAsesores();
+            List<String> uidsExistentes    = p.getUidAsesores();
+            for (int i = 0; i < nombresExistentes.size(); i++) {
+                String uid = i < uidsExistentes.size() ? uidsExistentes.get(i) : "";
+                sessionData.asesorUidPorNombre.put(nombresExistentes.get(i), uid);
+            }
 
             // Cargar imágenes existentes. Las rutas locales se convierten a file:// URI
             // para que Glide y la lógica de guardado las distingan de nuevas imágenes (content://).
@@ -470,6 +479,7 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
 
             chip.setOnCloseIconClickListener(v -> {
                 sessionData.asesoresAsignados.remove(nombre);
+                sessionData.asesorUidPorNombre.remove(nombre);
                 renderizarAsesores();
             });
 
@@ -670,13 +680,64 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
                 existente != null ? existente.getFechaCreacion() : ""
         );
         actualizado.setQrCode(qrCode);
+        actualizado.setUidAsesores(new ArrayList<>(sessionData.asesorUidPorNombre.values()));
+        poblarCamposCompartidosEdicion(actualizado, existente, uriStrings);
 
-        AdminProyectosRepository.actualizar(actualizado);
-        AdminProyectosRepository.guardar(this);
+        btnSaveChanges.setEnabled(false);
+        AdminProyectosRepository.guardarEnFirestore(actualizado,
+                new AdminProyectosRepository.GuardarCallback() {
+                    @Override
+                    public void onSuccess(String proyectoIdGuardado) {
+                        AdminProyectosRepository.guardar(AdminEditarProyectoActivity.this);
+                        sessionData.clear();
+                        mostrarToast("Proyecto actualizado correctamente");
+                        finish();
+                    }
 
-        sessionData.clear();
-        mostrarToast("Proyecto actualizado correctamente");
-        finish();
+                    @Override
+                    public void onError(String mensaje) {
+                        btnSaveChanges.setEnabled(true);
+                        mostrarToast("No se pudo guardar en Firebase: " + mensaje);
+                    }
+                });
+    }
+
+    /**
+     * Preserva los campos de identidad/propiedad del proyecto existente (que el
+     * formulario de edición no expone) y recalcula los derivados de display,
+     * ya que {@link AdminProyectosRepository#guardarEnFirestore} sobreescribe
+     * el documento completo.
+     */
+    private void poblarCamposCompartidosEdicion(AdminProyecto actualizado,
+                                                 AdminProyecto existente,
+                                                 List<String> imagenes) {
+        if (existente != null) {
+            actualizado.setAdminUid(existente.getAdminUid());
+            actualizado.setInmobiliariaId(existente.getInmobiliariaId());
+            actualizado.setInmobiliariaNombre(existente.getInmobiliariaNombre());
+            actualizado.setTipo(existente.getTipo());
+            actualizado.setVisible(existente.getVisible());
+            actualizado.setActivo(existente.getActivo());
+            actualizado.setRatingPromedio(existente.getRatingPromedio());
+            actualizado.setTotalResenas(existente.getTotalResenas());
+            actualizado.setLatitud(existente.getLatitud());
+            actualizado.setLongitud(existente.getLongitud());
+        }
+
+        String precioPublicado = actualizado.getPrecioPublicado().isEmpty()
+                ? "S/ " + actualizado.getPrecioTotal()
+                : actualizado.getPrecioPublicado();
+        String ubicacion = actualizado.getDireccion().isEmpty()
+                ? actualizado.getDistrito()
+                : actualizado.getDireccion()
+                + (actualizado.getDistrito().isEmpty() ? "" : ", " + actualizado.getDistrito());
+
+        actualizado.setPrecio(precioPublicado);
+        actualizado.setPrecioPublicado(precioPublicado);
+        actualizado.setUbicacion(ubicacion);
+        actualizado.setImageUrl(imagenes != null && !imagenes.isEmpty() ? imagenes.get(0) : "");
+        actualizado.setFechaActualizacion(
+                new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new java.util.Date()));
     }
 
     // ── Cancelar ──────────────────────────────────────────────────────────────

@@ -17,26 +17,43 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
-import com.example.bitbusters.models.AsesorCita;
+import com.example.bitbusters.models.Cita;
+import com.example.bitbusters.repository.CitaRepository;
 import com.example.bitbusters.utils.AsesorNotificationHelper;
-import com.example.bitbusters.utils.AsesorStorage;
 import com.example.bitbusters.utils.AsesorWorkHelper;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.ListenerRegistration;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
  * Fragment base para los tabs de Citas Agendadas.
  *
- * Cada tab (Pendientes, Confirmadas, Pasadas) extiende esta clase y
- * sólo sobreescribe {@link #buildCitasForTab()} para proveer su lista.
- * Toda la lógica de negocio y los datos estáticos residen aquí para
- * evitar duplicación y demostrar el patrón Fragment con herencia.
+ * Cada tab (Pendientes, Confirmadas, Pasadas) extiende esta clase y solo declara
+ * qué {@link Cita#getEstado()} le corresponden mostrar. Los datos vienen en
+ * tiempo real de {@code citas} (Firestore) vía {@link CitaRepository#escucharCitasAsesor}.
  */
 public abstract class BaseCitasFragment extends Fragment {
 
     protected CitaAdapter adapter;
+    private final CitaRepository citaRepository = new CitaRepository();
+    private ListenerRegistration citasListener;
+
+    private static final java.util.TimeZone LIMA = java.util.TimeZone.getTimeZone("America/Lima");
+    private static final SimpleDateFormat FECHA_FMT =
+            new SimpleDateFormat("EEE d MMM, yyyy", new Locale("es", "PE"));
+    private static final SimpleDateFormat HORA_FMT =
+            new SimpleDateFormat("h:mm a", Locale.US);
+    static {
+        FECHA_FMT.setTimeZone(LIMA);
+        HORA_FMT.setTimeZone(LIMA);
+    }
 
     // ── Colores de badge ─────────────────────────────────────────────────────
 
@@ -57,7 +74,7 @@ public abstract class BaseCitasFragment extends Fragment {
         RecyclerView rv = view.findViewById(R.id.rv_citas_fragment);
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        adapter = new CitaAdapter(buildCitasForTab(),
+        adapter = new CitaAdapter(new ArrayList<>(),
             new CitaAdapter.OnCitaActionListener() {
                 @Override public void onLeftClick(int pos, CitaAdapter.Cita c)  { handleLeft(c); }
                 @Override public void onRightClick(int pos, CitaAdapter.Cita c) { handleRight(c); }
@@ -66,17 +83,119 @@ public abstract class BaseCitasFragment extends Fragment {
         return view;
     }
 
-    /** Refresca la lista cuando el usuario regresa de otra pantalla. */
     @Override
-    public void onResume() {
-        super.onResume();
-        if (adapter != null) adapter.updateCitas(buildCitasForTab());
+    public void onStart() {
+        super.onStart();
+        iniciarListener();
     }
 
-    // ── Método abstracto ──────────────────────────────────────────────────────
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (citasListener != null) {
+            citasListener.remove();
+            citasListener = null;
+        }
+    }
 
-    /** Cada fragment hijo construye la lista de citas de su propio tab. */
-    protected abstract List<CitaAdapter.Cita> buildCitasForTab();
+    private void iniciarListener() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        citasListener = citaRepository.escucharCitasAsesor(user.getUid(), new CitaRepository.CitasClienteListener() {
+            @Override
+            public void onCitasActualizadas(List<Cita> citas) {
+                if (adapter == null) return;
+                List<CitaAdapter.Cita> filtradas = new ArrayList<>();
+                Set<String> estados = estadosAceptados();
+                for (Cita c : citas) {
+                    if (estados.contains(c.getEstado())) {
+                        filtradas.add(mapearCita(c));
+                    }
+                }
+                adapter.updateCitas(filtradas);
+            }
+
+            @Override
+            public void onError(String mensaje) { /* silencioso: el listener reintenta solo */ }
+        });
+    }
+
+    /** Estados de {@code citas.estado} que corresponden a este tab. */
+    protected abstract Set<String> estadosAceptados();
+
+    // ── Mapeo Cita (Firestore) → CitaAdapter.Cita (UI) ──────────────────────────
+
+    private CitaAdapter.Cita mapearCita(Cita c) {
+        String nombre = c.getNombreCliente() != null ? c.getNombreCliente() : "Cliente";
+        String proyecto = c.getProyectoNombre() != null ? c.getProyectoNombre() : "";
+        Date fechaDate = c.getFechaTimestamp();
+        String fecha = fechaDate != null ? capitalizar(FECHA_FMT.format(fechaDate)) : "";
+        String hora = fechaDate != null ? HORA_FMT.format(fechaDate) : "";
+        String initials = iniciales(nombre);
+        int avatarColor = colorParaNombre(nombre);
+
+        String estado = c.getEstado() != null ? c.getEstado() : Cita.ESTADO_PENDIENTE;
+        String badge; int badgeColor; String btnLeft; String btnRight;
+        boolean showSeparacion = false; boolean showRating = false;
+
+        switch (estado) {
+            case Cita.ESTADO_CONFIRMADA:
+                badge = "Confirmada"; badgeColor = COLOR_CONF;
+                btnLeft = "Ver detalle"; btnRight = "Cancelar";
+                break;
+            case Cita.ESTADO_CANCELADA:
+                badge = "Cancelada"; badgeColor = COLOR_CANCEL;
+                btnLeft = "Ver detalle"; btnRight = "Reagendar";
+                break;
+            case Cita.ESTADO_COMPLETADA:
+                badge = "Realizada"; badgeColor = COLOR_PASADA;
+                btnLeft = "Ver detalle"; btnRight = "Valorar";
+                showRating = true;
+                break;
+            case Cita.ESTADO_VALORADA:
+                badge = "Valorada"; badgeColor = COLOR_VALOR;
+                btnLeft = "Ver valoración"; btnRight = "Ver detalle";
+                break;
+            case Cita.ESTADO_PENDIENTE:
+            default:
+                badge = "Pendiente"; badgeColor = COLOR_PEND;
+                btnLeft = "Reagendar"; btnRight = "Confirmar";
+                break;
+        }
+
+        CitaAdapter.Cita ui = new CitaAdapter.Cita(initials, avatarColor, nombre, proyecto,
+                fecha, hora, badge, 0, badgeColor, btnLeft, btnRight, showSeparacion, showRating);
+        ui.conIdentidad(c.getId(), c.getUidCliente(), c.getUidAsesor(), c.getProyectoId(),
+                c.getSlotId());
+        return ui;
+    }
+
+    private static String capitalizar(String texto) {
+        if (texto == null || texto.isEmpty()) return texto;
+        return Character.toUpperCase(texto.charAt(0)) + texto.substring(1);
+    }
+
+    private static String iniciales(String nombre) {
+        if (nombre == null || nombre.trim().isEmpty()) return "--";
+        String[] partes = nombre.trim().split("\\s+");
+        if (partes.length >= 2) {
+            return (partes[0].substring(0, 1) + partes[1].substring(0, 1)).toUpperCase(Locale.ROOT);
+        }
+        return partes[0].substring(0, Math.min(2, partes[0].length())).toUpperCase(Locale.ROOT);
+    }
+
+    private static final int[] PALETA_AVATAR = {
+        Color.parseColor("#4ECDC4"), Color.parseColor("#FF8C42"), Color.parseColor("#FF6B9D"),
+        Color.parseColor("#9B59B6"), Color.parseColor("#3498DB"), Color.parseColor("#27AE60"),
+        Color.parseColor("#C8956C")
+    };
+
+    private static int colorParaNombre(String nombre) {
+        if (nombre == null || nombre.isEmpty()) return PALETA_AVATAR[0];
+        int idx = Math.abs(nombre.hashCode()) % PALETA_AVATAR.length;
+        return PALETA_AVATAR[idx];
+    }
 
     // ── Acciones ──────────────────────────────────────────────────────────────
 
@@ -97,6 +216,7 @@ public abstract class BaseCitasFragment extends Fragment {
                 startActivity(buildValorarIntent(c)); break;
             case "Cancelar":  showCancelDialog(c); break;
             case "Reagendar": openReagendar(c);    break;
+            case "Ver detalle": openVerDetalle(c); break;
         }
     }
 
@@ -107,14 +227,12 @@ public abstract class BaseCitasFragment extends Fragment {
             .setTitle(getString(R.string.cita_dialog_title))
             .setMessage(getString(R.string.cita_dialog_msg))
             .setPositiveButton(getString(R.string.cita_dialog_ok), (d, w) -> {
-                String key = citaKey(c);
-                AsesorStorage.confirmPendienteCita(requireContext(),
-                    c.nombre, c.proyecto, c.fecha, c.hora, c.initials, c.avatarColor);
-                AsesorNotificationHelper.showCitaConfirmada(requireContext(), c.nombre);
-                AsesorWorkHelper.scheduleRecordatorio(
-                    requireContext(), key, c.nombre, c.fecha, c.hora);
-                // Actualizar lista con DiffUtil (no rebuildea el adapter entero)
-                if (adapter != null) adapter.updateCitas(buildCitasForTab());
+                citaRepository.confirmarCita(c.citaId)
+                    .addOnSuccessListener(unused -> {
+                        AsesorNotificationHelper.showCitaConfirmada(requireContext(), c.nombre);
+                        AsesorWorkHelper.scheduleRecordatorio(
+                            requireContext(), c.citaId, c.nombre, c.fecha, c.hora);
+                    });
             })
             .setNegativeButton("No", null)
             .show();
@@ -125,12 +243,11 @@ public abstract class BaseCitasFragment extends Fragment {
             .setTitle("Cancelar cita")
             .setMessage("¿Seguro que deseas cancelar esta cita? Se notificará al cliente.")
             .setPositiveButton("Sí, cancelar", (d, w) -> {
-                String key = citaKey(c);
-                AsesorStorage.cancelCita(requireContext(),
-                    c.nombre, c.proyecto, c.fecha, c.hora, c.initials, c.avatarColor);
-                AsesorNotificationHelper.showCitaCancelada(requireContext(), c.nombre);
-                AsesorWorkHelper.cancelRecordatorio(requireContext(), key);
-                if (adapter != null) adapter.updateCitas(buildCitasForTab());
+                citaRepository.cancelarCita(c.citaId, c.slotId, "Cancelada por el asesor")
+                    .addOnSuccessListener(unused -> {
+                        AsesorNotificationHelper.showCitaCancelada(requireContext(), c.nombre);
+                        AsesorWorkHelper.cancelRecordatorio(requireContext(), c.citaId);
+                    });
             })
             .setNegativeButton("No", null)
             .show();
@@ -146,6 +263,10 @@ public abstract class BaseCitasFragment extends Fragment {
         i.putExtra(ReagendarCitaActivity.EXTRA_HORA,         c.hora);
         i.putExtra(ReagendarCitaActivity.EXTRA_INITIALS,     c.initials);
         i.putExtra(ReagendarCitaActivity.EXTRA_AVATAR_COLOR, c.avatarColor);
+        i.putExtra(ReagendarCitaActivity.EXTRA_CITA_ID,      c.citaId);
+        i.putExtra(ReagendarCitaActivity.EXTRA_SLOT_ID,      c.slotId);
+        i.putExtra(ReagendarCitaActivity.EXTRA_PROYECTO_ID,  c.proyectoId);
+        i.putExtra(ReagendarCitaActivity.EXTRA_UID_CLIENTE,  c.uidCliente);
         startActivity(i);
     }
 
@@ -162,6 +283,10 @@ public abstract class BaseCitasFragment extends Fragment {
         args.putString("badge",       c.badge);
         args.putString("initials",    c.initials);
         args.putInt("avatarColor",    c.avatarColor);
+        args.putString("citaId",      c.citaId);
+        args.putString("slotId",      c.slotId);
+        args.putString("proyectoId",  c.proyectoId);
+        args.putString("uidCliente",  c.uidCliente);
 
         // NavController sube por la jerarquía: tab fragment → CitasViewPagerFragment → NavHost
         NavController navController = NavHostFragment.findNavController(this);
@@ -174,28 +299,13 @@ public abstract class BaseCitasFragment extends Fragment {
         i.putExtra(NuevaSeparacionActivity.EXTRA_PROYECTO, c.proyecto);
         i.putExtra(NuevaSeparacionActivity.EXTRA_INITIALS, c.initials);
         i.putExtra(NuevaSeparacionActivity.EXTRA_COLOR,    c.avatarColor);
+        i.putExtra(NuevaSeparacionActivity.EXTRA_CITA_ID,     c.citaId);
+        i.putExtra(NuevaSeparacionActivity.EXTRA_UID_CLIENTE, c.uidCliente);
+        i.putExtra(NuevaSeparacionActivity.EXTRA_PROYECTO_ID, c.proyectoId);
         startActivity(i);
     }
 
     // ── Helpers de datos ──────────────────────────────────────────────────────
-
-    protected String citaKey(CitaAdapter.Cita c) {
-        return AsesorStorage.buildCitaKey(c.nombre, c.fecha, c.hora);
-    }
-
-    protected CitaAdapter.Cita toConfirmada(AsesorCita a) {
-        return new CitaAdapter.Cita(a.initials, a.avatarColor, a.nombre, a.proyecto,
-            a.fecha, a.hora, "Confirmada", 0, COLOR_CONF,
-            "Ver detalle", "Cancelar", false, false);
-    }
-
-    protected CitaAdapter.Cita toCancelada(AsesorCita a) {
-        return new CitaAdapter.Cita(a.initials, a.avatarColor, a.nombre, a.proyecto,
-            a.fecha, a.hora, "Cancelada", 0, COLOR_CANCEL,
-            "Ver detalle", "Reagendar", false, false);
-    }
-
-    // ── Datos estáticos base ──────────────────────────────────────────────────
 
     private Intent buildValorarIntent(CitaAdapter.Cita c) {
         Intent i = new Intent(requireContext(), ValorarVisitaActivity.class);
@@ -204,47 +314,5 @@ public abstract class BaseCitasFragment extends Fragment {
         i.putExtra(ValorarVisitaActivity.EXTRA_PROYECTO, c.proyecto);
         i.putExtra(ValorarVisitaActivity.EXTRA_FECHA,    c.fecha);
         return i;
-    }
-
-    protected List<CitaAdapter.Cita> staticPendientes() {
-        List<CitaAdapter.Cita> list = new ArrayList<>();
-        list.add(new CitaAdapter.Cita("CM", Color.parseColor("#4ECDC4"), "Carlos Mendoza",
-            "Torres del Sol · Dpto 302", "Lun 7 Abr, 2025", "10:30 AM",
-            "Pendiente", 0, COLOR_PEND, "Reagendar", "Confirmar", false, false));
-        list.add(new CitaAdapter.Cita("AL", Color.parseColor("#FF8C42"), "Ana López",
-            "Torres del Sol · Dpto 501", "Mar 8 Abr, 2025", "3:00 PM",
-            "Pendiente", 0, COLOR_PEND, "Reagendar", "Confirmar", false, false));
-        list.add(new CitaAdapter.Cita("RT", Color.parseColor("#FF6B9D"), "Rosa Torres",
-            "Torres del Sol · Dpto 108", "Mié 9 Abr, 2025", "11:00 AM",
-            "Confirmada", 0, COLOR_CONF, "Ver detalle", "Separar", false, false));
-        return list;
-    }
-
-    protected List<CitaAdapter.Cita> staticConfirmadas() {
-        List<CitaAdapter.Cita> list = new ArrayList<>();
-        list.add(new CitaAdapter.Cita("RT", Color.parseColor("#FF6B9D"), "Rosa Torres",
-            "Torres del Sol · Dpto 108", "Mié 9 Abr, 2025", "11:00 AM",
-            "Confirmada", 0, COLOR_CONF, "Ver detalle", "Cancelar", false, false));
-        list.add(new CitaAdapter.Cita("MP", Color.parseColor("#9B59B6"), "Marco Paredes",
-            "Torres del Sol · Dpto 210", "Jue 10 Abr, 2025", "2:00 PM",
-            "Confirmada", 0, COLOR_CONF, "Ver detalle", "Cancelar", false, false));
-        list.add(new CitaAdapter.Cita("SV", Color.parseColor("#3498DB"), "Sandra Vega",
-            "Torres del Sol · Dpto 415", "Vie 11 Abr, 2025", "4:30 PM",
-            "Confirmada", 0, COLOR_CONF, "Ver detalle", "Cancelar", false, false));
-        return list;
-    }
-
-    protected List<CitaAdapter.Cita> staticPasadas() {
-        List<CitaAdapter.Cita> list = new ArrayList<>();
-        list.add(new CitaAdapter.Cita("RT", Color.parseColor("#FF6B9D"), "Rosa Torres",
-            "Torres del Sol · Dpto 108", "Mié 2 Abr, 2025", "11:00 AM",
-            "Realizada", 0, COLOR_PASADA, "Ver detalle", "Valorar", true, false));
-        list.add(new CitaAdapter.Cita("LV", Color.parseColor("#C8956C"), "Luis Vargas",
-            "Torres del Sol · Dpto 204", "Mar 1 Abr, 2025", "2:00 PM",
-            "Cancelada", 0, COLOR_CANCEL, "Ver detalle", "Reagendar", false, false));
-        list.add(new CitaAdapter.Cita("JC", Color.parseColor("#27AE60"), "Jorge Castro",
-            "Torres del Sol · Dpto 601", "Lun 28 Mar, 2025", "4:00 PM",
-            "Valorada", 0, COLOR_VALOR, "Ver valoración", "Valorar", false, true));
-        return list;
     }
 }

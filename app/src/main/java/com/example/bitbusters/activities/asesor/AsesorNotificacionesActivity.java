@@ -20,19 +20,43 @@ import com.example.bitbusters.databinding.ActivityAsesorNotificacionesBinding;
 import com.example.bitbusters.models.AsesorNotif;
 import com.example.bitbusters.utils.AsesorStorage;
 import com.google.android.material.card.MaterialCardView;
-import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Lee notificaciones del asesor de DOS esquemas que coexisten hoy en el equipo:
+ *
+ *  - Anidado {@code notifications/{uid}/items} — usado por AsesorHomeActivity
+ *    y SuperadminApprovalEvaluationActivity (ya en master).
+ *  - Plano {@code notifications/{id}} con {@code targetUid} — contrato oficial
+ *    para separaciones descrito en INTEGRACION_FINAL_ADMIN_CLIENTE_ASESOR_SUPERADMIN.md
+ *    (separacion_registrada/aprobada/rechazada/pagada).
+ *
+ * Se combinan y ordenan por fecha antes de mostrarse.
+ */
 public class AsesorNotificacionesActivity extends AppCompatActivity {
 
     private static final String TAG = "ASESOR_NOTIF";
 
     private ActivityAsesorNotificacionesBinding binding;
     private NotifAdapter adapter;
+
+    private static class Entrada {
+        final AsesorNotif notif;
+        final Date fecha;
+        Entrada(AsesorNotif notif, Date fecha) { this.notif = notif; this.fecha = fecha; }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,46 +77,112 @@ public class AsesorNotificacionesActivity extends AppCompatActivity {
     }
 
     private void loadNotificationsFromFirestore() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            adapter.setData(new ArrayList<>());
+            return;
+        }
+        String uid = user.getUid();
+
+        List<Entrada> combinadas = Collections.synchronizedList(new ArrayList<>());
+        AtomicInteger pendientes = new AtomicInteger(2);
+
+        Runnable alTerminarAmbas = () -> {
+            if (pendientes.decrementAndGet() != 0) return;
+            combinadas.sort(Comparator.comparing(
+                    (Entrada e) -> e.fecha != null ? e.fecha : new Date(0)).reversed());
+            List<Notif> notifs = new ArrayList<>();
+            for (Entrada e : combinadas) notifs.add(toNotif(e.notif));
+            adapter.setData(notifs);
+            AsesorStorage.resetNotifCount(this);
+        };
+
         FirebaseFirestore.getInstance()
             .collection("notifications")
-            .whereEqualTo("role", "asesor")
-            .orderBy("order", Query.Direction.ASCENDING)
+            .document(uid)
+            .collection("items")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener(snapshots -> {
-                List<AsesorNotif> list;
-                if (!snapshots.isEmpty()) {
-                    list = new ArrayList<>();
-                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
-                        String titulo     = doc.getString("titulo");
-                        String descripcion = doc.getString("descripcion");
-                        String tiempo     = doc.getString("tiempo");
-                        String tipo       = doc.getString("tipo");
-                        if (titulo != null && tipo != null) {
-                            list.add(new AsesorNotif(
-                                    titulo,
-                                    descripcion != null ? descripcion : "",
-                                    tiempo      != null ? tiempo      : "",
-                                    tipo));
-                        }
+                for (QueryDocumentSnapshot doc : snapshots) {
+                    String title = doc.getString("title");
+                    if (title == null) continue;
+                    String body = doc.getString("body");
+                    String type = doc.getString("type");
+                    Date timestamp = doc.getDate("timestamp");
+
+                    combinadas.add(new Entrada(new AsesorNotif(
+                            title, body != null ? body : "",
+                            tiempoRelativo(timestamp), tipoLocalPara(type)), timestamp));
+
+                    if (Boolean.FALSE.equals(doc.getBoolean("read"))) {
+                        doc.getReference().update("read", true);
                     }
-                } else {
-                    list = defaultNotificaciones();
                 }
-                AsesorStorage.saveNotificaciones(this, list);
-                AsesorStorage.resetNotifCount(this);
-                List<Notif> notifs = new ArrayList<>();
-                for (AsesorNotif n : list) notifs.add(toNotif(n));
-                adapter.setData(notifs);
+                alTerminarAmbas.run();
             })
             .addOnFailureListener(e -> {
-                Log.e(TAG, "Firestore fetch failed, using defaults", e);
-                List<AsesorNotif> list = defaultNotificaciones();
-                AsesorStorage.saveNotificaciones(this, list);
-                AsesorStorage.resetNotifCount(this);
-                List<Notif> notifs = new ArrayList<>();
-                for (AsesorNotif n : list) notifs.add(toNotif(n));
-                adapter.setData(notifs);
+                Log.e(TAG, "No se pudieron cargar notificaciones (anidado)", e);
+                alTerminarAmbas.run();
             });
+
+        FirebaseFirestore.getInstance()
+            .collection("notifications")
+            .whereEqualTo("targetUid", uid)
+            .get()
+            .addOnSuccessListener(snapshots -> {
+                for (QueryDocumentSnapshot doc : snapshots) {
+                    String title = doc.getString("title");
+                    if (title == null) continue;
+                    String descripcion = doc.getString("descripcion");
+                    String type = doc.getString("type");
+                    Date createdAt = doc.getDate("createdAt");
+
+                    combinadas.add(new Entrada(new AsesorNotif(
+                            title, descripcion != null ? descripcion : "",
+                            tiempoRelativo(createdAt), tipoLocalPara(type)), createdAt));
+
+                    if (Boolean.FALSE.equals(doc.getBoolean("read"))) {
+                        doc.getReference().update("read", true);
+                    }
+                }
+                alTerminarAmbas.run();
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "No se pudieron cargar notificaciones (plano)", e);
+                alTerminarAmbas.run();
+            });
+    }
+
+    private static String tipoLocalPara(String type) {
+        if (type == null) return AsesorNotif.TIPO_ALERTA;
+        switch (type) {
+            case "nueva_separacion":
+            case "separacion_registrada":
+            case "separacion_aprobada":
+            case "separacion_rechazada":
+            case "separacion_pagada":
+                return AsesorNotif.TIPO_SEPARACION;
+            case "approval_accepted":
+            case "approval_rejected": return AsesorNotif.TIPO_VALORACION;
+            case "mensaje": return AsesorNotif.TIPO_MENSAJE;
+            case "cita": return AsesorNotif.TIPO_CITA;
+            default: return AsesorNotif.TIPO_ALERTA;
+        }
+    }
+
+    private static String tiempoRelativo(Date fecha) {
+        if (fecha == null) return "";
+        long diffMs = System.currentTimeMillis() - fecha.getTime();
+        if (diffMs < 0) diffMs = 0;
+        long minutos = TimeUnit.MILLISECONDS.toMinutes(diffMs);
+        if (minutos < 1) return "Ahora";
+        if (minutos < 60) return minutos + " min";
+        long horas = TimeUnit.MILLISECONDS.toHours(diffMs);
+        if (horas < 24) return horas + " h";
+        long dias = TimeUnit.MILLISECONDS.toDays(diffMs);
+        if (dias == 1) return "Ayer";
+        return dias + " d";
     }
 
     private Notif toNotif(AsesorNotif n) {
@@ -114,32 +204,6 @@ public class AsesorNotificacionesActivity extends AppCompatActivity {
                 return new Notif(n.titulo, n.descripcion, n.tiempo,
                     R.drawable.ic_nav_calendar, "#DFFBEC", "#186A3B");
         }
-    }
-
-    private List<AsesorNotif> defaultNotificaciones() {
-        List<AsesorNotif> list = new ArrayList<>();
-        list.add(new AsesorNotif("Cita confirmada",
-            "Carlos Mendoza confirmó su visita para el lun. 7 Abr a las 10:30 AM.",
-            "5 min", AsesorNotif.TIPO_CITA));
-        list.add(new AsesorNotif("Nueva separación registrada",
-            "Rosa Torres registró una separación en Torres del Sol · Dpto 108.",
-            "20 min", AsesorNotif.TIPO_SEPARACION));
-        list.add(new AsesorNotif("Cita pendiente sin confirmar",
-            "Ana López tiene una cita el mar. 8 Abr. Confirma antes del mediodía.",
-            "1 h", AsesorNotif.TIPO_CITA));
-        list.add(new AsesorNotif("Valoración recibida",
-            "Jorge Castro valoró su visita con 4/5 estrellas.",
-            "3 h", AsesorNotif.TIPO_VALORACION));
-        list.add(new AsesorNotif("Separación vencida",
-            "La separación SEP-2025-0043 (Rosa Torres) venció. Revisión requerida.",
-            "Ayer", AsesorNotif.TIPO_ALERTA));
-        list.add(new AsesorNotif("Nuevo mensaje",
-            "Marco Paredes envió un mensaje: '¿El departamento tiene estacionamiento?'",
-            "Ayer", AsesorNotif.TIPO_MENSAJE));
-        list.add(new AsesorNotif("Recordatorio de cita",
-            "Mañana tienes 3 citas agendadas. Revisa tu calendario.",
-            "Lun", AsesorNotif.TIPO_CITA));
-        return list;
     }
 
     @Override
