@@ -2,9 +2,6 @@ package com.example.bitbusters.activities.admin;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AutoCompleteTextView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -14,11 +11,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.AdminHistorialSeparacionAdapter;
+import com.example.bitbusters.data.AdminProyectosRepository;
 import com.example.bitbusters.data.SeparacionesRepository;
+import com.example.bitbusters.models.AdminProyecto;
 import com.example.bitbusters.models.AdminHistorialSeparacion;
 import com.example.bitbusters.models.AdminSeparacion;
 import com.example.bitbusters.utils.AdminPreferencesManager;
-import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.firestore.ListenerRegistration;
 
 import java.text.NumberFormat;
@@ -38,17 +38,16 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
     private String selectedPeriodo = "Mensual";
     private String selectedProyecto = "";
 
-    private TextView tvResumenMonto, tvResumenSeparaciones, tvResumenAsesores;
-    private Button btnDiario, btnMensual, btnAnual;
-    private AutoCompleteTextView actvProjecto;
+    private TextView tvResumenMonto, tvResumenSeparaciones, tvResumenAsesores, tvHistorialReporteEmpty;
+    private ChipGroup chipGroupProyectosReporte, chipGroupPeriodoProyectoReporte;
     private RecyclerView rvHistorial;
     private AdminHistorialSeparacionAdapter adapter;
-    private ArrayAdapter<String> proyectosAdapter;
     private View[] layoutAsesorReporte;
     private TextView[] tvAsesorReporteNombre;
     private TextView[] tvAsesorReporteStats;
     private ProgressBar[] progressAsesorReporte;
     private ListenerRegistration separacionesListener;
+    private ListenerRegistration proyectosListener;
     private List<AdminSeparacion> separacionesActuales = new ArrayList<>();
 
     @Override
@@ -56,9 +55,9 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_detalles_reporte_proyecto);
         setupListeners();
-        setupDropdown();
-        updateButtonStyles();
         setupRecyclerView();
+        actualizarProyectos();
+        updateResumen();
     }
 
     @Override
@@ -73,6 +72,10 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
         if (separacionesListener != null) {
             separacionesListener.remove();
             separacionesListener = null;
+        }
+        if (proyectosListener != null) {
+            proyectosListener.remove();
+            proyectosListener = null;
         }
     }
 
@@ -91,14 +94,12 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
             backButton.setOnClickListener(v -> finish());
         }
 
-        btnDiario = findViewById(R.id.btnDiario);
-        btnMensual = findViewById(R.id.btnMensual);
-        btnAnual = findViewById(R.id.btnAnual);
-        
         tvResumenMonto = findViewById(R.id.tvResumenMonto);
         tvResumenSeparaciones = findViewById(R.id.tvResumenSeparaciones);
         tvResumenAsesores = findViewById(R.id.tvResumenAsesores);
-        actvProjecto = findViewById(R.id.actvProjecto);
+        tvHistorialReporteEmpty = findViewById(R.id.tvHistorialReporteEmpty);
+        chipGroupProyectosReporte = findViewById(R.id.chipGroupProyectosReporte);
+        chipGroupPeriodoProyectoReporte = findViewById(R.id.chipGroupPeriodoProyectoReporte);
         layoutAsesorReporte = new View[] {
                 findViewById(R.id.layoutAsesorReporte1),
                 findViewById(R.id.layoutAsesorReporte2)
@@ -116,85 +117,24 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
                 findViewById(R.id.progressAsesorReporte2)
         };
 
-        if (btnDiario != null) {
-            btnDiario.setOnClickListener(v -> setPeriodo("Diario"));
+        if (chipGroupPeriodoProyectoReporte != null) {
+            chipGroupPeriodoProyectoReporte.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (checkedIds == null || checkedIds.isEmpty()) return;
+                int checkedId = checkedIds.get(0);
+                if (checkedId == R.id.chipPeriodoDiarioReporte) {
+                    setPeriodo("Diario");
+                } else if (checkedId == R.id.chipPeriodoAnualReporte) {
+                    setPeriodo("Anual");
+                } else {
+                    setPeriodo("Mensual");
+                }
+            });
         }
-        if (btnMensual != null) {
-            btnMensual.setOnClickListener(v -> setPeriodo("Mensual"));
-        }
-        if (btnAnual != null) {
-            btnAnual.setOnClickListener(v -> setPeriodo("Anual"));
-        }
-    }
-
-    private void setupDropdown() {
-        proyectosAdapter = new ArrayAdapter<>(
-            this, android.R.layout.simple_dropdown_item_1line, proyectos);
-        actvProjecto.setAdapter(proyectosAdapter);
-        
-        // Abrir dropdown al hacer click
-        actvProjecto.setOnClickListener(v -> {
-            actvProjecto.showDropDown();
-        });
-        
-        // Listener para cuando se selecciona un proyecto
-        actvProjecto.setOnItemClickListener((parent, view, position, id) -> {
-            selectedProyecto = proyectos.get(position);
-            updateResumen();
-        });
     }
 
     private void setPeriodo(String periodo) {
         selectedPeriodo = periodo;
-        updateButtonStyles();
         updateResumen();
-    }
-
-    private void updateButtonStyles() {
-        if (btnDiario != null && btnMensual != null && btnAnual != null) {
-            // Resetear todos los botones a estado no seleccionado
-            android.content.res.ColorStateList transparentTint = 
-                android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT);
-            android.content.res.ColorStateList outlineColor = 
-                android.content.res.ColorStateList.valueOf(getColor(R.color.text_primary));
-            
-            // Desseleccionar todos
-            setButtonUnselected(btnDiario, outlineColor);
-            setButtonUnselected(btnMensual, outlineColor);
-            setButtonUnselected(btnAnual, outlineColor);
-            
-            // Seleccionar el botón correcto
-            Button selectedBtn = null;
-            if (selectedPeriodo.equals("Diario")) {
-                selectedBtn = btnDiario;
-            } else if (selectedPeriodo.equals("Mensual")) {
-                selectedBtn = btnMensual;
-            } else if (selectedPeriodo.equals("Anual")) {
-                selectedBtn = btnAnual;
-            }
-            
-            if (selectedBtn != null) {
-                setButtonSelected(selectedBtn);
-            }
-        }
-    }
-    
-    private void setButtonUnselected(Button button, android.content.res.ColorStateList outlineColor) {
-        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
-        button.setTextColor(getColor(R.color.text_primary));
-        if (button instanceof MaterialButton) {
-            ((MaterialButton) button).setStrokeColor(outlineColor);
-        }
-    }
-    
-    private void setButtonSelected(Button button) {
-        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.brand_deep_blue)));
-        button.setTextColor(getColor(android.R.color.white));
-        if (button instanceof MaterialButton) {
-            android.content.res.ColorStateList blueTint = 
-                android.content.res.ColorStateList.valueOf(getColor(R.color.brand_deep_blue));
-            ((MaterialButton) button).setStrokeColor(blueTint);
-        }
     }
 
     private void updateResumen() {
@@ -238,6 +178,12 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
         }
         if (adapter != null) {
             adapter.setData(historial);
+        }
+        if (rvHistorial != null) {
+            rvHistorial.setVisibility(historial.isEmpty() ? View.GONE : View.VISIBLE);
+        }
+        if (tvHistorialReporteEmpty != null) {
+            tvHistorialReporteEmpty.setVisibility(historial.isEmpty() ? View.VISIBLE : View.GONE);
         }
         actualizarAsesores(filtradas);
     }
@@ -340,10 +286,37 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
                         updateResumen();
                     }
                 });
+
+        if (proyectosListener != null) {
+            proyectosListener.remove();
+        }
+        proyectosListener = AdminProyectosRepository.escucharPorAdministrador(
+                null,
+                AdminPreferencesManager.obtenerInmobiliariaId(this),
+                new AdminProyectosRepository.ProyectosListener() {
+                    @Override
+                    public void onProyectosActualizados(List<AdminProyecto> proyectos) {
+                        actualizarProyectos();
+                        updateResumen();
+                    }
+
+                    @Override
+                    public void onError(String mensaje) {
+                        actualizarProyectos();
+                        updateResumen();
+                    }
+                });
     }
 
     private void actualizarProyectos() {
         LinkedHashSet<String> nombres = new LinkedHashSet<>();
+        for (AdminProyecto proyecto : AdminProyectosRepository.getTodos()) {
+            if (proyecto == null) continue;
+            String nombre = proyecto.getNombre();
+            if (nombre != null && !nombre.trim().isEmpty()) {
+                nombres.add(nombre.trim());
+            }
+        }
         for (AdminSeparacion separacion : separacionesActuales) {
             if (separacion == null) continue;
             String nombre = separacion.getNombreProyecto();
@@ -355,13 +328,10 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
         proyectos.clear();
         proyectos.addAll(nombres);
         Collections.sort(proyectos);
-        if (proyectosAdapter != null) {
-            proyectosAdapter.notifyDataSetChanged();
-        }
 
         if (proyectos.isEmpty()) {
             selectedProyecto = "";
-            if (actvProjecto != null) actvProjecto.setText("Sin proyectos", false);
+            renderizarChipsProyecto();
             return;
         }
 
@@ -369,9 +339,39 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
                 || !proyectos.contains(selectedProyecto)) {
             selectedProyecto = proyectos.get(0);
         }
-        if (actvProjecto != null) {
-            actvProjecto.setText(selectedProyecto, false);
+        renderizarChipsProyecto();
+    }
+
+    private void renderizarChipsProyecto() {
+        if (chipGroupProyectosReporte == null) return;
+        chipGroupProyectosReporte.removeAllViews();
+
+        if (proyectos.isEmpty()) {
+            Chip chip = crearChip("Sin proyectos");
+            chip.setEnabled(false);
+            chip.setChecked(true);
+            chipGroupProyectosReporte.addView(chip);
+            return;
         }
+
+        for (String proyecto : proyectos) {
+            Chip chip = crearChip(proyecto);
+            chip.setChecked(proyecto.equals(selectedProyecto));
+            chip.setOnClickListener(v -> {
+                selectedProyecto = ((Chip) v).getText().toString();
+                updateResumen();
+            });
+            chipGroupProyectosReporte.addView(chip);
+        }
+    }
+
+    private Chip crearChip(String texto) {
+        Chip chip = new Chip(this, null, com.google.android.material.R.style.Widget_Material3_Chip_Filter);
+        chip.setText(texto);
+        chip.setCheckable(true);
+        chip.setCheckedIconVisible(false);
+        chip.setEnsureMinTouchTargetSize(true);
+        return chip;
     }
 
     private List<AdminSeparacion> separacionesFiltradas() {

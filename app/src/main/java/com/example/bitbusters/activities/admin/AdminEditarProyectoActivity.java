@@ -336,11 +336,11 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
         }
 
         for (int i = 0; i < lista.size(); i++) {
-            tipologiasContainerEditar.addView(crearCardTipologia(lista.get(i)));
+            tipologiasContainerEditar.addView(crearCardTipologia(lista.get(i), i));
         }
     }
 
-    private View crearCardTipologia(final Tipologia tip) {
+    private View crearCardTipologia(final Tipologia tip, final int index) {
         MaterialCardView card = new MaterialCardView(this);
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -349,6 +349,12 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
         card.setLayoutParams(cardParams);
         card.setRadius(dpToPx(8));
         card.setCardElevation(dpToPx(1));
+        card.setClickable(true);
+        card.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AdminAgregarTipologiaActivity.class);
+            intent.putExtra(AdminAgregarTipologiaActivity.EXTRA_TIPOLOGIA_INDEX, index);
+            startActivityForResult(intent, 100);
+        });
 
         LinearLayout fila = new LinearLayout(this);
         fila.setOrientation(LinearLayout.HORIZONTAL);
@@ -371,7 +377,10 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
             imgBg.setCornerRadius(dpToPx(6));
             imgBg.setColor(0xFFE0E0E0);
             imgTip.setBackground(imgBg);
-            Glide.with(this).load(new File(tipImagePath)).centerCrop().into(imgTip);
+            Glide.with(this)
+                    .load(esUrlRemota(tipImagePath) ? tipImagePath : new File(tipImagePath))
+                    .centerCrop()
+                    .into(imgTip);
             fila.addView(imgTip);
         }
 
@@ -396,6 +405,15 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
         tvDetalles.setTextColor(ContextCompat.getColor(this, R.color.neutral_dark));
         tvDetalles.setTextSize(11f);
         colDatos.addView(tvDetalles);
+
+        int totalImagenesTipologia = tip.getImagenesUri().isEmpty()
+                ? (tip.getImageUri().isEmpty() ? 0 : 1)
+                : tip.getImagenesUri().size();
+        TextView tvImagenes = new TextView(this);
+        tvImagenes.setText(totalImagenesTipologia + " imagen" + (totalImagenesTipologia == 1 ? "" : "es") + " · Tocar para editar");
+        tvImagenes.setTextColor(ContextCompat.getColor(this, R.color.neutral_medium));
+        tvImagenes.setTextSize(10f);
+        colDatos.addView(tvImagenes);
 
         fila.addView(colDatos);
 
@@ -719,7 +737,7 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
             imagenesUrls.add("");
         }
 
-        List<Tipologia> tipologiasConImagenLocal = obtenerTipologiasConImagenLocal();
+        List<TipologiaImagenPendiente> imagenesTipologiaPendientes = obtenerImagenesLocalesTipologias();
         AtomicInteger pendientes = new AtomicInteger(0);
         AtomicBoolean finalizado = new AtomicBoolean(false);
 
@@ -759,10 +777,10 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
                     });
         }
 
-        for (int i = 0; i < tipologiasConImagenLocal.size(); i++) {
+        for (int i = 0; i < imagenesTipologiaPendientes.size(); i++) {
             final int index = i;
-            Tipologia tipologia = tipologiasConImagenLocal.get(i);
-            Uri uri = crearUriArchivoTipologia(tipologia.getImageUri());
+            TipologiaImagenPendiente pendiente = imagenesTipologiaPendientes.get(i);
+            Uri uri = crearUriArchivoTipologia(pendiente.valor);
             if (uri == null) continue;
 
             pendientes.incrementAndGet();
@@ -771,7 +789,14 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
             ref.putFile(uri)
                     .addOnSuccessListener(task -> ref.getDownloadUrl()
                             .addOnSuccessListener(downloadUri -> {
-                                tipologia.setImageUri(downloadUri.toString());
+                                List<String> imagenes = pendiente.tipologia.getImagenesUri();
+                                if (pendiente.indexImagen >= 0 && pendiente.indexImagen < imagenes.size()) {
+                                    imagenes.set(pendiente.indexImagen, downloadUri.toString());
+                                }
+                                pendiente.tipologia.setImagenesUri(imagenes);
+                                if (pendiente.indexImagen == 0) {
+                                    pendiente.tipologia.setImageUri(downloadUri.toString());
+                                }
                                 completarSiTermino.run();
                             })
                             .addOnFailureListener(e -> {
@@ -791,17 +816,36 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
         }
     }
 
-    private List<Tipologia> obtenerTipologiasConImagenLocal() {
-        List<Tipologia> resultado = new ArrayList<>();
+    private List<TipologiaImagenPendiente> obtenerImagenesLocalesTipologias() {
+        List<TipologiaImagenPendiente> resultado = new ArrayList<>();
         if (sessionData == null || sessionData.tipologias == null) return resultado;
         for (Tipologia tipologia : sessionData.tipologias) {
             if (tipologia == null) continue;
-            String imageUri = tipologia.getImageUri();
-            if (!imageUri.isEmpty() && !esUrlRemota(imageUri)) {
-                resultado.add(tipologia);
+            List<String> imagenes = new ArrayList<>(tipologia.getImagenesUri());
+            if (imagenes.isEmpty() && !tipologia.getImageUri().isEmpty()) {
+                imagenes.add(tipologia.getImageUri());
+                tipologia.setImagenesUri(imagenes);
+            }
+            for (int i = 0; i < imagenes.size(); i++) {
+                String imageUri = imagenes.get(i);
+                if (imageUri != null && !imageUri.isEmpty() && !esUrlRemota(imageUri)) {
+                    resultado.add(new TipologiaImagenPendiente(tipologia, i, imageUri));
+                }
             }
         }
         return resultado;
+    }
+
+    private static class TipologiaImagenPendiente {
+        final Tipologia tipologia;
+        final int indexImagen;
+        final String valor;
+
+        TipologiaImagenPendiente(Tipologia tipologia, int indexImagen, String valor) {
+            this.tipologia = tipologia;
+            this.indexImagen = indexImagen;
+            this.valor = valor;
+        }
     }
 
     private Uri crearUriArchivoTipologia(String valor) {

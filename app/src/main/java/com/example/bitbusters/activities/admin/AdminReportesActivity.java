@@ -3,7 +3,6 @@ package com.example.bitbusters.activities.admin;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.example.bitbusters.R;
@@ -11,7 +10,7 @@ import com.example.bitbusters.data.SeparacionesRepository;
 import com.example.bitbusters.models.AdminSeparacion;
 import com.example.bitbusters.utils.AdminPreferencesManager;
 import com.google.android.material.chip.Chip;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
@@ -26,8 +25,7 @@ public class AdminReportesActivity extends AdminMainActivity {
 
     private final String[] tendenciaOptions = {"Este mes", "Esta semana", "Este semestre", "Este año"};
     private int selectedOption = 0;
-    private TextView tvTendenciaTitle;
-    private Chip chipEstesMes;
+    private ChipGroup chipGroupPeriodoReportes;
     private TextView tvReporteVentas;
     private TextView tvReporteAprobadas;
     private TextView tvReportePendientes;
@@ -36,7 +34,6 @@ public class AdminReportesActivity extends AdminMainActivity {
     private TextView[] tvVentaProyectoNombre;
     private TextView[] tvVentaProyectoMonto;
     private ProgressBar[] progressVentaProyecto;
-    private View[] barrasTendencia;
     private List<AdminSeparacion> separacionesActuales = new ArrayList<>();
     private ListenerRegistration separacionesListener;
 
@@ -70,7 +67,7 @@ public class AdminReportesActivity extends AdminMainActivity {
         tvReporteAprobadas = findViewById(R.id.tvReporteAprobadas);
         tvReportePendientes = findViewById(R.id.tvReportePendientes);
         tvReporteRechazadas = findViewById(R.id.tvReporteRechazadas);
-        tvTendenciaTitle = findViewById(R.id.tvTendenciaTitle);
+        chipGroupPeriodoReportes = findViewById(R.id.chipGroupPeriodoReportes);
         layoutVentasProyecto = new View[] {
                 findViewById(R.id.layoutVentaProyecto1),
                 findViewById(R.id.layoutVentaProyecto2),
@@ -95,21 +92,24 @@ public class AdminReportesActivity extends AdminMainActivity {
                 findViewById(R.id.progressVentaProyecto3),
                 findViewById(R.id.progressVentaProyecto4)
         };
-        barrasTendencia = new View[] {
-                findViewById(R.id.barTendencia1),
-                findViewById(R.id.barTendencia2),
-                findViewById(R.id.barTendencia3),
-                findViewById(R.id.barTendencia4),
-                findViewById(R.id.barTendencia5),
-                findViewById(R.id.barTendencia6),
-                findViewById(R.id.barTendencia7)
-        };
     }
 
     private void setupListeners() {
-        chipEstesMes = findViewById(R.id.chipEstesMes);
-        if (chipEstesMes != null) {
-            chipEstesMes.setOnClickListener(v -> showTendenciaDialog());
+        if (chipGroupPeriodoReportes != null) {
+            chipGroupPeriodoReportes.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (checkedIds == null || checkedIds.isEmpty()) return;
+                int checkedId = checkedIds.get(0);
+                if (checkedId == R.id.chipReporteSemana) {
+                    selectedOption = 1;
+                } else if (checkedId == R.id.chipReporteSemestre) {
+                    selectedOption = 2;
+                } else if (checkedId == R.id.chipReporteAnio) {
+                    selectedOption = 3;
+                } else {
+                    selectedOption = 0;
+                }
+                actualizarKpis(separacionesActuales);
+            });
         }
 
         Chip chipVerReportes = findViewById(R.id.chipVerReportes);
@@ -151,6 +151,7 @@ public class AdminReportesActivity extends AdminMainActivity {
 
         if (separaciones != null) {
             for (AdminSeparacion separacion : separaciones) {
+                if (!cumplePeriodo(separacion)) continue;
                 String estado = separacion.getEstado() == null ? "" : separacion.getEstado();
                 if ("Aprobada".equalsIgnoreCase(estado)) {
                     aprobadas++;
@@ -168,7 +169,6 @@ public class AdminReportesActivity extends AdminMainActivity {
         setText(tvReportePendientes, String.valueOf(pendientes));
         setText(tvReporteRechazadas, String.valueOf(rechazadas));
         actualizarVentasPorProyecto(separaciones);
-        actualizarTendencia(separaciones);
     }
 
     private void actualizarVentasPorProyecto(List<AdminSeparacion> separaciones) {
@@ -176,6 +176,7 @@ public class AdminReportesActivity extends AdminMainActivity {
         if (separaciones != null) {
             for (AdminSeparacion separacion : separaciones) {
                 if (!"Aprobada".equalsIgnoreCase(separacion.getEstado())) continue;
+                if (!cumplePeriodo(separacion)) continue;
                 String proyecto = separacion.getNombreProyecto();
                 if (proyecto == null || proyecto.trim().isEmpty()) {
                     proyecto = "Proyecto sin nombre";
@@ -251,48 +252,13 @@ public class AdminReportesActivity extends AdminMainActivity {
         return "S/" + format.format(monto);
     }
 
-    private void actualizarTendencia(List<AdminSeparacion> separaciones) {
-        if (barrasTendencia == null) return;
-
-        double[] montos = new double[7];
+    private boolean cumplePeriodo(AdminSeparacion separacion) {
+        if (separacion == null) return false;
         long ahora = System.currentTimeMillis();
-        long duracion = obtenerDuracionPeriodoMillis();
-        long inicio = ahora - duracion;
-        long bucket = Math.max(1L, duracion / montos.length);
-
-        if (separaciones != null) {
-            for (AdminSeparacion separacion : separaciones) {
-                if (separacion == null || !"Aprobada".equalsIgnoreCase(separacion.getEstado())) {
-                    continue;
-                }
-                long fecha = fechaParaReporte(separacion);
-                if (fecha <= 0 || fecha < inicio || fecha > ahora) {
-                    continue;
-                }
-                int index = (int) Math.min(montos.length - 1, Math.max(0, (fecha - inicio) / bucket));
-                montos[index] += parseMonto(separacion.getMonto());
-            }
-        }
-
-        double max = 0;
-        for (double monto : montos) {
-            if (monto > max) max = monto;
-        }
-
-        for (int i = 0; i < barrasTendencia.length; i++) {
-            View barra = barrasTendencia[i];
-            if (barra == null) continue;
-            ViewGroup.LayoutParams params = barra.getLayoutParams();
-            int alturaMin = dpToPx(12);
-            int alturaMax = dpToPx(90);
-            params.height = max > 0
-                    ? alturaMin + (int) Math.round((montos[i] / max) * (alturaMax - alturaMin))
-                    : alturaMin;
-            barra.setLayoutParams(params);
-            barra.setAlpha(max > 0 ? 1f : 0.45f);
-        }
-
-        actualizarTituloTendencia(max > 0);
+        long fecha = fechaParaReporte(separacion);
+        if (fecha <= 0) return false;
+        long inicio = ahora - obtenerDuracionPeriodoMillis();
+        return fecha >= inicio && fecha <= ahora;
     }
 
     private long fechaParaReporte(AdminSeparacion separacion) {
@@ -313,42 +279,9 @@ public class AdminReportesActivity extends AdminMainActivity {
         }
     }
 
-    private int dpToPx(int dp) {
-        return Math.round(dp * getResources().getDisplayMetrics().density);
-    }
-
     private void setText(TextView textView, String value) {
         if (textView != null) {
             textView.setText(value);
         }
-    }
-
-    private void showTendenciaDialog() {
-        new MaterialAlertDialogBuilder(this)
-            .setTitle("Seleccionar período")
-            .setSingleChoiceItems(tendenciaOptions, selectedOption, (dialog, which) -> {
-                selectedOption = which;
-                updateTendenciaTitle();
-                updateChipText();
-                dialog.dismiss();
-            })
-            .show();
-    }
-
-    private void updateTendenciaTitle() {
-        actualizarTituloTendencia(true);
-        actualizarTendencia(separacionesActuales);
-    }
-
-    private void updateChipText() {
-        if (chipEstesMes != null) {
-            chipEstesMes.setText(tendenciaOptions[selectedOption]);
-        }
-    }
-
-    private void actualizarTituloTendencia(boolean conDatos) {
-        if (tvTendenciaTitle == null) return;
-        String base = "Tendencia " + tendenciaOptions[selectedOption].toLowerCase();
-        tvTendenciaTitle.setText(conDatos ? base : base + " · sin ventas aprobadas");
     }
 }

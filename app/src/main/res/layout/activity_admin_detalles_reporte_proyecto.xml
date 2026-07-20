@@ -55,19 +55,22 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="8dp" />
 
-                <com.google.android.material.textfield.TextInputLayout
+                <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
 
-                    <AutoCompleteTextView
-                        android:id="@+id/actvProjecto"
-                        android:layout_width="match_parent"
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupProyectosReporte"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:inputType="none" />
+                        app:singleLine="true"
+                        app:singleSelection="true"
+                        app:selectionRequired="true" />
 
-                </com.google.android.material.textfield.TextInputLayout>
+                </HorizontalScrollView>
 
                 <!-- Selector de Período -->
                 <TextView
@@ -79,45 +82,45 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="8dp" />
 
-                <LinearLayout
+                <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="16dp"
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
 
-                    <Button
-                        android:id="@+id/btnDiario"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:text="Diario"
-                        android:backgroundTint="@android:color/transparent"
-                        android:textColor="@color/text_primary"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_marginEnd="8dp" />
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupPeriodoProyectoReporte"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:singleLine="true"
+                        app:singleSelection="true"
+                        app:selectionRequired="true">
 
-                    <Button
-                        android:id="@+id/btnMensual"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:text="Mensual"
-                        android:backgroundTint="@color/brand_deep_blue"
-                        android:textColor="@color/white"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_marginEnd="8dp" />
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipPeriodoDiarioReporte"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Diario"
+                            style="@style/Widget.Material3.Chip.Filter" />
 
-                    <Button
-                        android:id="@+id/btnAnual"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:text="Anual"
-                        android:backgroundTint="@android:color/transparent"
-                        android:textColor="@color/text_primary"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipPeriodoMensualReporte"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Mensual"
+                            android:checked="true"
+                            style="@style/Widget.Material3.Chip.Filter" />
 
-                </LinearLayout>
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipPeriodoAnualReporte"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Anual"
+                            style="@style/Widget.Material3.Chip.Filter" />
+                    </com.google.android.material.chip.ChipGroup>
+
+                </HorizontalScrollView>
 
                 <!-- Resumen -->
                 <TextView
@@ -145,7 +148,7 @@
                             android:id="@+id/tvResumenMonto"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="S/42,000"
+                            android:text="S/0"
                             android:textColor="@color/brand_deep_blue"
                             android:textSize="20sp"
                             android:textStyle="bold" />
@@ -169,7 +172,7 @@
                             android:id="@+id/tvResumenSeparaciones"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="7"
+                            android:text="0"
                             android:textColor="@color/brand_lime"
                             android:textSize="20sp"
                             android:textStyle="bold" />
@@ -193,7 +196,7 @@
                             android:id="@+id/tvResumenAsesores"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="2"
+                            android:text="0"
                             android:textColor="@color/orange"
                             android:textSize="20sp"
                             android:textStyle="bold" />
@@ -239,7 +242,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Roberto Gómez"
+                            android:text="Sin asesores"
                             android:textColor="@color/text_primary"
                             android:textStyle="bold" />
 
@@ -247,7 +250,7 @@
                             android:id="@+id/tvAsesorReporteStats1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="5 sep · S/25k"
+                            android:text="0 sep · S/0"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 
@@ -276,7 +279,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Carlos Ruiz"
+                            android:text="Sin asesores"
                             android:textColor="@color/text_primary"
                             android:textStyle="bold" />
 
@@ -284,7 +287,7 @@
                             android:id="@+id/tvAsesorReporteStats2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="2 sep · S/17k"
+                            android:text="0 sep · S/0"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 
@@ -315,6 +318,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false" />
+
+                <TextView
+                    android:id="@+id/tvHistorialReporteEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center"
+                    android:text="No hay separaciones aprobadas para este proyecto y periodo"
+                    android:textColor="@color/neutral_medium"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
 
                 </LinearLayout>
 
