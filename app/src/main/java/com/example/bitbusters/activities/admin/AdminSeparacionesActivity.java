@@ -15,16 +15,10 @@ import com.example.bitbusters.adapters.AdminSeparacionAdapter;
 import com.example.bitbusters.data.SeparacionesRepository;
 import com.example.bitbusters.models.AdminSeparacion;
 import com.example.bitbusters.utils.AdminPreferencesManager;
-import com.example.bitbusters.utils.AdminStorageManager;
-import com.example.bitbusters.utils.NotificationHelper;
 import com.google.firebase.firestore.ListenerRegistration;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.Random;
 
 /**
  * Pantalla de lista de separaciones del Administrador.
@@ -32,7 +26,6 @@ import java.util.Random;
  *
  * Correcciones Lab 5:
  *  - Usa SeparacionesRepository como fuente única de datos (no AdminDataRepository directo)
- *  - Botón "Simular" crea separación nueva y lanza notificación (Corrección 2)
  *  - onNewIntent/onResume: al recibir "separacion_id" hace scroll al item y lo resalta (Corrección 3)
  */
 public class AdminSeparacionesActivity extends AdminMainActivity {
@@ -46,15 +39,6 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
     private AdminSeparacionAdapter adapter;
     private String currentEstadoFilter = null;
     private ListenerRegistration separacionesListener;
-
-    // Proyectos ficticios para la simulación (Corrección 2)
-    private static final String[] PROYECTOS_DEMO = {
-        "Edificio Los Álamos",
-        "Mirador de Surco",
-        "Alto San Felipe",
-        "Residencial Verde",
-        "Torres Unidas"
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -188,11 +172,6 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
         if (btnRechazadas != null)
             btnRechazadas.setOnClickListener(v -> filtrarPorEstado("Rechazada"));
 
-        // ── Corrección 2: Botón de simulación de separación ─────────────────
-        Button btnSimularSeparacion = findViewById(R.id.btnSimularSeparacion);
-        if (btnSimularSeparacion != null) {
-            btnSimularSeparacion.setOnClickListener(v -> simularNuevaSeparacion());
-        }
     }
 
     private void setupNotificationsButton() {
@@ -202,55 +181,6 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
                     startActivity(new Intent(this, AdminNotificacionesActivity.class))
             );
         }
-    }
-
-    // ── Simulación de nueva separación (Corrección 2) ────────────────────────
-
-    /**
-     * Crea una separación ficticia, la agrega al repositorio,
-     * refresca el RecyclerView y lanza la notificación correspondiente.
-     * El Intent de la notificación incluye el ID para que al tocarla
-     * se haga scroll hasta esa separación.
-     */
-    private void simularNuevaSeparacion() {
-        // Generar datos ficticios
-        String proyectoAleatorio = PROYECTOS_DEMO[new Random().nextInt(PROYECTOS_DEMO.length)];
-        String nuevoId = "SIM_" + System.currentTimeMillis();
-        String timestamp = new SimpleDateFormat("dd/MMM/yyyy", Locale.getDefault())
-                .format(new Date());
-
-        AdminSeparacion nueva = new AdminSeparacion(
-                nuevoId,
-                proyectoAleatorio,
-                "S/ 5,000",
-                timestamp,
-                "Cliente Demo",
-                "Pendiente"
-        );
-
-        // Agregar al repositorio compartido
-        SeparacionesRepository.agregar(nueva);
-
-        // Actualizar contadores en SharedPreferences e Internal Storage
-        AdminPreferencesManager.incrementarSeparacionesPendientes(this);
-        AdminStorageManager.actualizarContador(
-                this, AdminStorageManager.CAMPO_SEPARACIONES_PENDIENTES);
-
-        // Limpiar filtro activo y mostrar toda la lista con la nueva separación al inicio
-        currentEstadoFilter = null;
-        renderSeparaciones();
-
-        // ── Corrección 2: notificación con separacion_id que abre el DETALLE ──
-        // Al tocarla → AdminDetallesSeparacionActivity carga el item por ID para que el admin apruebe
-        Intent destinoNotif = new Intent(this, AdminDetallesSeparacionActivity.class);
-        destinoNotif.putExtra(EXTRA_SEPARACION_ID, nuevoId);
-        NotificationHelper.lanzarNotificacionAdmin(
-                this,
-                "Nueva Separación",
-                "Un asesor ha registrado una nueva separación. Revisa y aprueba el monto",
-                NotificationHelper.NOTIF_ADMIN_NUEVA_SEPARACION,
-                destinoNotif
-        );
     }
 
     // ── Filtros ────────────────────────────────────────────────────────────
