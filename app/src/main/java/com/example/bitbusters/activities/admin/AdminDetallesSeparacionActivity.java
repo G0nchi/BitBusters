@@ -76,7 +76,12 @@ public class AdminDetallesSeparacionActivity extends AppCompatActivity {
             if (separacion != null) {
                 setTextSafe(tvProjectName, separacion.getNombreProyecto());
                 setTextSafe(tvMonto,       separacion.getMonto());
-                setTextSafe(tvAsesorName,  separacion.getCliente());
+                String asesor = !separacion.getAsesorNombre().isEmpty()
+                        ? separacion.getAsesorNombre()
+                        : (!separacion.getUidAsesor().isEmpty()
+                                ? separacion.getUidAsesor()
+                                : "No registrado");
+                setTextSafe(tvAsesorName,  asesor);
                 setTextSafe(tvUbication,   separacion.getFecha());
                 // Nombre del cliente
                 setTextSafe(tvClienteName, separacion.getCliente());

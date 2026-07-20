@@ -1,16 +1,22 @@
 package com.example.bitbusters.data;
 
 import com.example.bitbusters.models.AdminSeparacion;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Repositorio estático en memoria para la lista de separaciones del Administrador.
@@ -25,6 +31,7 @@ public final class SeparacionesRepository {
     // Lista estática compartida — se inicializa solo la primera vez
     private static List<AdminSeparacion> lista = null;
     private static final String COLECCION_SEPARACIONES = "separaciones";
+    private static final String COLECCION_NOTIFICACIONES = "notifications";
 
     public interface SeparacionesListener {
         void onSeparacionesActualizadas(List<AdminSeparacion> separaciones);
@@ -138,13 +145,30 @@ public final class SeparacionesRepository {
             return;
         }
 
-        FirebaseFirestore.getInstance()
-                .collection(COLECCION_SEPARACIONES)
-                .document(id)
-                .update(
-                        "estado", nuevoEstado,
-                        "fechaActualizacion", FieldValue.serverTimestamp()
-                )
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference separacionRef = db.collection(COLECCION_SEPARACIONES).document(id);
+        FirebaseUser admin = FirebaseAuth.getInstance().getCurrentUser();
+        String adminUid = admin != null ? admin.getUid() : "";
+        AdminSeparacion separacion = getById(id);
+
+        Map<String, Object> cambios = new HashMap<>();
+        cambios.put("estado", nuevoEstado);
+        cambios.put("fechaActualizacion", FieldValue.serverTimestamp());
+
+        if ("Aprobada".equalsIgnoreCase(nuevoEstado)) {
+            cambios.put("estadoPago", "Pendiente");
+            cambios.put("fechaAprobacion", FieldValue.serverTimestamp());
+            if (!adminUid.isEmpty()) cambios.put("aprobadoPorUid", adminUid);
+        } else if ("Rechazada".equalsIgnoreCase(nuevoEstado)) {
+            cambios.put("fechaRechazo", FieldValue.serverTimestamp());
+            if (!adminUid.isEmpty()) cambios.put("rechazadoPorUid", adminUid);
+        }
+
+        WriteBatch batch = db.batch();
+        batch.update(separacionRef, cambios);
+        agregarNotificacionesCambioEstado(batch, db, separacion, nuevoEstado, adminUid);
+
+        batch.commit()
                 .addOnSuccessListener(unused -> {
                     actualizarEstado(id, nuevoEstado);
                     if (callback != null) callback.onSuccess();
@@ -195,7 +219,7 @@ public final class SeparacionesRepository {
         );
         String estado = normalizarEstado(firstNonEmpty(doc.getString("estado"), "Pendiente"));
 
-        return new AdminSeparacion(
+        AdminSeparacion separacion = new AdminSeparacion(
                 doc.getId(),
                 proyecto,
                 monto,
@@ -203,6 +227,120 @@ public final class SeparacionesRepository {
                 cliente,
                 estado
         );
+        separacion.setClienteUid(firstNonEmpty(
+                doc.getString("clienteUid"),
+                doc.getString("uidCliente")
+        ));
+        separacion.setUidAsesor(firstNonEmpty(
+                doc.getString("uidAsesor"),
+                doc.getString("asesorUid")
+        ));
+        separacion.setAsesorNombre(firstNonEmpty(
+                doc.getString("asesorNombre"),
+                doc.getString("asesor"),
+                separacion.getUidAsesor()
+        ));
+        separacion.setProyectoId(firstNonEmpty(
+                doc.getString("proyectoId"),
+                doc.getString("idProyecto")
+        ));
+        separacion.setInmobiliariaId(firstNonEmpty(
+                doc.getString("inmobiliariaId"),
+                doc.getString("empresaId")
+        ));
+        return separacion;
+    }
+
+    private static void agregarNotificacionesCambioEstado(
+            WriteBatch batch,
+            FirebaseFirestore db,
+            AdminSeparacion separacion,
+            String nuevoEstado,
+            String adminUid
+    ) {
+        if (batch == null || db == null || separacion == null || nuevoEstado == null) return;
+
+        boolean aprobada = "Aprobada".equalsIgnoreCase(nuevoEstado);
+        boolean rechazada = "Rechazada".equalsIgnoreCase(nuevoEstado);
+        if (!aprobada && !rechazada) return;
+
+        String proyecto = firstNonEmpty(separacion.getNombreProyecto(), "el proyecto");
+        String cliente = firstNonEmpty(separacion.getCliente(), "el cliente");
+        String type = aprobada ? "separacion_aprobada" : "separacion_rechazada";
+
+        if (!separacion.getClienteUid().isEmpty()) {
+            String titulo = aprobada ? "Separación aprobada" : "Separación rechazada";
+            String descripcion = aprobada
+                    ? "Tu separación para " + proyecto + " fue aprobada. Ya puedes completar el pago."
+                    : "Tu separación para " + proyecto + " fue rechazada.";
+            batch.set(
+                    db.collection(COLECCION_NOTIFICACIONES).document(),
+                    crearNotificacion(
+                            "cliente",
+                            separacion.getClienteUid(),
+                            type,
+                            titulo,
+                            descripcion,
+                            separacion,
+                            adminUid
+                    )
+            );
+        }
+
+        if (!separacion.getUidAsesor().isEmpty()) {
+            String titulo = aprobada ? "Separación aprobada" : "Separación rechazada";
+            String descripcion = aprobada
+                    ? "La separación de " + cliente + " para " + proyecto + " fue aprobada."
+                    : "La separación de " + cliente + " para " + proyecto + " fue rechazada.";
+            batch.set(
+                    db.collection(COLECCION_NOTIFICACIONES).document(),
+                    crearNotificacion(
+                            "asesor",
+                            separacion.getUidAsesor(),
+                            type,
+                            titulo,
+                            descripcion,
+                            separacion,
+                            adminUid
+                    )
+            );
+        }
+    }
+
+    private static Map<String, Object> crearNotificacion(
+            String role,
+            String targetUid,
+            String type,
+            String title,
+            String descripcion,
+            AdminSeparacion separacion,
+            String adminUid
+    ) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("role", role);
+        data.put("targetRole", role);
+        data.put("targetUid", targetUid);
+        data.put("type", type);
+        data.put("title", title);
+        data.put("senderName", "Administrador de inmobiliaria");
+        data.put("descripcion", descripcion);
+        data.put("tiempo", "ahora");
+        data.put("order", System.currentTimeMillis());
+        data.put("isOld", false);
+        data.put("read", false);
+        data.put("createdAt", FieldValue.serverTimestamp());
+        data.put("separacionId", separacion.getId());
+        data.put("proyectoId", separacion.getProyectoId());
+        data.put("proyecto", separacion.getNombreProyecto());
+        data.put("clienteUid", separacion.getClienteUid());
+        data.put("cliente", separacion.getCliente());
+        data.put("uidAsesor", separacion.getUidAsesor());
+        data.put("asesorNombre", separacion.getAsesorNombre());
+        data.put("inmobiliariaId", separacion.getInmobiliariaId());
+        if (adminUid != null && !adminUid.isEmpty()) {
+            data.put("adminUid", adminUid);
+        }
+        return data;
     }
 
     private static String firstNonEmpty(String... values) {

@@ -7,6 +7,11 @@ public class AdminSeparacion {
     public String fecha;
     public String cliente;
     public String estado; // "Pendiente", "Aprobada", "Rechazada"
+    public String clienteUid;
+    public String uidAsesor;
+    public String asesorNombre;
+    public String proyectoId;
+    public String inmobiliariaId;
 
     public AdminSeparacion() {
         // Constructor vacío requerido para compatibilidad con Firestore/serialización.
@@ -27,12 +32,22 @@ public class AdminSeparacion {
     public String getFecha() { return fecha; }
     public String getCliente() { return cliente; }
     public String getEstado() { return estado; }
+    public String getClienteUid() { return clienteUid != null ? clienteUid : ""; }
+    public String getUidAsesor() { return uidAsesor != null ? uidAsesor : ""; }
+    public String getAsesorNombre() { return asesorNombre != null ? asesorNombre : ""; }
+    public String getProyectoId() { return proyectoId != null ? proyectoId : ""; }
+    public String getInmobiliariaId() { return inmobiliariaId != null ? inmobiliariaId : ""; }
 
     public void setId(String id) { this.id = id; }
     public void setNombreProyecto(String nombreProyecto) { this.nombreProyecto = nombreProyecto; }
     public void setMonto(String monto) { this.monto = monto; }
     public void setFecha(String fecha) { this.fecha = fecha; }
     public void setCliente(String cliente) { this.cliente = cliente; }
+    public void setClienteUid(String clienteUid) { this.clienteUid = clienteUid; }
+    public void setUidAsesor(String uidAsesor) { this.uidAsesor = uidAsesor; }
+    public void setAsesorNombre(String asesorNombre) { this.asesorNombre = asesorNombre; }
+    public void setProyectoId(String proyectoId) { this.proyectoId = proyectoId; }
+    public void setInmobiliariaId(String inmobiliariaId) { this.inmobiliariaId = inmobiliariaId; }
 
     /**
      * Actualiza el estado de la separación.
