@@ -27,8 +27,8 @@ import java.util.Set;
 
 /**
  * Activity para que el admin seleccione asesores y los asigne al proyecto
- * que está creando. Al confirmar, guarda los nombres de los asesores seleccionados
- * en AdminProyectoSessionData.getInstance().asesoresAsignados y regresa.
+ * que está creando. Al confirmar, guarda nombres e IDs de los asesores seleccionados
+ * en AdminProyectoSessionData y regresa.
  */
 public class AdminAsignarAsesoresActivity extends AppCompatActivity {
 
@@ -44,6 +44,7 @@ public class AdminAsignarAsesoresActivity extends AppCompatActivity {
     private final List<AdminAsesor> sourceAsesores = new ArrayList<>();
     private final List<AdminAsesor> visibleAsesores = new ArrayList<>();
     private final Set<String> selectedNames = new HashSet<>();
+    private final Set<String> selectedIds = new HashSet<>();
     private String currentQuery = "";
     private final FirestoreAsesoresRepository asesoresRepository = new FirestoreAsesoresRepository();
 
@@ -93,19 +94,21 @@ public class AdminAsignarAsesoresActivity extends AppCompatActivity {
             if (position < 0 || position >= visibleAsesores.size()) return;
             AdminAsesor asesor = visibleAsesores.get(position);
             if (isChecked) {
-                if (!selectedNames.contains(asesor.getNombre())) {
+                if (!selectedIds.contains(asesor.getId())) {
                     selectedAsesores.add(asesor);
                     selectedNames.add(asesor.getNombre());
+                    selectedIds.add(asesor.getId());
                 }
             } else {
                 selectedNames.remove(asesor.getNombre());
+                selectedIds.remove(asesor.getId());
                 for (int i = selectedAsesores.size() - 1; i >= 0; i--) {
-                    if (selectedAsesores.get(i).getNombre().equals(asesor.getNombre())) {
+                    if (selectedAsesores.get(i).getId().equals(asesor.getId())) {
                         selectedAsesores.remove(i);
                     }
                 }
             }
-            adapter.setSelectedNames(selectedNames);
+            adapter.setSelectedIds(selectedIds);
             updateCounter();
         });
         rvAsesores.setAdapter(adapter);
@@ -120,17 +123,22 @@ public class AdminAsignarAsesoresActivity extends AppCompatActivity {
      */
     private void premarcarAsesoresGuardados() {
         List<String> guardados = AdminProyectoSessionData.getInstance().asesoresAsignados;
-        if (guardados == null || guardados.isEmpty()) return;
+        List<String> idsGuardados = AdminProyectoSessionData.getInstance().uidAsesoresAsignados;
+        if ((guardados == null || guardados.isEmpty()) && (idsGuardados == null || idsGuardados.isEmpty())) return;
         selectedNames.clear();
-        selectedNames.addAll(guardados);
+        selectedIds.clear();
+        if (guardados != null) selectedNames.addAll(guardados);
+        if (idsGuardados != null) selectedIds.addAll(idsGuardados);
         selectedAsesores.clear();
         for (AdminAsesor asesor : sourceAsesores) {
-            if (selectedNames.contains(asesor.getNombre())) {
+            if (selectedIds.contains(asesor.getId()) || selectedNames.contains(asesor.getNombre())) {
                 selectedAsesores.add(asesor);
+                selectedNames.add(asesor.getNombre());
+                selectedIds.add(asesor.getId());
             }
         }
         if (adapter != null) {
-            adapter.setSelectedNames(selectedNames);
+            adapter.setSelectedIds(selectedIds);
         }
         updateCounter();
     }
@@ -184,7 +192,7 @@ public class AdminAsignarAsesoresActivity extends AppCompatActivity {
 
         if (adapter != null) {
             adapter.setData(filtered);
-            adapter.setSelectedNames(selectedNames);
+            adapter.setSelectedIds(selectedIds);
         }
         if (tvEmptyState != null) {
             tvEmptyState.setVisibility(filtered.isEmpty() ? android.view.View.VISIBLE : android.view.View.GONE);
@@ -208,16 +216,18 @@ public class AdminAsignarAsesoresActivity extends AppCompatActivity {
     // ── Parte 2: Guardar asesores seleccionados en la sesión ─────────────────
 
     /**
-     * Extrae los nombres de los asesores seleccionados, los guarda en
+     * Extrae nombres e IDs de los asesores seleccionados, los guarda en
      * AdminProyectoSessionData y cierra la Activity.
      */
     private void confirmAssignment() {
-        // Extraer solo los nombres para guardarlos en la sesión
         List<String> nombres = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
         for (AdminAsesor asesor : selectedAsesores) {
             nombres.add(asesor.getNombre());
+            ids.add(asesor.getId());
         }
         AdminProyectoSessionData.getInstance().asesoresAsignados = nombres;
+        AdminProyectoSessionData.getInstance().uidAsesoresAsignados = ids;
 
         String msg = selectedCount + " asesor" + (selectedCount != 1 ? "es" : "")
                 + " asignado" + (selectedCount != 1 ? "s" : "");

@@ -513,29 +513,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Main Button -->
-            <Button
-                android:id="@+id/btnEditImmob"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Guardar cambios"
-                android:backgroundTint="@color/brand_lime"
-                android:textColor="@color/white"
-                android:textStyle="bold"
-                android:textSize="14sp"
-                android:padding="14dp"
-                android:layout_marginBottom="8dp" />
-
-            <Button
-                android:id="@+id/btnBackImmobMain"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Volver"
-                android:backgroundTint="@android:color/transparent"
-                android:textColor="@color/brand_deep_blue"
-                android:layout_marginBottom="16dp"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
         </LinearLayout>
     </ScrollView>
 

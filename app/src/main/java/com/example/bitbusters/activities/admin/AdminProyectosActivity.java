@@ -67,8 +67,7 @@ public class AdminProyectosActivity extends AdminMainActivity {
     }
 
     private void iniciarListenerFirestore() {
-        String inmobiliariaNombre = AdminPreferencesManager.obtenerInmobiliaria(this);
-        String inmobiliariaId = AdminProyectosRepository.crearInmobiliariaId(inmobiliariaNombre);
+        String inmobiliariaId = AdminPreferencesManager.obtenerInmobiliariaId(this);
         String adminUid = AdminProyectosRepository.obtenerAdminUidActual();
 
         proyectosListener = AdminProyectosRepository.escucharPorAdministrador(

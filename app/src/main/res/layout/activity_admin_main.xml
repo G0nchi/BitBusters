@@ -114,9 +114,10 @@
                             android:padding="16dp">
 
                             <TextView
+                                android:id="@+id/tvDashboardProyectosActivos"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="5"
+                                android:text="0"
                                 android:textColor="@color/text_primary"
                                 android:textSize="26sp"
                                 android:textStyle="bold" />
@@ -125,7 +126,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="Proyecto activos"
+                                android:text="Proyectos activos"
                                 android:textColor="@color/neutral_dark"
                                 android:textSize="13sp" />
                         </LinearLayout>
@@ -145,9 +146,10 @@
                             android:padding="16dp">
 
                             <TextView
+                                android:id="@+id/tvDashboardAsesoresActivos"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="8"
+                                android:text="0"
                                 android:textColor="@color/text_primary"
                                 android:textSize="26sp"
                                 android:textStyle="bold" />
@@ -176,9 +178,10 @@
                             android:padding="16dp">
 
                             <TextView
+                                android:id="@+id/tvDashboardSeparacionesPendientes"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="3"
+                                android:text="0"
                                 android:textColor="@color/text_primary"
                                 android:textSize="26sp"
                                 android:textStyle="bold" />
@@ -207,9 +210,10 @@
                             android:padding="16dp">
 
                             <TextView
+                                android:id="@+id/tvDashboardVentasMes"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="S/95,400"
+                                android:text="S/0"
                                 android:textColor="@color/text_primary"
                                 android:textSize="22sp"
                                 android:textStyle="bold" />
@@ -255,17 +259,19 @@
                             android:padding="14dp">
 
                             <TextView
+                                android:id="@+id/tvActividadTitulo1"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="Nueva separación registrada"
+                                android:text="Sin actividad reciente"
                                 android:textColor="@color/text_primary"
                                 android:textSize="14sp" />
 
                             <TextView
+                                android:id="@+id/tvActividadTiempo1"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Hace 10 min"
+                                android:text=""
                                 android:textColor="@color/neutral_dark"
                                 android:textSize="13sp" />
                         </LinearLayout>
@@ -283,17 +289,19 @@
                             android:padding="14dp">
 
                             <TextView
+                                android:id="@+id/tvActividadTitulo2"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="Pago confirmado"
+                                android:text=""
                                 android:textColor="@color/text_primary"
                                 android:textSize="14sp" />
 
                             <TextView
+                                android:id="@+id/tvActividadTiempo2"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Hace 30 min"
+                                android:text=""
                                 android:textColor="@color/neutral_dark"
                                 android:textSize="13sp" />
                         </LinearLayout>
@@ -311,17 +319,19 @@
                             android:padding="14dp">
 
                             <TextView
+                                android:id="@+id/tvActividadTitulo3"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="Asesor Carlos Ruiz asignado"
+                                android:text=""
                                 android:textColor="@color/text_primary"
                                 android:textSize="14sp" />
 
                             <TextView
+                                android:id="@+id/tvActividadTiempo3"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Hace 45 min"
+                                android:text=""
                                 android:textColor="@color/neutral_dark"
                                 android:textSize="13sp" />
                         </LinearLayout>

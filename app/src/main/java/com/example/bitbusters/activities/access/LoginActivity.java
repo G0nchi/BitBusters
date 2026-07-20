@@ -145,6 +145,10 @@ public class LoginActivity extends AppCompatActivity {
                             doc.getString("inmobiliariaNombre"),
                             doc.getString("empresa")
                     );
+                    String inmobiliariaId = firstNonEmpty(
+                            doc.getString("inmobiliariaId"),
+                            doc.getString("empresaId")
+                    );
                     String status = doc.getString("status");
                     Log.d("LoginActivity", "Datos leídos → role: '" + role + "' | nombre: '" + nombre + "'");
 
@@ -172,7 +176,7 @@ public class LoginActivity extends AppCompatActivity {
                                             .collection("users").document(uid)
                                             .update("fcmToken", token));
 
-                    routeByRole(role, nombre, uid, inmobiliaria);
+                    routeByRole(role, nombre, uid, inmobiliaria, inmobiliariaId);
                 })
                 .addOnFailureListener(e -> {
                     Log.e("LoginActivity", "Error al leer 'users': " + e.getMessage());
@@ -181,7 +185,8 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    private void routeByRole(String role, String nombre, String uid, String inmobiliaria) {
+    private void routeByRole(String role, String nombre, String uid,
+                             String inmobiliaria, String inmobiliariaId) {
         String fechaHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
         Intent intent;
         String rolNorm = role.toLowerCase().trim();
@@ -195,10 +200,13 @@ public class LoginActivity extends AppCompatActivity {
                 break;
             case "admin":
                 AdminPreferencesManager.guardarNombre(this, nombre != null ? nombre : "Admin");
-                AdminPreferencesManager.guardarInmobiliaria(this,
-                        inmobiliaria != null && !inmobiliaria.trim().isEmpty()
-                                ? inmobiliaria.trim()
-                                : "Inmobiliaria BitBuilders");
+                String nombreInmobiliaria = inmobiliaria != null && !inmobiliaria.trim().isEmpty()
+                        ? inmobiliaria.trim()
+                        : "Inmobiliaria BitBuilders";
+                String idInmobiliaria = inmobiliariaId != null && !inmobiliariaId.trim().isEmpty()
+                        ? inmobiliariaId.trim()
+                        : AdminPreferencesManager.crearInmobiliariaId(nombreInmobiliaria);
+                AdminPreferencesManager.guardarInmobiliariaCompleta(this, nombreInmobiliaria, idInmobiliaria);
                 AdminPreferencesManager.guardarUltimoAcceso(this, fechaHora);
                 intent = new Intent(this, AdminMainActivity.class);
                 Log.d("LoginActivity", "Redirigiendo a Admin Home");
@@ -275,7 +283,11 @@ public class LoginActivity extends AppCompatActivity {
         if (ADMIN_USER.equals(user) && ADMIN_PASSWORD.equals(password)) {
             // Guardar datos del admin en SharedPreferences separadas (Lab 5)
             AdminPreferencesManager.guardarNombre(this, "Juan García");
-            AdminPreferencesManager.guardarInmobiliaria(this, "Inmobiliaria BitBuilders");
+            AdminPreferencesManager.guardarInmobiliariaCompleta(
+                    this,
+                    "Inmobiliaria BitBuilders",
+                    AdminPreferencesManager.crearInmobiliariaId("Inmobiliaria BitBuilders")
+            );
             String fechaHoraAdmin = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                     .format(new Date());
             AdminPreferencesManager.guardarUltimoAcceso(this, fechaHoraAdmin);

@@ -1,5 +1,8 @@
 package com.example.bitbusters.models;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Representa una tipología de departamento dentro de un proyecto inmobiliario.
  * Ejemplo: "Tipo A — 2 dorm., 65 m², S/ 280,000"
@@ -13,9 +16,12 @@ public class Tipologia {
     private double precioTotal;  // 280000.0
     private String descripcion;  // opcional
     private String imageUri;     // URI de imagen si se subió, vacío si no
+    private List<String> imagenesUri; // URIs de imágenes de la tipología
 
     /** Constructor vacío (requerido para Gson/serialización) */
-    public Tipologia() {}
+    public Tipologia() {
+        this.imagenesUri = new ArrayList<>();
+    }
 
     /**
      * Constructor completo.
@@ -38,6 +44,10 @@ public class Tipologia {
         this.precioTotal = precioTotal;
         this.descripcion = descripcion;
         this.imageUri    = imageUri;
+        this.imagenesUri = new ArrayList<>();
+        if (imageUri != null && !imageUri.trim().isEmpty()) {
+            this.imagenesUri.add(imageUri);
+        }
     }
 
     // ── Getters ──────────────────────────────────────────────────────────────
@@ -48,7 +58,17 @@ public class Tipologia {
     public double getMetraje()     { return metraje; }
     public double getPrecioTotal() { return precioTotal; }
     public String getDescripcion() { return descripcion != null ? descripcion : ""; }
-    public String getImageUri()    { return imageUri    != null ? imageUri    : ""; }
+    public String getImageUri() {
+        if (imageUri != null && !imageUri.trim().isEmpty()) return imageUri;
+        if (imagenesUri != null && !imagenesUri.isEmpty() && imagenesUri.get(0) != null) {
+            return imagenesUri.get(0);
+        }
+        return "";
+    }
+    public List<String> getImagenesUri() {
+        if (imagenesUri == null) imagenesUri = new ArrayList<>();
+        return imagenesUri;
+    }
 
     // ── Setters ──────────────────────────────────────────────────────────────
 
@@ -59,4 +79,10 @@ public class Tipologia {
     public void setPrecioTotal(double precioTotal) { this.precioTotal = precioTotal; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
     public void setImageUri(String imageUri)       { this.imageUri    = imageUri; }
+    public void setImagenesUri(List<String> imagenesUri) {
+        this.imagenesUri = imagenesUri != null ? imagenesUri : new ArrayList<>();
+        if (!this.imagenesUri.isEmpty()) {
+            this.imageUri = this.imagenesUri.get(0);
+        }
+    }
 }

@@ -13,6 +13,7 @@ import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.AdminNotificationsAdapter;
 import com.example.bitbusters.data.AdminNotificacionesRepository;
 import com.example.bitbusters.models.AdminNotificacion;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.List;
 
@@ -30,6 +31,8 @@ public class AdminNotificacionesActivity extends AppCompatActivity {
     private RecyclerView rvNotificaciones;
     private AdminNotificationsAdapter adapter;
     private TextView tvEstadoVacio;
+    private ListenerRegistration notificacionesListener;
+    private List<AdminNotificacion> listaActual;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +59,21 @@ public class AdminNotificacionesActivity extends AppCompatActivity {
         refrescarLista();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        escucharNotificacionesFirestore();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (notificacionesListener != null) {
+            notificacionesListener.remove();
+            notificacionesListener = null;
+        }
+    }
+
     // ── Inicialización ───────────────────────────────────────────────────────
 
     /** Configura el RecyclerView con el adapter y el LayoutManager. */
@@ -63,9 +81,10 @@ public class AdminNotificacionesActivity extends AppCompatActivity {
         rvNotificaciones = findViewById(R.id.rvNotificaciones);
         if (rvNotificaciones != null) {
             rvNotificaciones.setLayoutManager(new LinearLayoutManager(this));
+            listaActual = AdminNotificacionesRepository.getLista();
             adapter = new AdminNotificationsAdapter(
-                    AdminNotificacionesRepository.getLista(),
-                    notificacion -> { /* sin acción adicional al tocar un ítem */ }
+                    listaActual,
+                    this::marcarNotificacionLeida
             );
             rvNotificaciones.setAdapter(adapter);
         }
@@ -80,9 +99,39 @@ public class AdminNotificacionesActivity extends AppCompatActivity {
      */
     private void refrescarLista() {
         if (adapter == null) return;
-        List<AdminNotificacion> lista = AdminNotificacionesRepository.getLista();
-        adapter.setData(lista);
+        if (listaActual == null) {
+            listaActual = AdminNotificacionesRepository.getLista();
+        }
+        adapter.setData(listaActual);
         actualizarEstadoVacio();
+    }
+
+    private void escucharNotificacionesFirestore() {
+        if (notificacionesListener != null) {
+            notificacionesListener.remove();
+        }
+
+        notificacionesListener = AdminNotificacionesRepository.escucharDesdeFirestore(
+                this,
+                new AdminNotificacionesRepository.NotificacionesListener() {
+                    @Override
+                    public void onNotificacionesActualizadas(List<AdminNotificacion> notificaciones) {
+                        listaActual = notificaciones;
+                        if (adapter != null) {
+                            adapter.setData(listaActual);
+                        }
+                        actualizarEstadoVacio();
+                    }
+
+                    @Override
+                    public void onError(String mensaje) {
+                        listaActual = AdminNotificacionesRepository.getLista();
+                        if (adapter != null) {
+                            adapter.setData(listaActual);
+                        }
+                        actualizarEstadoVacio();
+                    }
+                });
     }
 
     /**
@@ -91,7 +140,7 @@ public class AdminNotificacionesActivity extends AppCompatActivity {
      * - Lista con datos → muestra RecyclerView, oculta el estado vacío
      */
     private void actualizarEstadoVacio() {
-        boolean vacia = AdminNotificacionesRepository.estaVacia();
+        boolean vacia = listaActual == null || listaActual.isEmpty();
 
         if (tvEstadoVacio != null) {
             tvEstadoVacio.setVisibility(vacia ? View.VISIBLE : View.GONE);
@@ -99,5 +148,17 @@ public class AdminNotificacionesActivity extends AppCompatActivity {
         if (rvNotificaciones != null) {
             rvNotificaciones.setVisibility(vacia ? View.GONE : View.VISIBLE);
         }
+    }
+
+    private void marcarNotificacionLeida(AdminNotificacion notificacion) {
+        AdminNotificacionesRepository.marcarComoLeida(
+                notificacion,
+                new AdminNotificacionesRepository.ActualizarCallback() {
+                    @Override
+                    public void onSuccess() { }
+
+                    @Override
+                    public void onError(String mensaje) { }
+                });
     }
 }

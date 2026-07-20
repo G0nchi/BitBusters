@@ -198,10 +198,12 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
         asesoresRepository.registrarAsesor(this, nombre, correo, telefono, dni,
                 new FirestoreAsesoresRepository.GuardarAsesorCallback() {
                     @Override
-                    public void onSuccess() {
+                    public void onSuccess(String mensaje) {
                         Toast.makeText(AdminRegistrarAsesorActivity.this,
-                                "Asesor registrado en Firestore",
-                                Toast.LENGTH_SHORT).show();
+                                mensaje != null && !mensaje.isEmpty()
+                                        ? mensaje
+                                        : "Asesor registrado como pendiente",
+                                Toast.LENGTH_LONG).show();
                         finish();
                     }
 

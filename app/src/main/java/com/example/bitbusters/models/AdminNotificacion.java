@@ -27,6 +27,9 @@ public class AdminNotificacion {
     /** Fecha y hora en que se lanzó la notificación (formato "dd/MM/yyyy HH:mm"). */
     private final String timestamp;
 
+    /** Indica si viene de Firestore y puede marcarse como leída. */
+    private final boolean remota;
+
     // ── Constructor ──────────────────────────────────────────────────────────
 
     /**
@@ -41,6 +44,19 @@ public class AdminNotificacion {
         this.titulo    = titulo;
         this.mensaje   = mensaje;
         this.timestamp = timestamp;
+        this.remota    = false;
+    }
+
+    /**
+     * Crea una notificación usando un ID externo, por ejemplo el ID del documento
+     * en Firestore. Permite actualizar campos como read en la fuente remota.
+     */
+    public AdminNotificacion(String id, String titulo, String mensaje, String timestamp, boolean remota) {
+        this.id        = id != null && !id.trim().isEmpty() ? id : UUID.randomUUID().toString();
+        this.titulo    = titulo;
+        this.mensaje   = mensaje;
+        this.timestamp = timestamp;
+        this.remota    = remota;
     }
 
     // ── Getters ──────────────────────────────────────────────────────────────
@@ -56,4 +72,7 @@ public class AdminNotificacion {
 
     /** Retorna el timestamp de creación de la notificación. */
     public String getTimestamp() { return timestamp; }
+
+    /** Retorna true si la notificación corresponde a un documento remoto. */
+    public boolean isRemota() { return remota; }
 }
