@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/colorBackground">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="16dp"
+        android:background="@color/colorSurface">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_back"
+            android:contentDescription="Volver" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Detalle de cita"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorTextPrimary"
+            android:paddingStart="8dp" />
+    </LinearLayout>
+
+    <!-- Tarjeta de detalle -->
+    <androidx.cardview.widget.CardView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="@color/colorSurface">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Proyecto -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Proyecto"
+                android:textSize="12sp"
+                android:textColor="@color/colorTextHint"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:id="@+id/tvDetallProyecto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorTextPrimary"
+                android:paddingBottom="14dp" />
+
+            <!-- Fecha -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fecha"
+                android:textSize="12sp"
+                android:textColor="@color/colorTextHint"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:id="@+id/tvDetallFecha"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:textColor="@color/colorTextPrimary"
+                android:paddingBottom="14dp" />
+
+            <!-- Hora -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hora"
+                android:textSize="12sp"
+                android:textColor="@color/colorTextHint"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:id="@+id/tvDetallHora"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:textColor="@color/colorTextPrimary"
+                android:paddingBottom="14dp" />
+
+            <!-- Estado -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Estado"
+                android:textSize="12sp"
+                android:textColor="@color/colorTextHint"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:id="@+id/tvDetallEstado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Botón Reagendar (solo para PENDING / CONFIRMED) -->
+    <TextView
+        android:id="@+id/btnReagendar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="4dp"
+        android:text="Reagendar cita"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="@color/colorTextOnPrimary"
+        android:gravity="center"
+        android:background="@drawable/bg_hora_selected"
+        android:visibility="gone" />
+
+</LinearLayout>

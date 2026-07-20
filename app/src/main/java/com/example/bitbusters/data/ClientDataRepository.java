@@ -4,7 +4,6 @@ import com.example.bitbusters.R;
 import com.example.bitbusters.models.Chat;
 import com.example.bitbusters.models.ClientAppointment;
 import com.example.bitbusters.models.ClientMessage;
-import com.example.bitbusters.models.ClientReview;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,12 +49,4 @@ public final class ClientDataRepository {
         ));
     }
 
-    public static List<ClientReview> getReviews() {
-        return new ArrayList<>(Arrays.asList(
-                new ClientReview("Courtois", 4, "Es muy limpia y grande, un lugar perfecto para estar en familia.", "Hace 10 min"),
-                new ClientReview("Kounde", 5, "Me gusto mucho, tiene un estilo moderno y se siente muy segura.", "Hace 25 min"),
-                new ClientReview("Kay Swanson", 4, "Tiene mucha iluminacion natural y excelente distribucion.", "Hace 1 h"),
-                new ClientReview("Samuel Ella", 5, "Muy comoda y totalmente recomendada para familias.", "Hace 3 h")
-        ));
-    }
 }

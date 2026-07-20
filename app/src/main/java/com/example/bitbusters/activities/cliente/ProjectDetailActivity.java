@@ -133,11 +133,8 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
 
         View btnAgendar = findViewById(R.id.btnAgendarCita);
         if (btnAgendar != null) {
-            btnAgendar.setOnClickListener(v -> {
-                Intent intent = new Intent(this, AgendaCitaActivity.class);
-                intent.putExtra(EXTRA_PROYECTO, nombreProyecto);
-                startActivity(intent);
-            });
+            btnAgendar.setEnabled(false);
+            btnAgendar.setAlpha(0.5f);
         }
 
         findViewById(R.id.btnCompartir).setOnClickListener(v -> { /* TODO compartir */ });
@@ -152,7 +149,9 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         if (tvVerTodos != null) {
             tvVerTodos.setOnClickListener(v -> {
                 Intent intent = new Intent(this, ReviewsActivity.class);
-                intent.putExtra(EXTRA_PROYECTO, nombreProyecto);
+                intent.putExtra(ReviewsActivity.EXTRA_PROYECTO, nombreProyecto);
+                String idProyecto = proyectoActual != null ? proyectoActual.getId() : proyectoId;
+                intent.putExtra(ReviewsActivity.EXTRA_PROYECTO_ID, idProyecto != null ? idProyecto : "");
                 startActivity(intent);
             });
         }
@@ -632,6 +631,33 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
 
     private void pintarDatosProyecto() {
         if (proyectoActual == null) return;
+
+        // Habilitar btnAgendar solo si el proyecto tiene asesor asignado
+        View btnAgendar = findViewById(R.id.btnAgendarCita);
+        if (btnAgendar != null) {
+            List<String> asesores = proyectoActual.getUidAsesores();
+            String uid1er = (asesores != null && !asesores.isEmpty()) ? asesores.get(0) : null;
+            String pid    = proyectoActual.getId();
+
+            if (uid1er == null) {
+                Log.w("ProjectDetail", "Proyecto sin uidAsesores: " + pid);
+                btnAgendar.setEnabled(false);
+                btnAgendar.setAlpha(0.4f);
+                Toast.makeText(this,
+                        "Este proyecto no tiene asesor asignado. Contacta al administrador.",
+                        Toast.LENGTH_LONG).show();
+            } else {
+                btnAgendar.setEnabled(true);
+                btnAgendar.setAlpha(1f);
+                btnAgendar.setOnClickListener(v -> {
+                    Intent intent = new Intent(this, AgendaCitaActivity.class);
+                    intent.putExtra(AgendaCitaActivity.EXTRA_PROYECTO,    proyectoActual.getNombre());
+                    intent.putExtra(AgendaCitaActivity.EXTRA_PROYECTO_ID, pid);
+                    intent.putExtra(AgendaCitaActivity.EXTRA_UID_ASESOR,  uid1er);
+                    startActivity(intent);
+                });
+            }
+        }
 
         TextView tvNombre = findViewById(R.id.tvNombreProyecto);
         if (tvNombre != null) tvNombre.setText(proyectoActual.getNombre());
