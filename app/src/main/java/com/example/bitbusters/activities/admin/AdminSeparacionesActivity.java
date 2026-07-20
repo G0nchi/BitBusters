@@ -18,6 +18,8 @@ import com.example.bitbusters.utils.AdminPreferencesManager;
 import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -38,6 +40,10 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
     private RecyclerView rvSeparaciones;
     private AdminSeparacionAdapter adapter;
     private String currentEstadoFilter = null;
+    private String currentProyectoFilter = "Todos los proyectos";
+    private String currentFechaFilter = "Todo el tiempo";
+    private ArrayAdapter<String> adapterProyectos;
+    private ArrayAdapter<String> adapterFechas;
     private ListenerRegistration separacionesListener;
 
     @Override
@@ -104,23 +110,28 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
     }
 
     private void setupDropdowns() {
-        String[] proyectos = {
-            "Todos los proyectos",
-            "Edificio Los Álamos",
-            "Mirador de Surco",
-            "Alto San Felipe",
-            "Residencial Verde"
-        };
-        ArrayAdapter<String> adapterProyectos = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, proyectos);
+        adapterProyectos = new ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line, new ArrayList<>());
         actvProyectoFilter.setAdapter(adapterProyectos);
         actvProyectoFilter.setOnClickListener(v -> actvProyectoFilter.showDropDown());
+        actvProyectoFilter.setOnItemClickListener((parent, view, position, id) -> {
+            Object item = parent.getItemAtPosition(position);
+            currentProyectoFilter = item != null ? item.toString() : "Todos los proyectos";
+            renderSeparaciones();
+        });
 
-        String[] fechas = {"Este mes", "Esta semana", "Este año", "Este bimestre"};
-        ArrayAdapter<String> adapterFechas = new ArrayAdapter<>(
+        String[] fechas = {"Todo el tiempo", "Esta semana", "Este mes", "Este bimestre", "Este año"};
+        adapterFechas = new ArrayAdapter<>(
                 this, android.R.layout.simple_dropdown_item_1line, fechas);
         actvFechaFilter.setAdapter(adapterFechas);
         actvFechaFilter.setOnClickListener(v -> actvFechaFilter.showDropDown());
+        actvFechaFilter.setOnItemClickListener((parent, view, position, id) -> {
+            Object item = parent.getItemAtPosition(position);
+            currentFechaFilter = item != null ? item.toString() : "Todo el tiempo";
+            renderSeparaciones();
+        });
+        actvProyectoFilter.setText(currentProyectoFilter, false);
+        actvFechaFilter.setText(currentFechaFilter, false);
     }
 
     private void setupRecyclerView() {
@@ -154,11 +165,13 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
                 new SeparacionesRepository.SeparacionesListener() {
                     @Override
                     public void onSeparacionesActualizadas(List<AdminSeparacion> separaciones) {
+                        actualizarOpcionesProyecto();
                         renderSeparaciones();
                     }
 
                     @Override
                     public void onError(String mensaje) {
+                        actualizarOpcionesProyecto();
                         renderSeparaciones();
                     }
                 });
@@ -193,17 +206,108 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
 
     private void renderSeparaciones() {
         if (adapter == null) return;
-        if (currentEstadoFilter == null || currentEstadoFilter.trim().isEmpty()) {
-            adapter.setData(new ArrayList<>(SeparacionesRepository.getLista()));
-            return;
-        }
         List<AdminSeparacion> filtradas = new ArrayList<>();
         for (AdminSeparacion sep : SeparacionesRepository.getLista()) {
-            if (currentEstadoFilter.equals(sep.getEstado())) {
+            if (cumpleFiltroEstado(sep)
+                    && cumpleFiltroProyecto(sep)
+                    && cumpleFiltroFecha(sep)) {
                 filtradas.add(sep);
             }
         }
         adapter.setData(filtradas);
+        actualizarContadoresTabs();
+    }
+
+    private boolean cumpleFiltroEstado(AdminSeparacion separacion) {
+        if (currentEstadoFilter == null || currentEstadoFilter.trim().isEmpty()) return true;
+        return separacion != null && currentEstadoFilter.equals(separacion.getEstado());
+    }
+
+    private boolean cumpleFiltroProyecto(AdminSeparacion separacion) {
+        if (currentProyectoFilter == null
+                || currentProyectoFilter.trim().isEmpty()
+                || "Todos los proyectos".equals(currentProyectoFilter)) {
+            return true;
+        }
+        return separacion != null && currentProyectoFilter.equals(separacion.getNombreProyecto());
+    }
+
+    private boolean cumpleFiltroFecha(AdminSeparacion separacion) {
+        if (currentFechaFilter == null
+                || currentFechaFilter.trim().isEmpty()
+                || "Todo el tiempo".equals(currentFechaFilter)) {
+            return true;
+        }
+        long fecha = fechaParaFiltro(separacion);
+        if (fecha <= 0) return false;
+        long ahora = System.currentTimeMillis();
+        long inicio = ahora - obtenerDuracionFiltroMillis();
+        return fecha >= inicio && fecha <= ahora;
+    }
+
+    private long fechaParaFiltro(AdminSeparacion separacion) {
+        if (separacion == null) return 0L;
+        if (separacion.getFechaActualizacionMillis() > 0) {
+            return separacion.getFechaActualizacionMillis();
+        }
+        return separacion.getFechaRegistroMillis();
+    }
+
+    private long obtenerDuracionFiltroMillis() {
+        long dia = 24L * 60L * 60L * 1000L;
+        if ("Esta semana".equals(currentFechaFilter)) return 7L * dia;
+        if ("Este bimestre".equals(currentFechaFilter)) return 60L * dia;
+        if ("Este año".equals(currentFechaFilter)) return 365L * dia;
+        return 30L * dia;
+    }
+
+    private void actualizarOpcionesProyecto() {
+        if (adapterProyectos == null) return;
+
+        LinkedHashSet<String> nombres = new LinkedHashSet<>();
+        for (AdminSeparacion sep : SeparacionesRepository.getLista()) {
+            if (sep == null) continue;
+            String proyecto = sep.getNombreProyecto();
+            if (proyecto != null && !proyecto.trim().isEmpty()) {
+                nombres.add(proyecto.trim());
+            }
+        }
+
+        List<String> opciones = new ArrayList<>(nombres);
+        Collections.sort(opciones);
+        opciones.add(0, "Todos los proyectos");
+
+        adapterProyectos.clear();
+        adapterProyectos.addAll(opciones);
+        adapterProyectos.notifyDataSetChanged();
+
+        if (!opciones.contains(currentProyectoFilter)) {
+            currentProyectoFilter = "Todos los proyectos";
+            if (actvProyectoFilter != null) {
+                actvProyectoFilter.setText(currentProyectoFilter, false);
+            }
+        }
+    }
+
+    private void actualizarContadoresTabs() {
+        int pendientes = 0;
+        int aprobadas = 0;
+        int rechazadas = 0;
+
+        for (AdminSeparacion sep : SeparacionesRepository.getLista()) {
+            if (!cumpleFiltroProyecto(sep) || !cumpleFiltroFecha(sep)) continue;
+            if ("Aprobada".equalsIgnoreCase(sep.getEstado())) {
+                aprobadas++;
+            } else if ("Rechazada".equalsIgnoreCase(sep.getEstado())) {
+                rechazadas++;
+            } else {
+                pendientes++;
+            }
+        }
+
+        if (btnPendientes != null) btnPendientes.setText("Pendientes (" + pendientes + ")");
+        if (btnAprobadas != null) btnAprobadas.setText("Aprobadas (" + aprobadas + ")");
+        if (btnRechazadas != null) btnRechazadas.setText("Rechazadas (" + rechazadas + ")");
     }
 
     private void seleccionarTab(String estadoSeleccionado) {
