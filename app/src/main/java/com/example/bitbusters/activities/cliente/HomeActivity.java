@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ProgressBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,22 +20,42 @@ import com.example.bitbusters.utils.ImageUrls;
 import com.example.bitbusters.utils.NotificationHelper;
 import com.example.bitbusters.utils.PreferencesManager;
 import com.bumptech.glide.Glide;
+import android.os.CountDownTimer;
+import android.widget.Button;
+import java.util.Locale;
 import com.google.firebase.firestore.ListenerRegistration;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
 
     private static final String EXTRA_PROYECTO = "proyecto";
+    private static final String TIPOLOGIA_TODOS = "Todos";
+    private static final String TIPOLOGIA_DEPARTAMENTO = "Departamento";
+    private static final String TIPOLOGIA_CASA = "Casa";
+    private static final String TIPOLOGIA_TERRENO = "Terreno";
+    private static final String LABEL_VER_NOTIFICACIONES = "Ver notificaciones";
 
-    private TextView tvSaludoNombre;
-    private TextView btnTodos, btnTipo1, btnTipo2, btnTipo3;
-    private RecyclerView rvProyectos;
+    private TextView btnTodos;
+    private TextView btnTipo1;
+    private TextView btnTipo2;
+    private TextView btnTipo3;
     private ProyectoAdapter adapter;
     private List<Proyecto> todaLaLista;
 
     private ProyectoRepository proyectoRepository;
     private ListenerRegistration listenerProyectos;
+
+    private ProgressBar progressHome;
+    private android.view.View layoutHomeError;
+    private TextView tvHomeError;
+    private android.view.View scrollHomeContent;
+    private android.view.View cardSeparationStatus;
+    private TextView tvSeparationStatusTitle;
+    private TextView tvSeparationStatusBody;
+    private Button btnSeparationStatusAction;
+    private CountDownTimer separationTimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +68,7 @@ public class HomeActivity extends AppCompatActivity {
         NotificationHelper.solicitarPermiso(this);
 
         // Leer el nombre guardado en SharedPreferences y mostrar el saludo
-        tvSaludoNombre = findViewById(R.id.tvSaludoNombre);
+        TextView tvSaludoNombre = findViewById(R.id.tvSaludoNombre);
         String nombre = PreferencesManager.obtenerNombre(this);
         if (tvSaludoNombre != null) {
             tvSaludoNombre.setText("¡Hola, " + nombre + "!");
@@ -83,7 +104,7 @@ public class HomeActivity extends AppCompatActivity {
         btnTipo3 = findViewById(R.id.btnTipo3);
 
         // RecyclerView — lista vacía al inicio; Firestore la puebla en onStart
-        rvProyectos  = findViewById(R.id.rvProyectos);
+        RecyclerView rvProyectos = findViewById(R.id.rvProyectos);
         todaLaLista  = new ArrayList<>();
         adapter      = new ProyectoAdapter(this, new ArrayList<>());
         rvProyectos.setLayoutManager(new LinearLayoutManager(this));
@@ -93,26 +114,26 @@ public class HomeActivity extends AppCompatActivity {
 
         // Filtro Todos — guarda preferencia y aplica vista completa
         btnTodos.setOnClickListener(v -> {
-            PreferencesManager.guardarTipologiaFavorita(this, "Todos");
-            aplicarFiltro("Todos");
+            PreferencesManager.guardarTipologiaFavorita(this, TIPOLOGIA_TODOS);
+            aplicarFiltro(TIPOLOGIA_TODOS);
         });
 
         // Filtro Tipo 1 → Departamento
         btnTipo1.setOnClickListener(v -> {
-            PreferencesManager.guardarTipologiaFavorita(this, "Departamento");
-            aplicarFiltro("Departamento");
+            PreferencesManager.guardarTipologiaFavorita(this, TIPOLOGIA_DEPARTAMENTO);
+            aplicarFiltro(TIPOLOGIA_DEPARTAMENTO);
         });
 
         // Filtro Tipo 2 → Casa
         btnTipo2.setOnClickListener(v -> {
-            PreferencesManager.guardarTipologiaFavorita(this, "Casa");
-            aplicarFiltro("Casa");
+            PreferencesManager.guardarTipologiaFavorita(this, TIPOLOGIA_CASA);
+            aplicarFiltro(TIPOLOGIA_CASA);
         });
 
         // Filtro Tipo 3 → Terreno
         btnTipo3.setOnClickListener(v -> {
-            PreferencesManager.guardarTipologiaFavorita(this, "Terreno");
-            aplicarFiltro("Terreno");
+            PreferencesManager.guardarTipologiaFavorita(this, TIPOLOGIA_TERRENO);
+            aplicarFiltro(TIPOLOGIA_TERRENO);
         });
 
         // "Ver todos" en la sección Destacados → SearchActivity mostrando todos los proyectos
@@ -162,11 +183,34 @@ public class HomeActivity extends AppCompatActivity {
         navSearch.setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
         navCitas.setOnClickListener(v  -> startActivity(new Intent(this, MisCitasActivity.class)));
         navPerfil.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
+
+        progressHome = findViewById(R.id.progressHome);
+        layoutHomeError = findViewById(R.id.layoutHomeError);
+        tvHomeError = findViewById(R.id.tvHomeError);
+        scrollHomeContent = findViewById(R.id.scrollHomeContent);
+        findViewById(R.id.btnRetryHome).setOnClickListener(v -> retryCargarProyectos());
+
+        cardSeparationStatus = findViewById(R.id.cardSeparationStatus);
+        tvSeparationStatusTitle = findViewById(R.id.tvSeparationStatusTitle);
+        tvSeparationStatusBody = findViewById(R.id.tvSeparationStatusBody);
+        btnSeparationStatusAction = findViewById(R.id.btnSeparationStatusAction);
+        if (btnSeparationStatusAction != null) {
+            btnSeparationStatusAction.setOnClickListener(v ->
+                    startActivity(new Intent(this, NotificationsActivity.class)));
+        }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        mostrarCargando();
+        iniciarListenerProyectos();
+    }
+
+    private void iniciarListenerProyectos() {
+        if (todaLaLista.isEmpty()) {
+            mostrarCargando();
+        }
         listenerProyectos = proyectoRepository.escucharProyectosCliente(
             new ProyectoRepository.ProyectosListener() {
                 @Override
@@ -174,16 +218,47 @@ public class HomeActivity extends AppCompatActivity {
                     todaLaLista.clear();
                     todaLaLista.addAll(proyectos);
                     String filtroActual = PreferencesManager.obtenerTipologiaFavorita(HomeActivity.this);
-                    aplicarFiltro(filtroActual != null ? filtroActual : "Todos");
+                    aplicarFiltro(filtroActual != null ? filtroActual : TIPOLOGIA_TODOS);
+                    mostrarContenido();
                 }
 
                 @Override
                 public void onError(String mensaje) {
                     Log.e("HomeActivity", "Error cargando proyectos: " + mensaje);
-                    Toast.makeText(HomeActivity.this,
-                        "Error al cargar proyectos: " + mensaje, Toast.LENGTH_LONG).show();
+                    mostrarError("Error al cargar proyectos: " + mensaje);
                 }
             });
+    }
+
+    private void retryCargarProyectos() {
+        if (listenerProyectos != null) {
+            listenerProyectos.remove();
+            listenerProyectos = null;
+        }
+        iniciarListenerProyectos();
+    }
+
+    private void mostrarCargando() {
+        if (progressHome != null) progressHome.setVisibility(android.view.View.VISIBLE);
+        if (layoutHomeError != null) layoutHomeError.setVisibility(android.view.View.GONE);
+        if (scrollHomeContent != null) scrollHomeContent.setVisibility(android.view.View.GONE);
+    }
+
+    private void mostrarError(String mensaje) {
+        if (progressHome != null) progressHome.setVisibility(android.view.View.GONE);
+        if (scrollHomeContent != null) scrollHomeContent.setVisibility(android.view.View.GONE);
+        if (layoutHomeError != null) {
+            layoutHomeError.setVisibility(android.view.View.VISIBLE);
+            if (tvHomeError != null) {
+                tvHomeError.setText(mensaje);
+            }
+        }
+    }
+
+    private void mostrarContenido() {
+        if (progressHome != null) progressHome.setVisibility(android.view.View.GONE);
+        if (layoutHomeError != null) layoutHomeError.setVisibility(android.view.View.GONE);
+        if (scrollHomeContent != null) scrollHomeContent.setVisibility(android.view.View.VISIBLE);
     }
 
     @Override
@@ -193,6 +268,10 @@ public class HomeActivity extends AppCompatActivity {
             listenerProyectos.remove();
             listenerProyectos = null;
         }
+        if (separationTimer != null) {
+            separationTimer.cancel();
+            separationTimer = null;
+        }
     }
 
     @Override
@@ -201,6 +280,71 @@ public class HomeActivity extends AppCompatActivity {
         // Restaurar el último filtro seleccionado al volver a esta pantalla
         String tipologiaGuardada = PreferencesManager.obtenerTipologiaFavorita(this);
         aplicarFiltro(tipologiaGuardada);
+        mostrarEstadoSeparacionActiva();
+    }
+
+    private void mostrarEstadoSeparacionActiva() {
+        long venceEnMillis = PreferencesManager.obtenerSeparacionActivaVenceEn(this);
+        String proyectoActivo = PreferencesManager.obtenerSeparacionActivaProyecto(this);
+
+        if (cardSeparationStatus == null || tvSeparationStatusTitle == null || tvSeparationStatusBody == null) {
+            return;
+        }
+
+        if (venceEnMillis <= 0L || proyectoActivo == null || proyectoActivo.trim().isEmpty()) {
+            cardSeparationStatus.setVisibility(android.view.View.GONE);
+            return;
+        }
+
+        long remainingMillis = venceEnMillis - System.currentTimeMillis();
+        cardSeparationStatus.setVisibility(android.view.View.VISIBLE);
+
+        if (remainingMillis <= 0L) {
+            if (separationTimer != null) {
+                separationTimer.cancel();
+                separationTimer = null;
+            }
+            tvSeparationStatusTitle.setText("Separación vencida");
+            tvSeparationStatusBody.setText("La separación de " + proyectoActivo + " venció. Revisa tu tarjeta o vuelve a registrar el pago.");
+            if (btnSeparationStatusAction != null) {
+                btnSeparationStatusAction.setText(LABEL_VER_NOTIFICACIONES);
+            }
+            return;
+        }
+
+        iniciarCuentaRegresivaSeparacion(proyectoActivo, remainingMillis);
+    }
+
+    private void iniciarCuentaRegresivaSeparacion(String proyectoActivo, long remainingMillis) {
+        if (separationTimer != null) {
+            separationTimer.cancel();
+        }
+        separationTimer = new CountDownTimer(remainingMillis, 1000L) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                tvSeparationStatusTitle.setText("Separación activa");
+                tvSeparationStatusBody.setText("" + proyectoActivo + " vence en " + formatearTiempoRestante(millisUntilFinished) + ". Tienes 10 minutos para completar el pago.");
+                if (btnSeparationStatusAction != null) {
+                    btnSeparationStatusAction.setText(LABEL_VER_NOTIFICACIONES);
+                }
+            }
+
+            @Override
+            public void onFinish() {
+                tvSeparationStatusTitle.setText("Separación vencida");
+                tvSeparationStatusBody.setText("La separación de " + proyectoActivo + " venció. Revisa tu tarjeta o vuelve a registrar el pago.");
+                if (btnSeparationStatusAction != null) {
+                    btnSeparationStatusAction.setText(LABEL_VER_NOTIFICACIONES);
+                }
+            }
+        }.start();
+    }
+
+    private String formatearTiempoRestante(long millis) {
+        long totalSeconds = TimeUnit.MILLISECONDS.toSeconds(millis);
+        long minutes = totalSeconds / 60;
+        long seconds = totalSeconds % 60;
+        return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
     }
 
     /**
@@ -212,10 +356,10 @@ public class HomeActivity extends AppCompatActivity {
         int blanco = getResources().getColor(android.R.color.white, getTheme());
 
         switch (tipologia) {
-            case "Departamento":
+            case TIPOLOGIA_DEPARTAMENTO:
                 btnTipo1.setBackgroundResource(R.drawable.bg_filter_selected);
                 btnTipo1.setTextColor(blanco);
-                filtrar("Departamento");
+                filtrar(TIPOLOGIA_DEPARTAMENTO);
                 actualizarDestacados(
                     "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400",
                     "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400");
@@ -240,10 +384,10 @@ public class HomeActivity extends AppCompatActivity {
                     "https://images.unsplash.com/photo-1576941089067-2de3c901e126?w=400");
                 break;
 
-            case "Terreno":
+            case TIPOLOGIA_TERRENO:
                 btnTipo3.setBackgroundResource(R.drawable.bg_filter_selected);
                 btnTipo3.setTextColor(blanco);
-                filtrar("Terreno");
+                filtrar(TIPOLOGIA_TERRENO);
                 actualizarDestacados(
                     "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400",
                     "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400");

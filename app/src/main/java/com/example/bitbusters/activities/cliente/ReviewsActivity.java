@@ -3,6 +3,8 @@ package com.example.bitbusters.activities.cliente;
 
 import android.os.Bundle;
 import android.text.format.DateUtils;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,6 +35,10 @@ public class ReviewsActivity extends AppCompatActivity {
 
     private final FirebaseFirestore firestore = FirebaseFirestore.getInstance();
     private ClientReviewsAdapter adapter;
+    private ProgressBar progressReviews;
+    private View layoutReviewsError;
+    private TextView tvReviewsError;
+    private View layoutReviewsContent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,21 +53,32 @@ public class ReviewsActivity extends AppCompatActivity {
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
+        progressReviews = findViewById(R.id.progressReviews);
+        layoutReviewsError = findViewById(R.id.layoutReviewsError);
+        tvReviewsError = findViewById(R.id.tvReviewsError);
+        layoutReviewsContent = findViewById(R.id.layoutReviewsContent);
+        findViewById(R.id.btnRetryReviews).setOnClickListener(v -> cargarValoraciones(proyectoId, nombreProyecto));
+
         RecyclerView recyclerView = findViewById(R.id.recyclerViewReviews);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ClientReviewsAdapter();
         recyclerView.setAdapter(adapter);
 
+        mostrarCargando();
         cargarValoraciones(proyectoId, nombreProyecto);
     }
 
     private void cargarValoraciones(String proyectoId, String nombreProyecto) {
-        Query query = (proyectoId != null && !proyectoId.isEmpty())
-                ? firestore.collection("valoraciones").whereEqualTo("proyectoId", proyectoId)
-                : firestore.collection("valoraciones").whereEqualTo("proyecto", nombreProyecto);
+        Query query;
+        if (proyectoId != null) {
+            query = firestore.collection("valoraciones").whereEqualTo("proyectoId", proyectoId);
+        } else {
+            query = firestore.collection("valoraciones").whereEqualTo("proyecto", nombreProyecto);
+        }
 
         query.get()
                 .addOnSuccessListener(snapshot -> {
+                    mostrarContenido();
                     List<DocumentSnapshot> docs = new ArrayList<>(snapshot.getDocuments());
                     Collections.sort(docs, (a, b) -> {
                         Timestamp ta = a.getTimestamp("timestamp");
@@ -73,7 +90,10 @@ public class ReviewsActivity extends AppCompatActivity {
                     });
                     resolverNombresYMostrar(docs);
                 })
-                .addOnFailureListener(e -> adapter.submitList(new ArrayList<>()));
+                .addOnFailureListener(e -> {
+                    mostrarError("No se pudieron cargar las reseñas");
+                    adapter.submitList(new ArrayList<>());
+                });
     }
 
     private void resolverNombresYMostrar(List<DocumentSnapshot> docs) {
@@ -89,6 +109,7 @@ public class ReviewsActivity extends AppCompatActivity {
         }
 
         if (uids.isEmpty()) {
+            mostrarContenido();
             adapter.submitList(construirReviews(docs, new HashMap<>()));
             return;
         }
@@ -101,9 +122,32 @@ public class ReviewsActivity extends AppCompatActivity {
                     for (DocumentSnapshot userDoc : usersSnapshot.getDocuments()) {
                         nombresPorUid.put(userDoc.getId(), userDoc.getString("nombre"));
                     }
+                    mostrarContenido();
                     adapter.submitList(construirReviews(docs, nombresPorUid));
                 })
-                .addOnFailureListener(e -> adapter.submitList(construirReviews(docs, new HashMap<>())));
+                .addOnFailureListener(e -> {
+                    mostrarContenido();
+                    adapter.submitList(construirReviews(docs, new HashMap<>()));
+                });
+    }
+
+    private void mostrarCargando() {
+        if (progressReviews != null) progressReviews.setVisibility(View.VISIBLE);
+        if (layoutReviewsError != null) layoutReviewsError.setVisibility(View.GONE);
+        if (layoutReviewsContent != null) layoutReviewsContent.setVisibility(View.GONE);
+    }
+
+    private void mostrarContenido() {
+        if (progressReviews != null) progressReviews.setVisibility(View.GONE);
+        if (layoutReviewsError != null) layoutReviewsError.setVisibility(View.GONE);
+        if (layoutReviewsContent != null) layoutReviewsContent.setVisibility(View.VISIBLE);
+    }
+
+    private void mostrarError(String mensaje) {
+        if (progressReviews != null) progressReviews.setVisibility(View.GONE);
+        if (layoutReviewsContent != null) layoutReviewsContent.setVisibility(View.GONE);
+        if (layoutReviewsError != null) layoutReviewsError.setVisibility(View.VISIBLE);
+        if (tvReviewsError != null) tvReviewsError.setText(mensaje);
     }
 
     private List<ClientReview> construirReviews(List<DocumentSnapshot> docs, Map<String, String> nombresPorUid) {

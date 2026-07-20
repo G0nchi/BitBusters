@@ -1,82 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/neutral_canvas">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@color/neutral_canvas"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_centerVertical="true"
-            android:layout_alignParentStart="true"
-            android:src="@drawable/ic_arrow_back"
-            android:background="@drawable/bg_circle_outline"
-            android:contentDescription="Volver" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:text="Comentarios"
-            android:textSize="16sp"
-            android:textColor="@color/text_primary"
-            android:fontFamily="sans-serif-medium" />
-    </RelativeLayout>
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="12dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="@color/white">
-
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="12dp">
+            android:layout_height="56dp"
+            android:background="@color/neutral_canvas"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_centerVertical="true"
+                android:layout_alignParentStart="true"
+                android:src="@drawable/ic_arrow_back"
+                android:background="@drawable/bg_circle_outline"
+                android:contentDescription="Volver" />
 
             <TextView
-                android:id="@+id/tvNombreProyecto"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Las Torres"
-                android:textSize="15sp"
+                android:layout_centerInParent="true"
+                android:text="Comentarios"
+                android:textSize="16sp"
                 android:textColor="@color/text_primary"
                 android:fontFamily="sans-serif-medium" />
+        </RelativeLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/layoutReviewsContent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="La Perla, Callao"
-                android:textSize="11sp"
-                android:textColor="@color/text_medium"
-                android:layout_marginTop="4dp" />
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/tvNombreProyecto"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Las Torres"
+                        android:textSize="15sp"
+                        android:textColor="@color/text_primary"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="La Perla, Callao"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_medium"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewReviews"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="16dp"
+                android:clipToPadding="false" />
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewReviews"
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressReviews"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/layoutReviewsError"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="16dp"
-        android:clipToPadding="false" />
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:visibility="gone">
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/tvReviewsError"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No se pudieron cargar las reseñas"
+            android:textSize="14sp"
+            android:textColor="@color/text_medium"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRetryReviews"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reintentar"
+            app:cornerRadius="8dp" />
+    </LinearLayout>
+
+</FrameLayout>

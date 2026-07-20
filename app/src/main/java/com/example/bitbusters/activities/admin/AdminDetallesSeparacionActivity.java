@@ -17,6 +17,11 @@ import com.example.bitbusters.utils.AdminPreferencesManager;
 import com.example.bitbusters.utils.AdminStorageManager;
 import com.example.bitbusters.utils.NotificationHelper;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Pantalla de detalle de una separación específica.
@@ -182,6 +187,7 @@ public class AdminDetallesSeparacionActivity extends AppCompatActivity {
             .show();
     }
 
+    
     private void showRechazarDialog() {
         new MaterialAlertDialogBuilder(this)
             .setTitle("Confirmar rechazo")
