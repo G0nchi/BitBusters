@@ -158,6 +158,7 @@
                                 </FrameLayout>
 
                                 <TextView
+                                    android:id="@+id/dashboardEmpresasBadge"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
@@ -168,10 +169,12 @@
                                     android:paddingBottom="2dp"
                                     android:text="+2 vs mes pasado"
                                     android:textColor="@color/success_green"
-                                    android:textSize="11sp" />
+                                    android:textSize="11sp"
+                                    android:visibility="gone" />
                             </LinearLayout>
 
                             <TextView
+                                android:id="@+id/dashboardEmpresasValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
@@ -224,6 +227,7 @@
                                 </FrameLayout>
 
                                 <TextView
+                                    android:id="@+id/dashboardAsesoresBadge"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
@@ -234,10 +238,12 @@
                                     android:paddingBottom="2dp"
                                     android:text="+3 vs ayer"
                                     android:textColor="@color/success_green"
-                                    android:textSize="11sp" />
+                                    android:textSize="11sp"
+                                    android:visibility="gone" />
                             </LinearLayout>
 
                             <TextView
+                                android:id="@+id/dashboardAsesoresValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
@@ -296,6 +302,7 @@
                                 </FrameLayout>
 
                                 <TextView
+                                    android:id="@+id/dashboardIngresosBadge"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
@@ -306,10 +313,12 @@
                                     android:paddingBottom="2dp"
                                     android:text="+8 vs mes pasado"
                                     android:textColor="@color/success_green"
-                                    android:textSize="11sp" />
+                                    android:textSize="11sp"
+                                    android:visibility="gone" />
                             </LinearLayout>
 
                             <TextView
+                                android:id="@+id/dashboardIngresosValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
@@ -362,6 +371,7 @@
                                 </FrameLayout>
 
                                 <TextView
+                                    android:id="@+id/dashboardReservasMesBadge"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
@@ -372,10 +382,12 @@
                                     android:paddingBottom="2dp"
                                     android:text="+6 vs mes pasado"
                                     android:textColor="@color/success_green"
-                                    android:textSize="11sp" />
+                                    android:textSize="11sp"
+                                    android:visibility="gone" />
                             </LinearLayout>
 
                             <TextView
+                                android:id="@+id/dashboardReservasMesValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
@@ -452,6 +464,7 @@
                             </LinearLayout>
 
                             <TextView
+                                android:id="@+id/quickUsersValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="124"
@@ -502,6 +515,7 @@
                             </LinearLayout>
 
                             <TextView
+                                android:id="@+id/quickApprovalsValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="5"
@@ -552,6 +566,7 @@
                             </LinearLayout>
 
                             <TextView
+                                android:id="@+id/quickLogsValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="18"
@@ -602,6 +617,7 @@
                             </LinearLayout>
 
                             <TextView
+                                android:id="@+id/quickReportsValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="12"

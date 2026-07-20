@@ -237,6 +237,7 @@ public class RegisterOtpActivity extends AppCompatActivity {
         user.put("role",   "cliente");
         user.put("status", "active");
         user.put("activo", true);
+        user.put("fechaRegistro", com.google.firebase.firestore.FieldValue.serverTimestamp());
 
         if (fotoUri != null && !fotoUri.trim().isEmpty()) {
             subirFotoYGuardarPerfil(uid, Uri.parse(fotoUri), user, nombre);
