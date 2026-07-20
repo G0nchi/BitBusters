@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 
 public class MisCitasActivity extends AppCompatActivity {
 
@@ -44,6 +45,12 @@ public class MisCitasActivity extends AppCompatActivity {
     // Firestore
     private final CitaRepository      citaRepository = new CitaRepository();
     private       ListenerRegistration citasListener;
+
+    private ProgressBar progressCitas;
+    private android.view.View layoutCitasError;
+    private TextView tvCitasError;
+    private android.view.View layoutCitasContent;
+    private android.view.View layoutCitasOverlay;
 
     // Formateadores zona Lima (inicializados una vez)
     private final SimpleDateFormat sdfFecha;
@@ -98,11 +105,19 @@ public class MisCitasActivity extends AppCompatActivity {
         if (navHome   != null) navHome.setOnClickListener(v -> { startActivity(new Intent(this, HomeActivity.class)); finish(); });
         if (navSearch != null) navSearch.setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
         if (navPerfil != null) navPerfil.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
+
+        progressCitas = findViewById(R.id.progressCitas);
+        layoutCitasError = findViewById(R.id.layoutCitasError);
+        tvCitasError = findViewById(R.id.tvCitasError);
+        layoutCitasContent = findViewById(R.id.layoutCitasContent);
+        layoutCitasOverlay = findViewById(R.id.layoutCitasOverlay);
+        findViewById(R.id.btnRetryCitas).setOnClickListener(v -> retryCargarCitas());
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        mostrarCargando();
         suscribirCitas();
     }
 
@@ -125,8 +140,15 @@ public class MisCitasActivity extends AppCompatActivity {
     // ── Firestore ──────────────────────────────────────────────────────────────
 
     private void suscribirCitas() {
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            mostrarError("Inicia sesión para ver tus citas.");
+            return;
+        }
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        if (allAppointments.isEmpty()) {
+            mostrarCargando();
+        }
 
         citasListener = citaRepository.escucharCitasCliente(uid,
                 new CitaRepository.CitasClienteListener() {
@@ -136,15 +158,44 @@ public class MisCitasActivity extends AppCompatActivity {
                         for (Cita c : citas) {
                             allAppointments.add(mapearCita(c));
                         }
+                        mostrarContenido();
                         seleccionarTab(tabActual);
                     }
                     @Override
                     public void onError(String msg) {
                         Log.e(TAG, "Error escuchando citas: " + msg);
-                        Toast.makeText(MisCitasActivity.this,
-                                "No se pudieron cargar las citas", Toast.LENGTH_SHORT).show();
+                        mostrarError("No se pudieron cargar las citas: " + msg);
                     }
                 });
+    }
+
+    private void retryCargarCitas() {
+        if (citasListener != null) {
+            citasListener.remove();
+            citasListener = null;
+        }
+        suscribirCitas();
+    }
+
+    private void mostrarCargando() {
+        if (progressCitas != null) progressCitas.setVisibility(android.view.View.VISIBLE);
+        if (layoutCitasError != null) layoutCitasError.setVisibility(android.view.View.GONE);
+        if (layoutCitasContent != null) layoutCitasContent.setVisibility(android.view.View.GONE);
+    }
+
+    private void mostrarError(String mensaje) {
+        if (progressCitas != null) progressCitas.setVisibility(android.view.View.GONE);
+        if (layoutCitasContent != null) layoutCitasContent.setVisibility(android.view.View.GONE);
+        if (layoutCitasError != null) {
+            layoutCitasError.setVisibility(android.view.View.VISIBLE);
+            if (tvCitasError != null) tvCitasError.setText(mensaje);
+        }
+    }
+
+    private void mostrarContenido() {
+        if (progressCitas != null) progressCitas.setVisibility(android.view.View.GONE);
+        if (layoutCitasError != null) layoutCitasError.setVisibility(android.view.View.GONE);
+        if (layoutCitasContent != null) layoutCitasContent.setVisibility(android.view.View.VISIBLE);
     }
 
     private ClientAppointment mapearCita(Cita cita) {
@@ -258,13 +309,22 @@ public class MisCitasActivity extends AppCompatActivity {
                     return;
                 }
                 btnConfirmar.setEnabled(false);
+                if (layoutCitasOverlay != null) {
+                    layoutCitasOverlay.setVisibility(android.view.View.VISIBLE);
+                }
                 citaRepository.cancelarCita(firestoreId, slotId, motivo)
                         .addOnSuccessListener(__ -> {
+                            if (layoutCitasOverlay != null) {
+                                layoutCitasOverlay.setVisibility(android.view.View.GONE);
+                            }
                             Toast.makeText(this, "Cita cancelada", Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
                             // La UI se actualiza automáticamente por el listener de Firestore
                         })
                         .addOnFailureListener(e -> {
+                            if (layoutCitasOverlay != null) {
+                                layoutCitasOverlay.setVisibility(android.view.View.GONE);
+                            }
                             btnConfirmar.setEnabled(true);
                             Toast.makeText(this, "No se pudo cancelar. Intenta de nuevo.",
                                     Toast.LENGTH_SHORT).show();

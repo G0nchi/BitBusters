@@ -54,6 +54,7 @@ public class AgendaCitaActivity extends AppCompatActivity {
     private TextView tvFechaSeleccionada;
     private TextView btnNext;
     private View     btnNextArrow;
+    private View     layoutAgendaLoading;
     // TV → código hora 24h ("0900", "1000", "1100", "1200", "1400", "1600")
     private final Map<TextView, String> horaViews = new LinkedHashMap<>();
 
@@ -77,6 +78,7 @@ public class AgendaCitaActivity extends AppCompatActivity {
         leerExtras();
         inicializarVistas();
         configurarProyectoUI();
+        layoutAgendaLoading = findViewById(R.id.layoutAgendaLoading);
         NotificationHelper.crearCanal(this);
     }
 
@@ -134,12 +136,6 @@ public class AgendaCitaActivity extends AppCompatActivity {
         if (btnNext     != null) btnNext.setOnClickListener(v -> confirmarCita());
         if (btnNextArrow != null) btnNextArrow.setOnClickListener(v -> confirmarCita());
 
-        View c1 = findViewById(R.id.cardTarjeta1);
-        View c2 = findViewById(R.id.cardTarjeta2);
-        if (c1 != null) c1.setOnClickListener(v ->
-                Toast.makeText(this, "Tarjeta •••• 1222 seleccionada", Toast.LENGTH_SHORT).show());
-        if (c2 != null) c2.setOnClickListener(v ->
-                Toast.makeText(this, "Tarjeta •••• 1542 seleccionada", Toast.LENGTH_SHORT).show());
     }
 
     private void configurarProyectoUI() {
@@ -161,6 +157,7 @@ public class AgendaCitaActivity extends AppCompatActivity {
         if (slotListener != null) slotListener.remove();
         listenerYear  = year;
         listenerMonth = month0based;
+        mostrarCargaAgenda(true);
 
         Date inicio = CitaRepository.inicioDelMes(year, month0based);
         Date fin    = CitaRepository.inicioDelMesSiguiente(year, month0based);
@@ -172,10 +169,12 @@ public class AgendaCitaActivity extends AppCompatActivity {
                         Log.d(TAG, "DIAG onSlotsActualizados: recibidos=" + slots.size() + " ids=" + slots);
                         slotsOcupados.clear();
                         slotsOcupados.addAll(slots);
+                        mostrarCargaAgenda(false);
                         actualizarDisponibilidadHoras();
                     }
                     @Override public void onError(String msg) {
                         Log.e(TAG, "DIAG ERROR slot listener: " + msg);
+                        mostrarCargaAgenda(false);
                     }
                 });
     }
@@ -344,11 +343,18 @@ public class AgendaCitaActivity extends AppCompatActivity {
     }
 
     private void setLoadingState(boolean loading) {
+        mostrarCargaAgenda(loading);
         if (btnNext != null) {
             btnNext.setEnabled(!loading);
             btnNext.setAlpha(loading ? 0.5f : 1f);
         }
         if (btnNextArrow != null) btnNextArrow.setEnabled(!loading);
+    }
+
+    private void mostrarCargaAgenda(boolean loading) {
+        if (layoutAgendaLoading != null) {
+            layoutAgendaLoading.setVisibility(loading ? View.VISIBLE : View.GONE);
+        }
     }
 
     // ── Diálogo de éxito ───────────────────────────────────────────────────────

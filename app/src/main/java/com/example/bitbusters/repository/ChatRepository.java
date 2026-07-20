@@ -116,14 +116,11 @@ public class ChatRepository {
 
     /**
      * Listener en tiempo real de todos los chats donde el usuario participa,
-     * ordenados DESC por timestampUltimoMensaje.
-     * NOTA: requiere índice compuesto en Firestore (participantes + timestampUltimoMensaje).
-     * Si la app lanza "requires an index", usa el link del Logcat para crearlo.
+     * ordenados en memoria DESC por timestampUltimoMensaje para no depender de un índice compuesto.
      */
     public ListenerRegistration escucharChatsDelUsuario(String uid, ChatsListener listener) {
         return db.collection(CHATS)
             .whereArrayContains("participantes", uid)
-            .orderBy("timestampUltimoMensaje", Query.Direction.DESCENDING)
             .addSnapshotListener((snap, e) -> {
                 if (e != null) {
                     Log.e(TAG, "Error escuchando chats: " + e.getMessage());
@@ -135,9 +132,18 @@ public class ChatRepository {
                     for (int i = 0; i < chats.size(); i++) {
                         chats.get(i).setChatId(snap.getDocuments().get(i).getId());
                     }
+                    chats.sort((a, b) -> Long.compare(
+                            timestampMillis(b),
+                            timestampMillis(a)));
                     listener.onChats(chats);
                 }
             });
+    }
+
+    private static long timestampMillis(Chat chat) {
+        return chat != null && chat.getTimestampUltimoMensaje() != null
+                ? chat.getTimestampUltimoMensaje().toDate().getTime()
+                : 0L;
     }
 
     // ── Interfaces ──────────────────────────────────────────────────────────────

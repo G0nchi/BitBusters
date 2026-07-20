@@ -16,6 +16,11 @@ import com.example.bitbusters.utils.AdminPreferencesManager;
 import com.example.bitbusters.utils.AdminStorageManager;
 import com.example.bitbusters.utils.NotificationHelper;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Pantalla de detalle de una separación específica.
@@ -125,6 +130,7 @@ public class AdminDetallesSeparacionActivity extends AppCompatActivity {
                 // Esto hace que la lista muestre "Aprobada" (en verde) al volver
                 if (separacionId != null) {
                     SeparacionesRepository.actualizarEstado(separacionId, "Aprobada");
+                    notificarClienteSeparacionAprobada(separacionId);
                 }
 
                 // ── Corrección 3: Notificación con ID para que la lista haga scroll ─
@@ -146,6 +152,34 @@ public class AdminDetallesSeparacionActivity extends AppCompatActivity {
                 finish();
             })
             .show();
+    }
+
+    private void notificarClienteSeparacionAprobada(String separacionId) {
+        AdminSeparacion separacion = SeparacionesRepository.getById(separacionId);
+        if (separacion == null) return;
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("role", "cliente");
+        data.put("senderName", "Administración");
+        data.put("descripcion", "Tu separación para " + separacion.getNombreProyecto() + " fue aprobada. Tienes 10 minutos para completar el pago.");
+        data.put("tiempo", "Ahora");
+        data.put("avatarName", "avatar_jonathan");
+        data.put("propertyName", "");
+        data.put("isOld", false);
+        data.put("order", System.currentTimeMillis());
+        data.put("tipo", "separacion_aprobada");
+        data.put("separacionId", separacionId);
+        data.put("proyectoId", separacionId);
+        data.put("proyectoNombre", separacion.getNombreProyecto());
+        data.put("montoSeparacion", separacion.getMonto());
+        data.put("pagoVenceEnMillis", System.currentTimeMillis() + 10 * 60 * 1000L);
+        data.put("createdAt", FieldValue.serverTimestamp());
+
+        FirebaseFirestore.getInstance()
+                .collection("notifications")
+                .add(data)
+                .addOnFailureListener(e ->
+                        android.util.Log.e("AdminSeparacion", "No se pudo notificar al cliente", e));
     }
 
     private void showRechazarDialog() {
