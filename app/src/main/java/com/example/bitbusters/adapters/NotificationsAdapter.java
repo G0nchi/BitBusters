@@ -14,9 +14,20 @@ import java.util.List;
 public class NotificationsAdapter extends RecyclerView.Adapter<NotificationsAdapter.NotificationViewHolder> {
 
     private List<Notification> notificationList;
+    private final OnNotificationClickListener clickListener;
+
+    public interface OnNotificationClickListener {
+        void onNotificationClick(Notification notification);
+    }
 
     public NotificationsAdapter(List<Notification> notificationList) {
+        this(notificationList, null);
+    }
+
+    public NotificationsAdapter(List<Notification> notificationList,
+                                OnNotificationClickListener clickListener) {
         this.notificationList = notificationList;
+        this.clickListener = clickListener;
     }
 
     @NonNull
@@ -40,6 +51,12 @@ public class NotificationsAdapter extends RecyclerView.Adapter<NotificationsAdap
         } else {
             holder.imgProperty.setVisibility(View.GONE);
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (clickListener != null) {
+                clickListener.onNotificationClick(notification);
+            }
+        });
     }
 
     @Override

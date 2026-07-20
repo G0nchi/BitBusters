@@ -132,72 +132,115 @@
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- Estado vacío (visible cuando no hay resultados) -->
-    <LinearLayout
-        android:id="@+id/layoutVacio"
+    <!-- Contenedor de contenido de búsqueda -->
+    <FrameLayout
+        android:id="@+id/layoutSearchContent"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:paddingStart="32dp"
-        android:paddingEnd="32dp"
-        android:visibility="visible">
+        android:layout_weight="1">
 
-        <FrameLayout
-            android:layout_width="160dp"
-            android:layout_height="160dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="24dp">
+        <!-- Estado vacío (visible cuando no hay resultados) -->
+        <LinearLayout
+            android:id="@+id/layoutVacio"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp"
+            android:visibility="visible">
 
-            <View
+            <FrameLayout
                 android:layout_width="160dp"
                 android:layout_height="160dp"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_halo_green" />
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="24dp">
+
+                <View
+                    android:layout_width="160dp"
+                    android:layout_height="160dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_halo_green" />
+
+                <TextView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_gravity="center"
+                    android:text="!"
+                    android:textSize="32sp"
+                    android:textColor="@color/white"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:background="@drawable/bg_circle_green" />
+            </FrameLayout>
 
             <TextView
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:layout_gravity="center"
-                android:text="!"
-                android:textSize="32sp"
-                android:textColor="@color/white"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Búsqueda no encontrada"
+                android:textSize="18sp"
+                android:textColor="@color/text_primary"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
-                android:background="@drawable/bg_circle_green" />
-        </FrameLayout>
+                android:layout_marginBottom="12dp" />
 
-        <TextView
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lo sentimos, no encontramos las propiedades que busca. ¿Quizás haya habido un pequeño error ortográfico?"
+                android:textSize="13sp"
+                android:textColor="@color/text_medium"
+                android:gravity="center"
+                android:lineSpacingMultiplier="1.4" />
+        </LinearLayout>
+
+        <!-- Lista de resultados (visible cuando hay resultados) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvResultados"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
+            android:clipToPadding="false"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/progressSearch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Búsqueda no encontrada"
-            android:textSize="18sp"
-            android:textColor="@color/text_primary"
-            android:fontFamily="sans-serif-medium"
-            android:gravity="center"
-            android:layout_marginBottom="12dp" />
+            android:layout_gravity="center"
+            android:visibility="gone" />
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/layoutSearchError"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Lo sentimos, no encontramos las propiedades que busca. ¿Quizás haya habido un pequeño error ortográfico?"
-            android:textSize="13sp"
-            android:textColor="@color/text_medium"
+            android:layout_gravity="center"
+            android:orientation="vertical"
             android:gravity="center"
-            android:lineSpacingMultiplier="1.4" />
-    </LinearLayout>
+            android:padding="24dp"
+            android:visibility="gone">
 
-    <!-- Lista de resultados (visible cuando hay resultados) -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvResultados"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="8dp"
-        android:clipToPadding="false"
-        android:visibility="gone" />
+            <TextView
+                android:id="@+id/tvSearchError"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No se pudieron cargar los proyectos"
+                android:textSize="14sp"
+                android:textColor="@color/text_medium"
+                android:gravity="center"
+                android:layout_marginBottom="16dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRetrySearch"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reintentar"
+                app:cornerRadius="8dp" />
+        </LinearLayout>
+
+    </FrameLayout>
 
 </LinearLayout>

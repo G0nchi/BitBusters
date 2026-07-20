@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -50,6 +51,11 @@ public class SearchActivity extends AppCompatActivity {
     private final List<Proyecto> todosLosProyectos = new ArrayList<>();
     private ProyectoRepository proyectoRepository;
     private ListenerRegistration listenerProyectos;
+
+    private ProgressBar progressSearch;
+    private android.view.View layoutSearchError;
+    private TextView tvSearchError;
+    private android.view.View layoutSearchContent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,11 +116,25 @@ public class SearchActivity extends AppCompatActivity {
         } else {
             mostrarVacio(0);
         }
+
+        progressSearch = findViewById(R.id.progressSearch);
+        layoutSearchError = findViewById(R.id.layoutSearchError);
+        tvSearchError = findViewById(R.id.tvSearchError);
+        layoutSearchContent = findViewById(R.id.layoutSearchContent);
+        findViewById(R.id.btnRetrySearch).setOnClickListener(v -> retryCargarProyectos());
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        mostrarCargando();
+        iniciarListenerProyectos();
+    }
+
+    private void iniciarListenerProyectos() {
+        if (todosLosProyectos.isEmpty()) {
+            mostrarCargando();
+        }
         listenerProyectos = proyectoRepository.escucharProyectosCliente(
             new ProyectoRepository.ProyectosListener() {
                 @Override
@@ -122,14 +142,45 @@ public class SearchActivity extends AppCompatActivity {
                     todosLosProyectos.clear();
                     todosLosProyectos.addAll(proyectos);
                     Log.d("SearchActivity", "Proyectos Firestore recibidos: " + proyectos.size());
+                    mostrarContenido();
                     ejecutarBusqueda();
                 }
 
                 @Override
                 public void onError(String mensaje) {
                     Log.e("SearchActivity", "Error cargando proyectos: " + mensaje);
+                    mostrarError("Error al cargar proyectos: " + mensaje);
                 }
             });
+    }
+
+    private void retryCargarProyectos() {
+        if (listenerProyectos != null) {
+            listenerProyectos.remove();
+            listenerProyectos = null;
+        }
+        iniciarListenerProyectos();
+    }
+
+    private void mostrarCargando() {
+        if (progressSearch != null) progressSearch.setVisibility(android.view.View.VISIBLE);
+        if (layoutSearchError != null) layoutSearchError.setVisibility(android.view.View.GONE);
+        if (layoutSearchContent != null) layoutSearchContent.setVisibility(android.view.View.GONE);
+    }
+
+    private void mostrarError(String mensaje) {
+        if (progressSearch != null) progressSearch.setVisibility(android.view.View.GONE);
+        if (layoutSearchContent != null) layoutSearchContent.setVisibility(android.view.View.GONE);
+        if (layoutSearchError != null) {
+            layoutSearchError.setVisibility(android.view.View.VISIBLE);
+            if (tvSearchError != null) tvSearchError.setText(mensaje);
+        }
+    }
+
+    private void mostrarContenido() {
+        if (progressSearch != null) progressSearch.setVisibility(android.view.View.GONE);
+        if (layoutSearchError != null) layoutSearchError.setVisibility(android.view.View.GONE);
+        if (layoutSearchContent != null) layoutSearchContent.setVisibility(android.view.View.VISIBLE);
     }
 
     @Override

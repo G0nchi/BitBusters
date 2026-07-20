@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -74,8 +75,10 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
     private Proyecto proyectoActual;
     private ProyectoRepository proyectoRepository;
     private boolean comentariosConfigurados = false;
-
-    // Chat
+    private ProgressBar progressProject;
+    private View layoutProjectError;
+    private TextView tvProjectError;
+    private View scrollProjectContent;
     private ChatRepository chatRepository;
 
     // Comentarios (Room)
@@ -97,8 +100,14 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
 
         NotificationHelper.crearCanal(this);
 
-        chatRepository = new ChatRepository();
         proyectoRepository = new ProyectoRepository();
+        chatRepository = new ChatRepository();
+
+        progressProject = findViewById(R.id.progressProject);
+        layoutProjectError = findViewById(R.id.layoutProjectError);
+        tvProjectError = findViewById(R.id.tvProjectError);
+        scrollProjectContent = findViewById(R.id.scrollProjectContent);
+        findViewById(R.id.btnRetryProject).setOnClickListener(v -> cargarDatosProyecto());
 
         nombreProyecto = resolverNombreProyecto();
         if (nombreProyecto == null || nombreProyecto.isEmpty()) {
@@ -108,6 +117,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         }
 
         configurarUIProyecto();
+        mostrarCargandoProyecto();
         cargarDatosProyecto();
         configurarNavegacion();
     }
@@ -139,8 +149,6 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
 
         findViewById(R.id.btnCompartir).setOnClickListener(v -> { /* TODO compartir */ });
         findViewById(R.id.btnFavorito).setOnClickListener(v -> { /* TODO favoritos */ });
-        findViewById(R.id.btnRentar).setOnClickListener(v -> { /* TODO renta */ });
-        findViewById(R.id.btnComprar).setOnClickListener(v -> { /* TODO separación */ });
         findViewById(R.id.btnQR).setOnClickListener(v -> mostrarDialogoQR());
 
         findViewById(R.id.btnChatAsesor).setOnClickListener(v -> abrirChatConAsesor());
@@ -157,17 +165,6 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
         }
 
         findViewById(R.id.tvVerCostos).setOnClickListener(v -> mostrarDesgloseCostos());
-
-        // Botón Separar Inmueble (bottom bar)
-        findViewById(R.id.btnSeparar).setOnClickListener(v -> {
-            Intent intentAgenda = new Intent(this, AgendaCitaActivity.class);
-            NotificationHelper.lanzarNotificacion(this,
-                    "Separación Pendiente",
-                    "Tienes 10 minutos para completar el pago",
-                    NotificationHelper.NOTIF_SEPARACION,
-                    intentAgenda);
-            startActivity(new Intent(this, PaymentMethodActivity.class));
-        });
 
         // Botón Cómo llegar → Google Maps externo
         findViewById(R.id.btnComoLlegar).setOnClickListener(v -> {
@@ -193,6 +190,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
     // ── Mapa interactivo ───────────────────────────────────────────────────────
 
     private void cargarMapa(String idProyecto) {
+        mostrarCargaSecundaria(true);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         new UbicacionRepository(this).obtenerCoordenadasProyecto(idProyecto,
@@ -213,6 +211,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
 
                     @Override
                     public void onError(String mensaje) {
+                        mostrarCargaSecundaria(false);
                         View cardMapa     = findViewById(R.id.cardMapa);
                         View btnComoLlegar = findViewById(R.id.btnComoLlegar);
                         if (cardMapa != null)      cardMapa.setVisibility(View.GONE);
@@ -267,6 +266,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
     }
 
     private void solicitarUbicacionActual() {
+        mostrarCargaSecundaria(true);
         try {
             CancellationTokenSource cancellationToken = new CancellationTokenSource();
             fusedLocationClient.getCurrentLocation(
@@ -276,11 +276,13 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
                 if (location != null) {
                     procesarUbicacion(location);
                 } else {
+                    mostrarCargaSecundaria(false);
                     TextView tvDistancia = findViewById(R.id.tvDistancia);
                     if (tvDistancia != null)
                         tvDistancia.setText("No se pudo obtener tu ubicación. Verifica el GPS.");
                 }
             }).addOnFailureListener(e -> {
+                mostrarCargaSecundaria(false);
                 TextView tvDistancia = findViewById(R.id.tvDistancia);
                 if (tvDistancia != null)
                     tvDistancia.setText("Error al obtener ubicación");
@@ -322,6 +324,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
                 .include(ubicacionProyecto)
                 .build();
         googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 200));
+        mostrarCargaSecundaria(false);
     }
 
     @Override
@@ -333,6 +336,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 obtenerUbicacionUsuario();
             } else {
+                mostrarCargaSecundaria(false);
                 TextView tvDistancia = findViewById(R.id.tvDistancia);
                 if (tvDistancia != null)
                     tvDistancia.setText("Activa el GPS para ver la distancia");
@@ -596,6 +600,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
     // ── Datos dinámicos del proyecto ──────────────────────────────────────────────
 
     private void cargarDatosProyecto() {
+        mostrarCargandoProyecto();
         ProyectoRepository.ProyectoCallback callback = new ProyectoRepository.ProyectoCallback() {
             @Override
             public void onSuccess(Proyecto p) {
@@ -604,6 +609,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
                     nombreProyecto = p.getNombre();
                 }
                 configurarUIProyecto();
+                mostrarContenidoProyecto();
                 pintarDatosProyecto();
                 configurarComentariosSiHaceFalta();
                 cargarMapaDesdeProyecto();
@@ -615,10 +621,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
             @Override
             public void onError(String mensaje) {
                 Log.e("DetalleProyecto", "Error cargando datos: " + mensaje);
-                Toast.makeText(ProjectDetailActivity.this,
-                        "No se pudo cargar el proyecto", Toast.LENGTH_SHORT).show();
-                configurarComentariosSiHaceFalta();
-                cargarMapa(nombreProyecto);
+                mostrarErrorProyecto("No se pudo cargar el proyecto: " + mensaje);
             }
         };
 
@@ -626,6 +629,31 @@ public class ProjectDetailActivity extends AppCompatActivity implements OnMapRea
             proyectoRepository.obtenerPorId(proyectoId, callback);
         } else {
             proyectoRepository.obtenerPorNombre(nombreProyecto, callback);
+        }
+    }
+
+    private void mostrarCargandoProyecto() {
+        if (progressProject != null) progressProject.setVisibility(View.VISIBLE);
+        if (layoutProjectError != null) layoutProjectError.setVisibility(View.GONE);
+        if (scrollProjectContent != null) scrollProjectContent.setVisibility(View.GONE);
+    }
+
+    private void mostrarContenidoProyecto() {
+        if (progressProject != null) progressProject.setVisibility(View.GONE);
+        if (layoutProjectError != null) layoutProjectError.setVisibility(View.GONE);
+        if (scrollProjectContent != null) scrollProjectContent.setVisibility(View.VISIBLE);
+    }
+
+    private void mostrarErrorProyecto(String mensaje) {
+        if (progressProject != null) progressProject.setVisibility(View.GONE);
+        if (scrollProjectContent != null) scrollProjectContent.setVisibility(View.GONE);
+        if (layoutProjectError != null) layoutProjectError.setVisibility(View.VISIBLE);
+        if (tvProjectError != null) tvProjectError.setText(mensaje);
+    }
+
+    private void mostrarCargaSecundaria(boolean loading) {
+        if (progressProject != null && scrollProjectContent != null && scrollProjectContent.getVisibility() == View.VISIBLE) {
+            progressProject.setVisibility(loading ? View.VISIBLE : View.GONE);
         }
     }
 
