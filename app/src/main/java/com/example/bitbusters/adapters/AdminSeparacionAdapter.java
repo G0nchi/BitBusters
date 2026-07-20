@@ -41,7 +41,11 @@ public class AdminSeparacionAdapter extends RecyclerView.Adapter<AdminSeparacion
         holder.tvNombreProyecto.setText(separacion.getNombreProyecto());
         holder.tvMonto.setText(separacion.getMonto());
         holder.tvFecha.setText(separacion.getFecha());
-        holder.tvCliente.setText(separacion.getCliente());
+        String cliente = separacion.getCliente() != null && !separacion.getCliente().trim().isEmpty()
+                ? separacion.getCliente()
+                : "No registrado";
+        String estadoPago = separacion.getEstadoPago();
+        holder.tvCliente.setText("Cliente: " + cliente + " · Pago: " + estadoPago);
         holder.tvEstado.setText(separacion.getEstado());
 
         // Colorear según estado

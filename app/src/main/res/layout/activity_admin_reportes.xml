@@ -43,25 +43,59 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:layout_marginBottom="16dp">
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipEstesMes"
-                    android:layout_width="wrap_content"
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Este mes"
-                    android:layout_marginEnd="8dp"
-                    app:chipIconVisible="true"
-                    app:chipIcon="@drawable/ic_dropdown"
-                    app:closeIconVisible="false"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:checked="true" />
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupPeriodoReportes"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:singleLine="true"
+                        app:singleSelection="true"
+                        app:selectionRequired="true">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipReporteMes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Este mes"
+                            android:checked="true"
+                            style="@style/Widget.Material3.Chip.Filter" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipReporteSemana"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Esta semana"
+                            style="@style/Widget.Material3.Chip.Filter" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipReporteSemestre"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Este semestre"
+                            style="@style/Widget.Material3.Chip.Filter" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipReporteAnio"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Este año"
+                            style="@style/Widget.Material3.Chip.Filter" />
+                    </com.google.android.material.chip.ChipGroup>
+                </HorizontalScrollView>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipVerReportes"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
                     android:text="Ver reportes por proyecto"
                     app:chipIconVisible="true"
                     app:chipIcon="@drawable/ic_arrow_right"
@@ -100,10 +134,11 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvReporteVentas"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="S/95,400"
+                            android:text="S/0"
                             android:textColor="@color/text_primary"
                             android:textSize="18sp"
                             android:textStyle="bold" />
@@ -112,7 +147,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="Ventas del mes"
+                            android:text="Ventas del periodo"
                             android:textColor="@color/neutral_dark"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -140,6 +175,7 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvReporteAprobadas"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
@@ -180,6 +216,7 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvReportePendientes"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
@@ -220,6 +257,7 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvReporteRechazadas"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
@@ -263,6 +301,7 @@
                     android:padding="16dp">
 
                     <LinearLayout
+                        android:id="@+id/layoutVentaProyecto1"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -270,21 +309,24 @@
                         android:layout_marginBottom="12dp">
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoNombre1"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Los Álamos"
+                            android:text="Sin ventas aprobadas"
                             android:textColor="@color/text_primary" />
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoMonto1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="S/42,000"
+                            android:text="S/0"
                             android:textStyle="bold"
                             android:textColor="@color/text_primary" />
                     </LinearLayout>
 
                     <ProgressBar
+                        android:id="@+id/progressVentaProyecto1"
                         android:layout_width="match_parent"
                         android:layout_height="8dp"
                         android:progress="40"
@@ -293,6 +335,7 @@
                         android:layout_marginBottom="12dp" />
 
                     <LinearLayout
+                        android:id="@+id/layoutVentaProyecto2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -300,21 +343,24 @@
                         android:layout_marginBottom="12dp">
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoNombre2"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Mirador Surco"
+                            android:text=""
                             android:textColor="@color/text_primary" />
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoMonto2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="S/28,500"
+                            android:text=""
                             android:textStyle="bold"
                             android:textColor="@color/text_primary" />
                     </LinearLayout>
 
                     <ProgressBar
+                        android:id="@+id/progressVentaProyecto2"
                         android:layout_width="match_parent"
                         android:layout_height="8dp"
                         android:progress="30"
@@ -323,6 +369,7 @@
                         android:layout_marginBottom="12dp" />
 
                     <LinearLayout
+                        android:id="@+id/layoutVentaProyecto3"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -330,21 +377,24 @@
                         android:layout_marginBottom="12dp">
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoNombre3"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Alto San Felipe"
+                            android:text=""
                             android:textColor="@color/text_primary" />
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoMonto3"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="S/18,200"
+                            android:text=""
                             android:textStyle="bold"
                             android:textColor="@color/text_primary" />
                     </LinearLayout>
 
                     <ProgressBar
+                        android:id="@+id/progressVentaProyecto3"
                         android:layout_width="match_parent"
                         android:layout_height="8dp"
                         android:progress="20"
@@ -353,100 +403,36 @@
                         android:layout_marginBottom="12dp" />
 
                     <LinearLayout
+                        android:id="@+id/layoutVentaProyecto4"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoNombre4"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="R. Balta"
+                            android:text=""
                             android:textColor="@color/text_primary" />
 
                         <TextView
+                            android:id="@+id/tvVentaProyectoMonto4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="S/6,700"
+                            android:text=""
                             android:textStyle="bold"
                             android:textColor="@color/text_primary" />
                     </LinearLayout>
 
                     <ProgressBar
+                        android:id="@+id/progressVentaProyecto4"
                         android:layout_width="match_parent"
                         android:layout_height="8dp"
                         android:progress="10"
                         android:progressDrawable="@android:drawable/progress_horizontal"
                         android:progressTint="@color/neutral_mid_1" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Tendencia mensual -->
-            <TextView
-                android:id="@+id/tvTendenciaTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tendencia mensual"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="12dp" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="140dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:gravity="bottom|center"
-                    android:padding="12dp">
-
-                    <View
-                        android:layout_width="16dp"
-                        android:layout_height="25dp"
-                        android:background="@color/neutral_mid_1"
-                        android:layout_margin="3dp" />
-
-                    <View
-                        android:layout_width="16dp"
-                        android:layout_height="35dp"
-                        android:background="@color/neutral_mid_1"
-                        android:layout_margin="3dp" />
-
-                    <View
-                        android:layout_width="16dp"
-                        android:layout_height="45dp"
-                        android:background="@color/neutral_mid_1"
-                        android:layout_margin="3dp" />
-
-                    <View
-                        android:layout_width="16dp"
-                        android:layout_height="40dp"
-                        android:background="@color/neutral_mid_1"
-                        android:layout_margin="3dp" />
-
-                    <View
-                        android:layout_width="16dp"
-                        android:layout_height="50dp"
-                        android:background="@color/neutral_mid_1"
-                        android:layout_margin="3dp" />
-
-                    <View
-                        android:layout_width="16dp"
-                        android:layout_height="55dp"
-                        android:background="@color/neutral_mid_1"
-                        android:layout_margin="3dp" />
-
-                    <View
-                        android:layout_width="16dp"
-                        android:layout_height="90dp"
-                        android:background="@color/brand_deep_blue"
-                        android:layout_margin="3dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
