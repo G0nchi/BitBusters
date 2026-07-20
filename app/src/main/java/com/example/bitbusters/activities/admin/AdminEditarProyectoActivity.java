@@ -31,11 +31,10 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -43,6 +42,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Formulario de edición de un proyecto existente del Administrador.
@@ -636,70 +637,181 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
     }
 
     private void guardarCambios() {
-        // Procesar imágenes: copiar las nuevas (content://) a almacenamiento interno;
-        // las ya existentes (file://) se guardan como ruta absoluta.
-        // TODO-Firebase: reemplazar copiarImagenProyecto() por FirebaseStorage.upload().
-        List<String> uriStrings = new ArrayList<>();
-        for (Uri uri : imagenesSeleccionadas) {
-            String scheme = uri.getScheme() != null ? uri.getScheme() : "";
-            if ("file".equals(scheme)) {
-                // Ya está en almacenamiento local — solo guardar la ruta
-                String path = uri.getPath();
-                uriStrings.add(path != null ? path : uri.toString());
-            } else if ("content".equals(scheme)) {
-                // Imagen nueva de galería — copiar a almacenamiento interno
-                String localPath = copiarImagenProyecto(uri);
-                uriStrings.add(localPath.isEmpty() ? uri.toString() : localPath);
-            } else {
-                uriStrings.add(uri.toString());
-            }
-        }
-
         // Recuperar el QR ya generado (no se regenera al editar)
         AdminProyecto existente = AdminProyectosRepository.getById(proyectoId);
         String qrCode = existente != null ? existente.getQrCode() : "";
 
-        // Construir el proyecto actualizado
-        AdminProyecto actualizado = new AdminProyecto(
-                proyectoId,
-                sessionData.nombreProyecto,
-                sessionData.descripcion,
-                sessionData.direccion,
-                sessionData.distrito,
-                sessionData.costoSeparacion,
-                sessionData.precioTotal,
-                sessionData.nombreComercial,
-                sessionData.precioPublicado,
-                sessionData.fechaEntrega,
-                sessionData.estado,
-                new ArrayList<>(sessionData.tipologias),
-                new ArrayList<>(sessionData.asesoresAsignados),
-                uriStrings,
-                existente != null ? existente.getFechaCreacion() : ""
-        );
-        actualizado.setQrCode(qrCode);
-        actualizado.setUidAsesores(new ArrayList<>(sessionData.uidAsesoresAsignados));
-        actualizado.setAreasComunes(new ArrayList<>(sessionData.areasComunes));
-        poblarCamposCompartidosEdicion(actualizado, existente, uriStrings);
-
         setSavingState(true);
-        AdminProyectosRepository.actualizarEnFirestore(actualizado,
-                new AdminProyectosRepository.GuardarCallback() {
-                    @Override
-                    public void onSuccess(String proyectoIdActualizado) {
-                        AdminProyectosRepository.guardar(AdminEditarProyectoActivity.this);
-                        sessionData.clear();
-                        mostrarToast("Proyecto actualizado correctamente");
-                        finish();
-                    }
+        subirImagenesEdicion(new SubidaImagenesEdicionCallback() {
+            @Override
+            public void onSuccess(List<String> imagenesUrls) {
+                // Construir el proyecto actualizado
+                AdminProyecto actualizado = new AdminProyecto(
+                        proyectoId,
+                        sessionData.nombreProyecto,
+                        sessionData.descripcion,
+                        sessionData.direccion,
+                        sessionData.distrito,
+                        sessionData.costoSeparacion,
+                        sessionData.precioTotal,
+                        sessionData.nombreComercial,
+                        sessionData.precioPublicado,
+                        sessionData.fechaEntrega,
+                        sessionData.estado,
+                        new ArrayList<>(sessionData.tipologias),
+                        new ArrayList<>(sessionData.asesoresAsignados),
+                        imagenesUrls,
+                        existente != null ? existente.getFechaCreacion() : ""
+                );
+                actualizado.setQrCode(qrCode);
+                actualizado.setUidAsesores(new ArrayList<>(sessionData.uidAsesoresAsignados));
+                actualizado.setAreasComunes(new ArrayList<>(sessionData.areasComunes));
+                poblarCamposCompartidosEdicion(actualizado, existente, imagenesUrls);
 
-                    @Override
-                    public void onError(String mensaje) {
-                        setSavingState(false);
-                        mostrarToast("No se pudo actualizar en Firebase: "
-                                + (mensaje != null && !mensaje.isEmpty() ? mensaje : "intenta de nuevo"));
-                    }
-                });
+                AdminProyectosRepository.actualizarEnFirestore(actualizado,
+                        new AdminProyectosRepository.GuardarCallback() {
+                            @Override
+                            public void onSuccess(String proyectoIdActualizado) {
+                                AdminProyectosRepository.guardar(AdminEditarProyectoActivity.this);
+                                sessionData.clear();
+                                mostrarToast("Proyecto actualizado correctamente");
+                                finish();
+                            }
+
+                            @Override
+                            public void onError(String mensaje) {
+                                setSavingState(false);
+                                mostrarToast("No se pudo actualizar en Firebase: "
+                                        + (mensaje != null && !mensaje.isEmpty() ? mensaje : "intenta de nuevo"));
+                            }
+                        });
+            }
+
+            @Override
+            public void onError(String mensaje) {
+                setSavingState(false);
+                mostrarToast("No se pudieron subir las imágenes: "
+                        + (mensaje != null && !mensaje.isEmpty() ? mensaje : "intenta de nuevo"));
+            }
+        });
+    }
+
+    private interface SubidaImagenesEdicionCallback {
+        void onSuccess(List<String> imagenesUrls);
+        void onError(String mensaje);
+    }
+
+    private void subirImagenesEdicion(SubidaImagenesEdicionCallback callback) {
+        StorageReference root;
+        try {
+            root = FirebaseStorage.getInstance().getReference()
+                    .child("proyectos")
+                    .child(proyectoId);
+        } catch (Exception e) {
+            if (callback != null) {
+                callback.onError("Firebase Storage no está configurado: " + e.getMessage());
+            }
+            return;
+        }
+
+        List<String> imagenesUrls = new ArrayList<>();
+        for (int i = 0; i < imagenesSeleccionadas.size(); i++) {
+            imagenesUrls.add("");
+        }
+
+        List<Tipologia> tipologiasConImagenLocal = obtenerTipologiasConImagenLocal();
+        AtomicInteger pendientes = new AtomicInteger(0);
+        AtomicBoolean finalizado = new AtomicBoolean(false);
+
+        Runnable completarSiTermino = () -> {
+            if (pendientes.decrementAndGet() == 0 && finalizado.compareAndSet(false, true)) {
+                if (callback != null) callback.onSuccess(imagenesUrls);
+            }
+        };
+
+        for (int i = 0; i < imagenesSeleccionadas.size(); i++) {
+            final int index = i;
+            Uri uri = imagenesSeleccionadas.get(i);
+            String valor = uri != null ? uri.toString() : "";
+            if (esUrlRemota(valor)) {
+                imagenesUrls.set(index, valor);
+                continue;
+            }
+
+            pendientes.incrementAndGet();
+            StorageReference ref = root.child("imagenes")
+                    .child("edit_imagen_" + index + "_" + UUID.randomUUID() + ".jpg");
+            ref.putFile(uri)
+                    .addOnSuccessListener(task -> ref.getDownloadUrl()
+                            .addOnSuccessListener(downloadUri -> {
+                                imagenesUrls.set(index, downloadUri.toString());
+                                completarSiTermino.run();
+                            })
+                            .addOnFailureListener(e -> {
+                                if (finalizado.compareAndSet(false, true) && callback != null) {
+                                    callback.onError(e.getMessage());
+                                }
+                            }))
+                    .addOnFailureListener(e -> {
+                        if (finalizado.compareAndSet(false, true) && callback != null) {
+                            callback.onError(e.getMessage());
+                        }
+                    });
+        }
+
+        for (int i = 0; i < tipologiasConImagenLocal.size(); i++) {
+            final int index = i;
+            Tipologia tipologia = tipologiasConImagenLocal.get(i);
+            Uri uri = crearUriArchivoTipologia(tipologia.getImageUri());
+            if (uri == null) continue;
+
+            pendientes.incrementAndGet();
+            StorageReference ref = root.child("tipologias")
+                    .child("edit_tipologia_" + index + "_" + UUID.randomUUID() + ".jpg");
+            ref.putFile(uri)
+                    .addOnSuccessListener(task -> ref.getDownloadUrl()
+                            .addOnSuccessListener(downloadUri -> {
+                                tipologia.setImageUri(downloadUri.toString());
+                                completarSiTermino.run();
+                            })
+                            .addOnFailureListener(e -> {
+                                if (finalizado.compareAndSet(false, true) && callback != null) {
+                                    callback.onError(e.getMessage());
+                                }
+                            }))
+                    .addOnFailureListener(e -> {
+                        if (finalizado.compareAndSet(false, true) && callback != null) {
+                            callback.onError(e.getMessage());
+                        }
+                    });
+        }
+
+        if (pendientes.get() == 0 && finalizado.compareAndSet(false, true)) {
+            if (callback != null) callback.onSuccess(imagenesUrls);
+        }
+    }
+
+    private List<Tipologia> obtenerTipologiasConImagenLocal() {
+        List<Tipologia> resultado = new ArrayList<>();
+        if (sessionData == null || sessionData.tipologias == null) return resultado;
+        for (Tipologia tipologia : sessionData.tipologias) {
+            if (tipologia == null) continue;
+            String imageUri = tipologia.getImageUri();
+            if (!imageUri.isEmpty() && !esUrlRemota(imageUri)) {
+                resultado.add(tipologia);
+            }
+        }
+        return resultado;
+    }
+
+    private Uri crearUriArchivoTipologia(String valor) {
+        if (valor == null || valor.trim().isEmpty()) return null;
+        if (valor.startsWith("/")) return Uri.fromFile(new File(valor));
+        return Uri.parse(valor);
+    }
+
+    private boolean esUrlRemota(String valor) {
+        return valor != null && (valor.startsWith("http://") || valor.startsWith("https://"));
     }
 
     /**
@@ -790,30 +902,6 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
             actualizarContadorImagenes();
         }
         // requestCode 100 (tipología) y 101 (asesor): se procesan en onResume
-    }
-
-    /**
-     * Copia una imagen de galería (content://) a almacenamiento interno.
-     * Devuelve la ruta absoluta del archivo, o "" si falla.
-     *
-     * TODO-Firebase: reemplazar por FirebaseStorage.upload() y devolver la URL de descarga.
-     */
-    private String copiarImagenProyecto(Uri uri) {
-        try {
-            File dir = new File(getFilesDir(), "proyecto_images");
-            if (!dir.exists()) dir.mkdirs();
-            File dest = new File(dir, "img_" + UUID.randomUUID() + ".jpg");
-            try (InputStream in  = getContentResolver().openInputStream(uri);
-                 OutputStream out = new FileOutputStream(dest)) {
-                if (in == null) return "";
-                byte[] buf = new byte[4096];
-                int len;
-                while ((len = in.read(buf)) > 0) out.write(buf, 0, len);
-            }
-            return dest.getAbsolutePath();
-        } catch (Exception e) {
-            return "";
-        }
     }
 
     // ── Utilidades ────────────────────────────────────────────────────────────
