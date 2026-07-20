@@ -1762,6 +1762,7 @@ public class AdminCrearProyectoActivity extends AppCompatActivity implements OnM
         );
         proyecto.setQrCode(qrPath != null ? qrPath : "");
         proyecto.setUidAsesores(new ArrayList<>(sessionData.uidAsesoresAsignados));
+        proyecto.setAreasComunes(new ArrayList<>(sessionData.areasComunes));
         poblarCamposCompartidos(proyecto, uriStrings, coordenadas, fechaCreacion);
 
         AdminProyectosRepository.guardarEnFirestore(proyecto,
@@ -1896,6 +1897,8 @@ public class AdminCrearProyectoActivity extends AppCompatActivity implements OnM
                 sessionData.distrito = dv;
             }
         }
+
+        guardarAreasComunesEnSesion();
     }
 
     /**
@@ -1938,6 +1941,35 @@ public class AdminCrearProyectoActivity extends AppCompatActivity implements OnM
         if ("En planos".equals(selectedEstado)) selectEstado("En planos", btnEnPlanos);
         else if ("Preventa".equals(selectedEstado)) selectEstado("Preventa", btnPreventa);
         else if ("En venta".equals(selectedEstado))  selectEstado("En venta",  btnEnVenta);
+
+        restoreAreasComunes();
+    }
+
+    private void guardarAreasComunesEnSesion() {
+        List<String> seleccionadas = new ArrayList<>();
+        if (chipGroupAreas != null) {
+            for (int i = 0; i < chipGroupAreas.getChildCount(); i++) {
+                View child = chipGroupAreas.getChildAt(i);
+                if (child instanceof Chip) {
+                    Chip chip = (Chip) child;
+                    if (chip.isChecked()) {
+                        seleccionadas.add(chip.getText().toString());
+                    }
+                }
+            }
+        }
+        sessionData.areasComunes = seleccionadas;
+    }
+
+    private void restoreAreasComunes() {
+        if (chipGroupAreas == null || sessionData.areasComunes == null) return;
+        for (int i = 0; i < chipGroupAreas.getChildCount(); i++) {
+            View child = chipGroupAreas.getChildAt(i);
+            if (child instanceof Chip) {
+                Chip chip = (Chip) child;
+                chip.setChecked(sessionData.areasComunes.contains(chip.getText().toString()));
+            }
+        }
     }
 
     // ── Resultado de actividades (tipología, asesor, galería) ────────────────

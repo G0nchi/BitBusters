@@ -1,5 +1,6 @@
 package com.example.bitbusters.models;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +29,7 @@ public class Proyecto {
     private List<String> imagenesUri;
     private List<String> asesores;
     private List<String> uidAsesores;
+    private List<String> areasComunes;
     private List<Map<String, Object>> tipologias;
     private String costoSeparacion;
     private String fechaCreacion;
@@ -114,6 +116,9 @@ public class Proyecto {
 
     public List<String> getUidAsesores()                            { return uidAsesores; }
     public void         setUidAsesores(List<String> v)              { this.uidAsesores = v; }
+
+    public List<String> getAreasComunes()                           { return areasComunes != null ? areasComunes : new ArrayList<>(); }
+    public void         setAreasComunes(List<String> v)             { this.areasComunes = v; }
 
     public List<Map<String, Object>> getTipologias()                { return tipologias; }
     public void setTipologias(List<Map<String, Object>> v)          { this.tipologias = v; }

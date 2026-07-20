@@ -176,6 +176,7 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
             sessionData.tipologias      = new ArrayList<>(p.getTipologias());
             sessionData.asesoresAsignados = new ArrayList<>(p.getAsesores());
             sessionData.uidAsesoresAsignados = new ArrayList<>(p.getUidAsesores());
+            sessionData.areasComunes = new ArrayList<>(p.getAreasComunes());
 
             // Cargar imágenes existentes. Las rutas locales se convierten a file:// URI
             // para que Glide y la lógica de guardado las distingan de nuevas imágenes (content://).
@@ -678,6 +679,7 @@ public class AdminEditarProyectoActivity extends AppCompatActivity {
         );
         actualizado.setQrCode(qrCode);
         actualizado.setUidAsesores(new ArrayList<>(sessionData.uidAsesoresAsignados));
+        actualizado.setAreasComunes(new ArrayList<>(sessionData.areasComunes));
         poblarCamposCompartidosEdicion(actualizado, existente, uriStrings);
 
         setSavingState(true);

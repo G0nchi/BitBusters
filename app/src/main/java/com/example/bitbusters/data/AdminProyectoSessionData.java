@@ -33,6 +33,9 @@ public class AdminProyectoSessionData {
     public List<String> asesoresAsignados = new ArrayList<>();
     public List<String> uidAsesoresAsignados = new ArrayList<>();
 
+    // ── Áreas comunes seleccionadas en el formulario de proyecto ─────────────
+    public List<String> areasComunes = new ArrayList<>();
+
     /** Constructor privado — solo se accede por getInstance() */
     private AdminProyectoSessionData() {}
 
@@ -63,5 +66,6 @@ public class AdminProyectoSessionData {
         tipologias        = new ArrayList<>();
         asesoresAsignados = new ArrayList<>();
         uidAsesoresAsignados = new ArrayList<>();
+        areasComunes = new ArrayList<>();
     }
 }
