@@ -1,5 +1,6 @@
 package com.example.bitbusters.activities.superadmin;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,13 +18,13 @@ import com.example.bitbusters.adapters.SuperadminNotificationsAdapter.Entry;
 import com.example.bitbusters.adapters.SuperadminNotificationsAdapter.Header;
 import com.example.bitbusters.adapters.SuperadminNotificationsAdapter.Item;
 import com.example.bitbusters.adapters.SuperadminNotificationsAdapter.NotifEntry;
+import com.example.bitbusters.utils.PreferencesManager;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -31,8 +32,34 @@ public class SuperadminNotificationsActivity extends AppCompatActivity {
 
     private static final String TAG = "SA_NOTIF";
 
-    private static final Set<String> leidasEnSesion      = new HashSet<>();
-    private static final Set<String> descartadasEnSesion  = new HashSet<>();
+    public interface NotificationIdsCallback {
+        void onIds(List<String> ids);
+    }
+
+    /** Ids activos reales (Firestore o los 3 por defecto), para que el badge del
+     *  dashboard cuente sobre el mismo universo de notificaciones que esta pantalla. */
+    public static void loadActiveNotificationIds(Context context, NotificationIdsCallback callback) {
+        FirebaseFirestore.getInstance()
+                .collection("notifications")
+                .whereEqualTo("role", "superadmin")
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    List<String> ids = new ArrayList<>();
+                    if (!snapshots.isEmpty()) {
+                        for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                            ids.add(doc.getId());
+                        }
+                    } else {
+                        for (Item item : defaultItems()) ids.add(item.id);
+                    }
+                    callback.onIds(ids);
+                })
+                .addOnFailureListener(e -> {
+                    List<String> ids = new ArrayList<>();
+                    for (Item item : defaultItems()) ids.add(item.id);
+                    callback.onIds(ids);
+                });
+    }
 
     private final List<Item> allItemsList = new ArrayList<>();
 
@@ -56,11 +83,11 @@ public class SuperadminNotificationsActivity extends AppCompatActivity {
         adapter = new SuperadminNotificationsAdapter(
                 entries,
                 item -> {
-                    leidasEnSesion.add(item.id);
+                    PreferencesManager.marcarNotificacionLeidaSA(this, item.id);
                     startActivity(new Intent(this, item.destination));
                 },
                 () -> {
-                    leidasEnSesion.clear();
+                    PreferencesManager.eliminarTodasLeidasSA(this);
                     rebuildList();
                 }
         );
@@ -143,7 +170,7 @@ public class SuperadminNotificationsActivity extends AppCompatActivity {
                 destination, false);
     }
 
-    private List<Item> defaultItems() {
+    private static List<Item> defaultItems() {
         List<Item> list = new ArrayList<>();
         list.add(new Item(
                 "sa_aprobacion",
@@ -209,7 +236,8 @@ public class SuperadminNotificationsActivity extends AppCompatActivity {
                 int pos = vh.getAdapterPosition();
                 Entry entry = entries.get(pos);
                 if (entry instanceof NotifEntry) {
-                    descartadasEnSesion.add(((NotifEntry) entry).item.id);
+                    PreferencesManager.descartarNotificacionSA(
+                            SuperadminNotificationsActivity.this, ((NotifEntry) entry).item.id);
                 }
                 adapter.removeEntryAt(pos);
                 cleanOrphanHeaders();
@@ -240,8 +268,8 @@ public class SuperadminNotificationsActivity extends AppCompatActivity {
     }
 
     private List<Entry> buildEntries() {
-        Set<String> descartadas = descartadasEnSesion;
-        Set<String> leidas      = leidasEnSesion;
+        Set<String> descartadas = PreferencesManager.obtenerNotificacionesDescartadasSA(this);
+        Set<String> leidas      = PreferencesManager.obtenerNotificacionesLeidasSA(this);
 
         List<Item> unread = new ArrayList<>();
         List<Item> read   = new ArrayList<>();

@@ -90,6 +90,7 @@ public class RegisterPasswordActivity extends AppCompatActivity {
         user.put("fechaNacimiento",  extras != null ? extras.getString("birthDate", "") : "");
         user.put("role",   "cliente");
         user.put("status", "active");
+        user.put("fechaRegistro", com.google.firebase.firestore.FieldValue.serverTimestamp());
 
         FirebaseFirestore.getInstance()
                 .collection("users")

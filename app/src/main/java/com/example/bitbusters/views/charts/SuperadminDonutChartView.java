@@ -15,8 +15,8 @@ public class SuperadminDonutChartView extends View {
     private final Paint segmentPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF arcBounds = new RectF();
 
-    private final float[] values = new float[]{68f, 24f, 8f};
-    private final int[] colors = new int[]{
+    private float[] values = new float[]{68f, 24f, 8f};
+    private int[] colors = new int[]{
             Color.parseColor("#7ACF58"),
             Color.parseColor("#FBBF24"),
             Color.parseColor("#EF4444")
@@ -69,5 +69,15 @@ public class SuperadminDonutChartView extends View {
             canvas.drawArc(arcBounds, startAngle, sweep - 1.5f, false, segmentPaint);
             startAngle += sweep;
         }
+    }
+
+    public void setData(float[] newValues, int[] newColors) {
+        if (newValues == null || newColors == null || newValues.length == 0
+                || newValues.length != newColors.length) {
+            return;
+        }
+        values = newValues.clone();
+        colors = newColors.clone();
+        invalidate();
     }
 }

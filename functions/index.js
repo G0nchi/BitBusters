@@ -4,16 +4,18 @@
  * Cloud Function: envío del código OTP de registro por email.
  *
  * Flujo:
- *   1. La app Android (RegisterOtpActivity) crea el documento
- *      `emailOtps/{correo}` con { code, expiresAt }.
- *   2. Esta función se dispara con ese onCreate y envía el `code` al correo
- *      (el ID del documento ES el correo destino) usando Gmail.
+ *   1. La app Android (RegisterOtpActivity) escribe el documento
+ *      `emailOtps/{correo}` con { code, expiresAt } (con `.set()`, que
+ *      sobreescribe si el correo ya había intentado registrarse antes).
+ *   2. Esta función se dispara con onWrite (create *y* update — un reintento
+ *      de registro reescribe el mismo doc-id, lo que Firestore reporta como
+ *      "update", no "create") y envía el `code` al correo usando Gmail.
  *
  * Las credenciales NO van en el código: se leen de los secrets EMAIL_USER y
  * EMAIL_PASSWORD (ver functions/README.md para configurarlos y desplegar).
  */
 
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { defineSecret } = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const nodemailer = require("nodemailer");
@@ -22,15 +24,15 @@ const nodemailer = require("nodemailer");
 const EMAIL_USER = defineSecret("EMAIL_USER");
 const EMAIL_PASSWORD = defineSecret("EMAIL_PASSWORD");
 
-exports.enviarOtp = onDocumentCreated(
+exports.enviarOtp = onDocumentWritten(
   {
     document: "emailOtps/{email}",
     region: "us-central1",
     secrets: [EMAIL_USER, EMAIL_PASSWORD],
   },
   async (event) => {
-    const snap = event.data;
-    if (!snap) return;
+    const snap = event.data && event.data.after;
+    if (!snap || !snap.exists) return; // doc borrado (OTP ya verificado): nada que enviar
 
     const { code } = snap.data();
     const email = event.params.email; // el ID del documento es el correo destino
