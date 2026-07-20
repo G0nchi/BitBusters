@@ -1,9 +1,11 @@
 package com.example.bitbusters.activities.admin;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,8 +26,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
@@ -40,6 +44,10 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
     private RecyclerView rvHistorial;
     private AdminHistorialSeparacionAdapter adapter;
     private ArrayAdapter<String> proyectosAdapter;
+    private View[] layoutAsesorReporte;
+    private TextView[] tvAsesorReporteNombre;
+    private TextView[] tvAsesorReporteStats;
+    private ProgressBar[] progressAsesorReporte;
     private ListenerRegistration separacionesListener;
     private List<AdminSeparacion> separacionesActuales = new ArrayList<>();
 
@@ -91,6 +99,22 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
         tvResumenSeparaciones = findViewById(R.id.tvResumenSeparaciones);
         tvResumenAsesores = findViewById(R.id.tvResumenAsesores);
         actvProjecto = findViewById(R.id.actvProjecto);
+        layoutAsesorReporte = new View[] {
+                findViewById(R.id.layoutAsesorReporte1),
+                findViewById(R.id.layoutAsesorReporte2)
+        };
+        tvAsesorReporteNombre = new TextView[] {
+                findViewById(R.id.tvAsesorReporteNombre1),
+                findViewById(R.id.tvAsesorReporteNombre2)
+        };
+        tvAsesorReporteStats = new TextView[] {
+                findViewById(R.id.tvAsesorReporteStats1),
+                findViewById(R.id.tvAsesorReporteStats2)
+        };
+        progressAsesorReporte = new ProgressBar[] {
+                findViewById(R.id.progressAsesorReporte1),
+                findViewById(R.id.progressAsesorReporte2)
+        };
 
         if (btnDiario != null) {
             btnDiario.setOnClickListener(v -> setPeriodo("Diario"));
@@ -179,7 +203,8 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
         Set<String> asesores = new HashSet<>();
         List<AdminHistorialSeparacion> historial = new ArrayList<>();
 
-        for (AdminSeparacion separacion : separacionesFiltradas()) {
+        List<AdminSeparacion> filtradas = separacionesFiltradas();
+        for (AdminSeparacion separacion : filtradas) {
             double montoSeparacion = parseMonto(separacion.getMonto());
             monto += montoSeparacion;
             totalSeparaciones++;
@@ -213,6 +238,82 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
         }
         if (adapter != null) {
             adapter.setData(historial);
+        }
+        actualizarAsesores(filtradas);
+    }
+
+    private void actualizarAsesores(List<AdminSeparacion> separaciones) {
+        Map<String, AsesorResumen> resumenPorAsesor = new LinkedHashMap<>();
+        if (separaciones != null) {
+            for (AdminSeparacion separacion : separaciones) {
+                if (separacion == null) continue;
+                String key = !separacion.getUidAsesor().isEmpty()
+                        ? separacion.getUidAsesor()
+                        : separacion.getAsesorNombre();
+                if (key == null || key.trim().isEmpty()) {
+                    key = "asesor_no_registrado";
+                }
+                String nombre = !separacion.getAsesorNombre().isEmpty()
+                        ? separacion.getAsesorNombre()
+                        : ("asesor_no_registrado".equals(key) ? "Asesor no registrado" : key);
+                AsesorResumen resumen = resumenPorAsesor.get(key);
+                if (resumen == null) {
+                    resumen = new AsesorResumen(nombre);
+                    resumenPorAsesor.put(key, resumen);
+                }
+                resumen.separaciones++;
+                resumen.monto += parseMonto(separacion.getMonto());
+            }
+        }
+
+        List<AsesorResumen> asesoresOrdenados = new ArrayList<>(resumenPorAsesor.values());
+        Collections.sort(asesoresOrdenados, (a, b) -> Double.compare(b.monto, a.monto));
+
+        if (asesoresOrdenados.isEmpty()) {
+            mostrarFilaAsesor(0, "Sin asesores con ventas", "0 sep · S/0", 0);
+            ocultarFilaAsesor(1);
+            return;
+        }
+
+        double max = asesoresOrdenados.get(0).monto;
+        for (int i = 0; i < 2; i++) {
+            if (i >= asesoresOrdenados.size()) {
+                ocultarFilaAsesor(i);
+                continue;
+            }
+            AsesorResumen asesor = asesoresOrdenados.get(i);
+            int progreso = max > 0 ? (int) Math.max(5, Math.round((asesor.monto / max) * 100)) : 0;
+            mostrarFilaAsesor(
+                    i,
+                    asesor.nombre,
+                    asesor.separaciones + " sep · " + formatearSolesCompacto(asesor.monto),
+                    progreso
+            );
+        }
+    }
+
+    private void mostrarFilaAsesor(int index, String nombre, String stats, int progreso) {
+        if (layoutAsesorReporte != null && layoutAsesorReporte[index] != null) {
+            layoutAsesorReporte[index].setVisibility(View.VISIBLE);
+        }
+        if (progressAsesorReporte != null && progressAsesorReporte[index] != null) {
+            progressAsesorReporte[index].setVisibility(View.VISIBLE);
+            progressAsesorReporte[index].setProgress(progreso);
+        }
+        if (tvAsesorReporteNombre != null && tvAsesorReporteNombre[index] != null) {
+            tvAsesorReporteNombre[index].setText(nombre);
+        }
+        if (tvAsesorReporteStats != null && tvAsesorReporteStats[index] != null) {
+            tvAsesorReporteStats[index].setText(stats);
+        }
+    }
+
+    private void ocultarFilaAsesor(int index) {
+        if (layoutAsesorReporte != null && layoutAsesorReporte[index] != null) {
+            layoutAsesorReporte[index].setVisibility(View.GONE);
+        }
+        if (progressAsesorReporte != null && progressAsesorReporte[index] != null) {
+            progressAsesorReporte[index].setVisibility(View.GONE);
         }
     }
 
@@ -323,5 +424,26 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
         NumberFormat format = NumberFormat.getNumberInstance(Locale.US);
         format.setMaximumFractionDigits(0);
         return "S/" + format.format(monto);
+    }
+
+    private String formatearSolesCompacto(double monto) {
+        if (monto >= 1000) {
+            double miles = monto / 1000.0;
+            if (Math.abs(miles - Math.round(miles)) < 0.05) {
+                return "S/" + Math.round(miles) + "k";
+            }
+            return "S/" + String.format(Locale.US, "%.1fk", miles);
+        }
+        return formatearSoles(monto);
+    }
+
+    private static class AsesorResumen {
+        final String nombre;
+        int separaciones;
+        double monto;
+
+        AsesorResumen(String nombre) {
+            this.nombre = nombre;
+        }
     }
 }
