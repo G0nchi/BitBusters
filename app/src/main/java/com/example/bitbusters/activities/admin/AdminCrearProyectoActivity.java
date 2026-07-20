@@ -1820,7 +1820,7 @@ public class AdminCrearProyectoActivity extends AppCompatActivity implements OnM
 
         proyecto.setAdminUid(AdminProyectosRepository.obtenerAdminUidActual());
         proyecto.setInmobiliariaNombre(inmobiliariaNombre);
-        proyecto.setInmobiliariaId(AdminProyectosRepository.crearInmobiliariaId(inmobiliariaNombre));
+        proyecto.setInmobiliariaId(AdminPreferencesManager.obtenerInmobiliariaId(this));
         proyecto.setTipo("Departamento");
         proyecto.setPrecio(precioPublicado);
         proyecto.setPrecioPublicado(precioPublicado);

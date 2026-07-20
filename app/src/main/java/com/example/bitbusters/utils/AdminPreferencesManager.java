@@ -3,6 +3,8 @@ package com.example.bitbusters.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.text.Normalizer;
+
 /**
  * Gestor centralizado de preferencias locales para el Administrador (Lab 5).
  * Usa getSharedPreferences("bitbusters_admin_prefs", MODE_PRIVATE).
@@ -17,6 +19,7 @@ public class AdminPreferencesManager {
     // Claves de las preferencias guardadas del administrador
     private static final String KEY_ADMIN_NOMBRE                  = "admin_nombre";
     private static final String KEY_ADMIN_INMOBILIARIA             = "admin_inmobiliaria";
+    private static final String KEY_ADMIN_INMOBILIARIA_ID          = "admin_inmobiliaria_id";
     private static final String KEY_ADMIN_ULTIMO_ACCESO            = "admin_ultimo_acceso";
     private static final String KEY_ADMIN_PROYECTOS_COUNT          = "admin_proyectos_count";
     private static final String KEY_ADMIN_SEPARACIONES_PENDIENTES  = "admin_separaciones_pendientes";
@@ -47,9 +50,43 @@ public class AdminPreferencesManager {
         getPrefs(context).edit().putString(KEY_ADMIN_INMOBILIARIA, inmobiliaria).apply();
     }
 
+    /** Guarda el identificador estable de la inmobiliaria. No debe cambiar al editar el nombre. */
+    public static void guardarInmobiliariaId(Context context, String inmobiliariaId) {
+        getPrefs(context).edit().putString(KEY_ADMIN_INMOBILIARIA_ID, inmobiliariaId).apply();
+    }
+
+    /** Guarda nombre visible e ID estable de inmobiliaria en una sola operación. */
+    public static void guardarInmobiliariaCompleta(Context context, String inmobiliaria, String inmobiliariaId) {
+        getPrefs(context).edit()
+                .putString(KEY_ADMIN_INMOBILIARIA, inmobiliaria)
+                .putString(KEY_ADMIN_INMOBILIARIA_ID, inmobiliariaId)
+                .apply();
+    }
+
     /** Retorna el nombre de la inmobiliaria; "Inmobiliaria BitBuilders" si no se guardó. */
     public static String obtenerInmobiliaria(Context context) {
         return getPrefs(context).getString(KEY_ADMIN_INMOBILIARIA, "Inmobiliaria BitBuilders");
+    }
+
+    /** Retorna el ID estable de inmobiliaria; si no existe, lo deriva del nombre actual. */
+    public static String obtenerInmobiliariaId(Context context) {
+        String guardado = getPrefs(context).getString(KEY_ADMIN_INMOBILIARIA_ID, "");
+        if (guardado != null && !guardado.trim().isEmpty()) {
+            return guardado.trim();
+        }
+        return crearInmobiliariaId(obtenerInmobiliaria(context));
+    }
+
+    public static String crearInmobiliariaId(String inmobiliariaNombre) {
+        String base = inmobiliariaNombre != null && !inmobiliariaNombre.trim().isEmpty()
+                ? inmobiliariaNombre.trim()
+                : "inmobiliaria";
+        String sinTildes = Normalizer.normalize(base, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        String normalizado = sinTildes.toLowerCase()
+                .replaceAll("[^a-z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
+        return normalizado.isEmpty() ? "inmobiliaria" : normalizado;
     }
 
     // ── Último acceso del administrador ─────────────────────────────────────

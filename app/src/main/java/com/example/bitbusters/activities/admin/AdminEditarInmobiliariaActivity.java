@@ -25,9 +25,17 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AdminEditarInmobiliariaActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -35,6 +43,7 @@ public class AdminEditarInmobiliariaActivity extends AppCompatActivity implement
     private AdminAsesorInmobiliariaAdapter adapter;
     private GoogleMap mapaUbicacion;
     private Button btnVerTodosAsesoresEdit;
+    private Button btnSaveChanges;
     private TextView tvAsesoresEmptyEdit;
     private TextInputEditText etNombreComercialEdit;
     private TextInputEditText etRazonSocialEdit;
@@ -79,9 +88,49 @@ public class AdminEditarInmobiliariaActivity extends AppCompatActivity implement
             Toast.makeText(this, "Ingresa el nombre comercial", Toast.LENGTH_SHORT).show();
             return;
         }
-        AdminPreferencesManager.guardarInmobiliaria(this, nombreComercial);
-        Toast.makeText(this, "Información actualizada", Toast.LENGTH_SHORT).show();
-        finish();
+        guardarDatosInmobiliariaEnFirestore(nombreComercial);
+    }
+
+    private void guardarDatosInmobiliariaEnFirestore(String nombreComercial) {
+        String inmobiliariaId = AdminPreferencesManager.obtenerInmobiliariaId(this);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (user == null) {
+            AdminPreferencesManager.guardarInmobiliariaCompleta(this, nombreComercial, inmobiliariaId);
+            Toast.makeText(this, "Información actualizada localmente", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        setSavingState(true);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("inmobiliaria", nombreComercial);
+        data.put("inmobiliariaNombre", nombreComercial);
+        data.put("empresa", nombreComercial);
+        data.put("inmobiliariaId", inmobiliariaId);
+        data.put("empresaId", inmobiliariaId);
+        data.put("fechaActualizacionInmobiliaria", FieldValue.serverTimestamp());
+
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        WriteBatch batch = firestore.batch();
+        batch.set(firestore.collection("users").document(user.getUid()), data, SetOptions.merge());
+        batch.set(firestore.collection("usuarios").document(user.getUid()), data, SetOptions.merge());
+
+        batch.commit()
+                .addOnSuccessListener(unused -> {
+                    AdminPreferencesManager.guardarInmobiliariaCompleta(this, nombreComercial, inmobiliariaId);
+                    Toast.makeText(this, "Información actualizada", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    setSavingState(false);
+                    Toast.makeText(this,
+                            e.getMessage() != null
+                                    ? "No se pudo actualizar en Firebase: " + e.getMessage()
+                                    : "No se pudo actualizar en Firebase",
+                            Toast.LENGTH_LONG).show();
+                });
     }
 
     private void setupNavigationListeners() {
@@ -92,7 +141,7 @@ public class AdminEditarInmobiliariaActivity extends AppCompatActivity implement
         }
 
         // Save changes button
-        Button btnSaveChanges = findViewById(R.id.btnSaveChanges);
+        btnSaveChanges = findViewById(R.id.btnSaveChanges);
         if (btnSaveChanges != null) {
             btnSaveChanges.setOnClickListener(v -> guardarDatosInmobiliaria());
         }
@@ -227,5 +276,12 @@ public class AdminEditarInmobiliariaActivity extends AppCompatActivity implement
 
     private String getText(TextInputEditText input) {
         return input != null && input.getText() != null ? input.getText().toString().trim() : "";
+    }
+
+    private void setSavingState(boolean saving) {
+        if (btnSaveChanges != null) {
+            btnSaveChanges.setEnabled(!saving);
+            btnSaveChanges.setText(saving ? "Guardando..." : "Guardar cambios");
+        }
     }
 }

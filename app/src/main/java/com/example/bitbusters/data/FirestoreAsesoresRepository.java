@@ -54,7 +54,7 @@ public class FirestoreAsesoresRepository {
             GuardarAsesorCallback callback
     ) {
         String inmobiliariaNombre = AdminPreferencesManager.obtenerInmobiliaria(context);
-        String inmobiliariaId = AdminProyectosRepository.crearInmobiliariaId(inmobiliariaNombre);
+        String inmobiliariaId = AdminPreferencesManager.obtenerInmobiliariaId(context);
         String emailNormalizado = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
 
         verificarEmailDisponible(emailNormalizado, callback, () ->
@@ -286,7 +286,7 @@ public class FirestoreAsesoresRepository {
 
     private void obtenerAsesoresRegistrados(Context context, boolean soloActivos, AsesoresCallback callback) {
         String inmobiliariaNombre = AdminPreferencesManager.obtenerInmobiliaria(context);
-        String inmobiliariaId = AdminProyectosRepository.crearInmobiliariaId(inmobiliariaNombre);
+        String inmobiliariaId = AdminPreferencesManager.obtenerInmobiliariaId(context);
 
         firestore.collection(COLECCION_USERS_LEGACY).get().addOnSuccessListener(snapshot -> {
             List<QuerySnapshot> snapshots = new ArrayList<>();
