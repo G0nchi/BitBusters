@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.bitbusters.databinding.ActivityAsesorMapaBinding;
 import com.example.bitbusters.models.Proyecto;
+import com.example.bitbusters.repository.ProyectoRepository;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -23,7 +24,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import com.example.bitbusters.R;
 
@@ -39,6 +40,8 @@ public class AsesorMapaActivity extends AppCompatActivity implements OnMapReadyC
     private static final int PERMISO_UBICACION = 101;
     private GoogleMap mMap;
     private ProyectoMapaAdapter adapter;
+    private final ProyectoRepository proyectoRepository = new ProyectoRepository();
+    private ListenerRegistration listenerProyectos;
 
     /** proyectoId → LatLng, para poder centrar la cámara al tocar un ítem de la lista. */
     private final Map<String, LatLng> posicionesPorProyecto = new HashMap<>();
@@ -86,56 +89,62 @@ public class AsesorMapaActivity extends AppCompatActivity implements OnMapReadyC
         }
     }
 
-    /** Consulta los proyectos reales asignados al asesor y dibuja un marcador por cada uno. */
+    /** Se suscribe (misma vía que Cliente: ProyectoRepository) a los proyectos asignados al asesor y dibuja un marcador por cada uno. */
     private void cargarProyectosAsignados() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
 
-        FirebaseFirestore.getInstance()
-            .collection("proyectos")
-            .whereArrayContains("uidAsesores", user.getUid())
-            .get()
-            .addOnSuccessListener(snapshots -> {
-                List<Proyecto> conUbicacion = new ArrayList<>();
-                LatLngBounds.Builder bounds = new LatLngBounds.Builder();
-                posicionesPorProyecto.clear();
-                if (mMap != null) mMap.clear();
-
-                for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
-                    Proyecto p = doc.toObject(Proyecto.class);
-                    if (p == null) continue;
-                    p.setId(doc.getId());
-
-                    Double lat = p.getLatitud();
-                    Double lng = p.getLongitud();
-                    if (lat == null || lng == null) continue;
-
-                    LatLng pos = new LatLng(lat, lng);
-                    posicionesPorProyecto.put(p.getId(), pos);
-                    conUbicacion.add(p);
-                    bounds.include(pos);
-
-                    String ubicacion = p.getUbicacion() != null && !p.getUbicacion().isEmpty()
-                            ? p.getUbicacion() : p.getDistrito();
-                    if (mMap != null) {
-                        mMap.addMarker(new MarkerOptions()
-                            .position(pos)
-                            .title(p.getNombre())
-                            .snippet(ubicacion != null ? ubicacion : "")
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        listenerProyectos = proyectoRepository.escucharProyectosAsesor(user.getUid(),
+                new ProyectoRepository.ProyectosListener() {
+                    @Override
+                    public void onProyectosActualizados(List<Proyecto> proyectos) {
+                        dibujarProyectos(proyectos);
                     }
-                }
 
-                adapter.setData(conUbicacion);
-                binding.tvSinProyectosMapa.setVisibility(
-                        conUbicacion.isEmpty() ? View.VISIBLE : View.GONE);
-                binding.rvProyectosMapa.setVisibility(
-                        conUbicacion.isEmpty() ? View.GONE : View.VISIBLE);
+                    @Override
+                    public void onError(String mensaje) {
+                        binding.tvSinProyectosMapa.setVisibility(View.VISIBLE);
+                        binding.rvProyectosMapa.setVisibility(View.GONE);
+                    }
+                });
+    }
 
-                if (!conUbicacion.isEmpty() && mMap != null) {
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 120));
-                }
-            });
+    private void dibujarProyectos(List<Proyecto> proyectos) {
+        List<Proyecto> conUbicacion = new ArrayList<>();
+        LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+        posicionesPorProyecto.clear();
+        if (mMap != null) mMap.clear();
+
+        for (Proyecto p : proyectos) {
+            Double lat = p.getLatitud();
+            Double lng = p.getLongitud();
+            if (lat == null || lng == null) continue;
+
+            LatLng pos = new LatLng(lat, lng);
+            posicionesPorProyecto.put(p.getId(), pos);
+            conUbicacion.add(p);
+            bounds.include(pos);
+
+            String ubicacion = p.getUbicacion() != null && !p.getUbicacion().isEmpty()
+                    ? p.getUbicacion() : p.getDistrito();
+            if (mMap != null) {
+                mMap.addMarker(new MarkerOptions()
+                    .position(pos)
+                    .title(p.getNombre())
+                    .snippet(ubicacion != null ? ubicacion : "")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+            }
+        }
+
+        adapter.setData(conUbicacion);
+        binding.tvSinProyectosMapa.setVisibility(
+                conUbicacion.isEmpty() ? View.VISIBLE : View.GONE);
+        binding.rvProyectosMapa.setVisibility(
+                conUbicacion.isEmpty() ? View.GONE : View.VISIBLE);
+
+        if (!conUbicacion.isEmpty() && mMap != null) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 120));
+        }
     }
 
     @Override
@@ -154,6 +163,10 @@ public class AsesorMapaActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (listenerProyectos != null) {
+            listenerProyectos.remove();
+            listenerProyectos = null;
+        }
         binding = null;
     }
 }

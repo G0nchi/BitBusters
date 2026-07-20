@@ -83,6 +83,54 @@ public class ProyectoRepository {
             });
     }
 
+    // ── Listener en tiempo real filtrado por asesor (para el mapa/lista del Asesor) ──
+
+    /**
+     * Igual que {@link #escucharProyectosCliente}, pero solo entrega los proyectos
+     * donde el asesor está asignado (uidAsesores contiene su UID).
+     */
+    public ListenerRegistration escucharProyectosAsesor(String uidAsesor, ProyectosListener listener) {
+        return db.collection(COLECCION)
+            .whereArrayContains("uidAsesores", uidAsesor)
+            .addSnapshotListener((querySnapshot, error) -> {
+                if (error != null) {
+                    Log.e(TAG, "Error escuchando proyectos del asesor: " + error.getMessage());
+                    listener.onError(error.getMessage());
+                    return;
+                }
+
+                if (querySnapshot == null) {
+                    listener.onProyectosActualizados(new ArrayList<>());
+                    return;
+                }
+
+                List<Proyecto> lista = new ArrayList<>();
+                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    try {
+                        Boolean esDemo = doc.getBoolean("esDemo");
+                        if (Boolean.TRUE.equals(esDemo)) continue;
+                        Boolean visible = doc.getBoolean("visible");
+                        if (Boolean.FALSE.equals(visible)) continue;
+                        Boolean activo = doc.getBoolean("activo");
+                        if (Boolean.FALSE.equals(activo)) continue;
+
+                        Proyecto p = doc.toObject(Proyecto.class);
+                        if (p == null) continue;
+
+                        p.setId(doc.getId());
+                        normalizarProyecto(doc, p);
+
+                        lista.add(p);
+                    } catch (Exception e) {
+                        Log.w(TAG, "No se pudo deserializar proyecto " + doc.getId()
+                                + ": " + e.getMessage());
+                    }
+                }
+
+                listener.onProyectosActualizados(lista);
+            });
+    }
+
     // ── Consulta de un solo proyecto por nombre (para ProjectDetailActivity) ────
 
     public void obtenerPorNombre(String nombre, ProyectoCallback callback) {
