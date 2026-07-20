@@ -182,7 +182,7 @@
                         </FrameLayout>
 
                         <TextView
-                            android:id="@+id/reportsCancelacionValueText"
+                            android:id="@+id/reportsAttendanceValueText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
@@ -194,7 +194,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/sa_reports_kpi_cancellation"
+                            android:text="@string/sa_reports_kpi_attendance"
                             android:textColor="@color/text_medium"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -246,8 +246,9 @@
                     android:orientation="horizontal">
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="120dp"
+                        android:layout_weight="1"
                         android:background="@drawable/sa_card_bg"
                         android:orientation="vertical"
                         android:padding="12dp">
@@ -265,7 +266,7 @@
                         </FrameLayout>
 
                         <TextView
-                            android:id="@+id/reportsHabilitacionValueText"
+                            android:id="@+id/reportsPaymentApprovalValueText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
@@ -277,14 +278,53 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/sa_reports_kpi_advisor_enablement"
+                            android:text="@string/sa_reports_kpi_payment_approval"
+                            android:textColor="@color/text_medium"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="120dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/sa_card_bg"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/sa_reports_metric_icon_blue_bg">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_timer_20"
+                                android:tint="@color/brand_deep_blue" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:id="@+id/reportsEnablementTimeValueText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="2.6h"
+                            android:textColor="@color/brand_deep_blue"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/sa_reports_kpi_enablement_time"
                             android:textColor="@color/text_medium"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/reportsAlertCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -321,7 +361,6 @@
                             android:textStyle="bold" />
 
                         <TextView
-                            android:id="@+id/reportsAlertBodyText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
@@ -407,15 +446,14 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/sa_reports_donut_vigentes"
+                            android:text="Pagadas en ventana (10 min)"
                             android:textColor="@color/text_medium"
                             android:textSize="12sp" />
 
                         <TextView
-                            android:id="@+id/reportsDonutVigentesText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0%"
+                            android:text="62%"
                             android:textColor="@color/brand_deep_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -430,15 +468,36 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/sa_reports_donut_vencidas"
+                            android:text="Pendientes de pago"
                             android:textColor="@color/text_medium"
                             android:textSize="12sp" />
 
                         <TextView
-                            android:id="@+id/reportsDonutVencidasText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0%"
+                            android:text="27%"
+                            android:textColor="@color/brand_deep_blue"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Vencidas sin pago"
+                            android:textColor="@color/text_medium"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="11%"
                             android:textColor="@color/brand_deep_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -488,14 +547,12 @@
                         android:orientation="vertical">
 
                         <LinearLayout
-                            android:id="@+id/companyRow1Header"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
                             <TextView
-                                android:id="@+id/companyRow1Name"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
@@ -504,7 +561,6 @@
                                 android:textSize="12sp" />
 
                             <TextView
-                                android:id="@+id/companyRow1Percent"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="41%"
@@ -514,14 +570,12 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:id="@+id/companyRow1Bar"
                             android:layout_width="match_parent"
                             android:layout_height="8dp"
                             android:layout_marginTop="4dp"
                             android:background="@color/slate_200">
 
                             <View
-                                android:id="@+id/companyRow1Fill"
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
                                 android:layout_weight="41"
@@ -534,7 +588,6 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:id="@+id/companyRow2Header"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
@@ -542,7 +595,6 @@
                             android:orientation="horizontal">
 
                             <TextView
-                                android:id="@+id/companyRow2Name"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
@@ -551,7 +603,6 @@
                                 android:textSize="12sp" />
 
                             <TextView
-                                android:id="@+id/companyRow2Percent"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="34%"
@@ -561,14 +612,12 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:id="@+id/companyRow2Bar"
                             android:layout_width="match_parent"
                             android:layout_height="8dp"
                             android:layout_marginTop="4dp"
                             android:background="@color/slate_200">
 
                             <View
-                                android:id="@+id/companyRow2Fill"
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
                                 android:layout_weight="34"
@@ -581,7 +630,6 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:id="@+id/companyRow3Header"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
@@ -589,7 +637,6 @@
                             android:orientation="horizontal">
 
                             <TextView
-                                android:id="@+id/companyRow3Name"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
@@ -598,7 +645,6 @@
                                 android:textSize="12sp" />
 
                             <TextView
-                                android:id="@+id/companyRow3Percent"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="17%"
@@ -608,14 +654,12 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:id="@+id/companyRow3Bar"
                             android:layout_width="match_parent"
                             android:layout_height="8dp"
                             android:layout_marginTop="4dp"
                             android:background="@color/slate_200">
 
                             <View
-                                android:id="@+id/companyRow3Fill"
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
                                 android:layout_weight="17"
@@ -628,7 +672,6 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:id="@+id/companyRow4Header"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
@@ -636,7 +679,6 @@
                             android:orientation="horizontal">
 
                             <TextView
-                                android:id="@+id/companyRow4Name"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
@@ -645,7 +687,6 @@
                                 android:textSize="12sp" />
 
                             <TextView
-                                android:id="@+id/companyRow4Percent"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="8%"
@@ -655,14 +696,12 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:id="@+id/companyRow4Bar"
                             android:layout_width="match_parent"
                             android:layout_height="8dp"
                             android:layout_marginTop="4dp"
                             android:background="@color/slate_200">
 
                             <View
-                                android:id="@+id/companyRow4Fill"
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
                                 android:layout_weight="8"
