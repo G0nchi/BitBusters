@@ -4,12 +4,19 @@ import android.content.Context;
 
 import com.example.bitbusters.models.AdminAsesorInmobiliaria;
 import com.example.bitbusters.utils.AdminPreferencesManager;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -19,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 public class FirestoreAsesoresRepository {
 
@@ -28,11 +36,12 @@ public class FirestoreAsesoresRepository {
     }
 
     public interface GuardarAsesorCallback {
-        void onSuccess();
+        void onSuccess(String mensaje);
         void onError(String mensaje);
     }
 
     private static final String COLECCION_USERS_LEGACY = "users";
+    private static final String COLECCION_USUARIOS = "usuarios";
 
     private final FirebaseFirestore firestore = FirebaseFirestore.getInstance();
 
@@ -48,38 +57,34 @@ public class FirestoreAsesoresRepository {
         String inmobiliariaId = AdminProyectosRepository.crearInmobiliariaId(inmobiliariaNombre);
         String emailNormalizado = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("email", emailNormalizado);
-        data.put("inmobiliaria", inmobiliariaNombre);
-        data.put("inmobiliariaId", inmobiliariaId);
-        data.put("nombre", nombre == null ? "" : nombre.trim());
-        data.put("role", "asesor");
-        data.put("status", "pending");
-        data.put("telefono", telefono == null ? "" : telefono.trim());
-        data.put("dni", dni == null ? "" : dni.trim());
-        data.put("fechaRegistro", FieldValue.serverTimestamp());
+        verificarEmailDisponible(emailNormalizado, callback, () ->
+                crearCuentaAuthYPerfilAsesor(
+                        context,
+                        nombre,
+                        emailNormalizado,
+                        telefono,
+                        dni,
+                        inmobiliariaNombre,
+                        inmobiliariaId,
+                        callback
+                ));
+    }
 
-        DocumentReference asesorRef = firestore.collection(COLECCION_USERS_LEGACY)
-                .document(documentIdFromEmail(emailNormalizado));
-
-        asesorRef.get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        if (callback != null) callback.onError("Ya existe un asesor con este correo");
+    private void verificarEmailDisponible(
+            String emailNormalizado,
+            GuardarAsesorCallback callback,
+            Runnable onDisponible
+    ) {
+        firestore.collection(COLECCION_USERS_LEGACY)
+                .whereEqualTo("email", emailNormalizado)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        if (callback != null) callback.onError("Ya existe una cuenta con este correo");
                         return;
                     }
-
-                    asesorRef.set(data)
-                            .addOnSuccessListener(unused -> {
-                                if (callback != null) callback.onSuccess();
-                            })
-                            .addOnFailureListener(e -> {
-                                if (callback != null) {
-                                    callback.onError(e.getMessage() != null
-                                            ? e.getMessage()
-                                            : "No se pudo registrar el asesor");
-                                }
-                            });
+                    onDisponible.run();
                 })
                 .addOnFailureListener(e -> {
                     if (callback != null) {
@@ -88,6 +93,187 @@ public class FirestoreAsesoresRepository {
                                 : "No se pudo validar el correo del asesor");
                     }
                 });
+    }
+
+    private void crearCuentaAuthYPerfilAsesor(
+            Context context,
+            String nombre,
+            String emailNormalizado,
+            String telefono,
+            String dni,
+            String inmobiliariaNombre,
+            String inmobiliariaId,
+            GuardarAsesorCallback callback
+    ) {
+        FirebaseApp secondaryApp;
+        try {
+            secondaryApp = crearSecondaryFirebaseApp(context);
+        } catch (Exception e) {
+            if (callback != null) callback.onError("No se pudo preparar el registro del asesor");
+            return;
+        }
+
+        FirebaseAuth secondaryAuth = FirebaseAuth.getInstance(secondaryApp);
+        String passwordTemporal = generarPasswordTemporal();
+
+        secondaryAuth.createUserWithEmailAndPassword(emailNormalizado, passwordTemporal)
+                .addOnSuccessListener(authResult -> {
+                    FirebaseUser authUser = authResult.getUser();
+                    if (authUser == null) {
+                        limpiarSecondaryApp(secondaryApp);
+                        if (callback != null) callback.onError("No se pudo crear la cuenta del asesor");
+                        return;
+                    }
+
+                    guardarPerfilAsesor(
+                            secondaryAuth,
+                            secondaryApp,
+                            authUser,
+                            nombre,
+                            emailNormalizado,
+                            telefono,
+                            dni,
+                            inmobiliariaNombre,
+                            inmobiliariaId,
+                            callback
+                    );
+                })
+                .addOnFailureListener(e -> {
+                    limpiarSecondaryApp(secondaryApp);
+                    if (callback != null) callback.onError(mapearErrorAuthAsesor(e));
+                });
+    }
+
+    private FirebaseApp crearSecondaryFirebaseApp(Context context) {
+        FirebaseOptions options = FirebaseApp.getInstance().getOptions();
+        String appName = "advisor-registration-" + UUID.randomUUID();
+        return FirebaseApp.initializeApp(context.getApplicationContext(), options, appName);
+    }
+
+    private void guardarPerfilAsesor(
+            FirebaseAuth secondaryAuth,
+            FirebaseApp secondaryApp,
+            FirebaseUser authUser,
+            String nombre,
+            String emailNormalizado,
+            String telefono,
+            String dni,
+            String inmobiliariaNombre,
+            String inmobiliariaId,
+            GuardarAsesorCallback callback
+    ) {
+        String uid = authUser.getUid();
+        String nombreLimpio = nombre == null ? "" : nombre.trim();
+        String telefonoLimpio = telefono == null ? "" : telefono.trim();
+        String dniLimpio = dni == null ? "" : dni.trim();
+        String adminUid = AdminProyectosRepository.obtenerAdminUidActual();
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("uid", uid);
+        data.put("email", emailNormalizado);
+        data.put("correo", emailNormalizado);
+        data.put("inmobiliaria", inmobiliariaNombre);
+        data.put("inmobiliariaNombre", inmobiliariaNombre);
+        data.put("inmobiliariaId", inmobiliariaId);
+        data.put("empresa", inmobiliariaNombre);
+        data.put("nombre", nombreLimpio);
+        data.put("role", "asesor");
+        data.put("rol", "ASESOR");
+        data.put("status", "pending");
+        data.put("estado", "Pendiente");
+        data.put("activo", false);
+        data.put("habilitado", false);
+        data.put("telefono", telefonoLimpio);
+        data.put("phone", telefonoLimpio);
+        data.put("dni", dniLimpio);
+        data.put("createdByAdminUid", adminUid);
+        data.put("requiereAprobacionSuperadmin", true);
+        data.put("debeConfigurarPassword", true);
+        data.put("fechaRegistro", FieldValue.serverTimestamp());
+        data.put("createdAt", FieldValue.serverTimestamp());
+
+        Map<String, Object> usuario = new HashMap<>();
+        usuario.put("uid", uid);
+        usuario.put("nombre", nombreLimpio);
+        usuario.put("email", emailNormalizado);
+        usuario.put("telefono", telefonoLimpio);
+        usuario.put("dni", dniLimpio);
+        usuario.put("rol", "ASESOR");
+        usuario.put("fotoUrl", null);
+        usuario.put("fechaRegistro", FieldValue.serverTimestamp());
+        usuario.put("activo", false);
+
+        DocumentReference userRef = firestore.collection(COLECCION_USERS_LEGACY).document(uid);
+        DocumentReference usuarioRef = firestore.collection(COLECCION_USUARIOS).document(uid);
+
+        WriteBatch batch = firestore.batch();
+        batch.set(userRef, data, SetOptions.merge());
+        batch.set(usuarioRef, usuario, SetOptions.merge());
+
+        batch.commit()
+                .addOnSuccessListener(unused ->
+                        enviarCorreoConfiguracionPassword(secondaryAuth, secondaryApp, emailNormalizado, callback))
+                .addOnFailureListener(e ->
+                        rollbackAuthYResponder(
+                                authUser,
+                                secondaryApp,
+                                callback,
+                                e.getMessage() != null
+                                        ? e.getMessage()
+                                        : "No se pudo guardar el perfil del asesor"
+                        ));
+    }
+
+    private void enviarCorreoConfiguracionPassword(
+            FirebaseAuth secondaryAuth,
+            FirebaseApp secondaryApp,
+            String emailNormalizado,
+            GuardarAsesorCallback callback
+    ) {
+        secondaryAuth.sendPasswordResetEmail(emailNormalizado)
+                .addOnCompleteListener(task -> {
+                    limpiarSecondaryApp(secondaryApp);
+                    if (callback != null) {
+                        if (task.isSuccessful()) {
+                            callback.onSuccess("Asesor registrado. Se envió un correo para configurar su contraseña.");
+                        } else {
+                            callback.onSuccess("Asesor registrado como pendiente. No se pudo enviar el correo de contraseña.");
+                        }
+                    }
+                });
+    }
+
+    private void rollbackAuthYResponder(
+            FirebaseUser authUser,
+            FirebaseApp secondaryApp,
+            GuardarAsesorCallback callback,
+            String mensaje
+    ) {
+        authUser.delete().addOnCompleteListener(task -> {
+            limpiarSecondaryApp(secondaryApp);
+            if (callback != null) callback.onError(mensaje);
+        });
+    }
+
+    private void limpiarSecondaryApp(FirebaseApp secondaryApp) {
+        try {
+            if (secondaryApp != null) secondaryApp.delete();
+        } catch (Exception ignored) {
+            // No debe bloquear el flujo de registro.
+        }
+    }
+
+    private String generarPasswordTemporal() {
+        return "Tmp1!" + UUID.randomUUID().toString().replace("-", "");
+    }
+
+    private String mapearErrorAuthAsesor(Exception e) {
+        if (e instanceof FirebaseAuthUserCollisionException) {
+            return "Ya existe una cuenta de autenticación con este correo";
+        }
+        return e != null && e.getMessage() != null
+                ? e.getMessage()
+                : "No se pudo crear la cuenta del asesor";
     }
 
     public void obtenerAsesoresRegistrados(Context context, AsesoresCallback callback) {
@@ -155,8 +341,8 @@ public class FirestoreAsesoresRepository {
 
     private boolean estaActivo(DocumentSnapshot doc) {
         String estado = firstNonEmpty(
-                doc.getString("estado"),
-                doc.getString("status")
+                doc.getString("status"),
+                doc.getString("estado")
         );
         if (!isBlank(estado)) {
             String normalized = normalize(estado);
@@ -218,8 +404,8 @@ public class FirestoreAsesoresRepository {
 
     private String buildEstado(DocumentSnapshot doc) {
         String estado = firstNonEmpty(
-                doc.getString("estado"),
-                doc.getString("status")
+                doc.getString("status"),
+                doc.getString("estado")
         );
         if (!isBlank(estado)) {
             String normalized = normalize(estado);
@@ -254,14 +440,6 @@ public class FirestoreAsesoresRepository {
             timestamp = doc.getTimestamp("createdAt");
         }
         return timestamp != null ? timestamp.toDate().getTime() : 0L;
-    }
-
-    private String documentIdFromEmail(String email) {
-        String normalized = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
-        if (isBlank(normalized)) {
-            return firestore.collection(COLECCION_USERS_LEGACY).document().getId();
-        }
-        return normalized.replace("/", "_");
     }
 
     private String keyFor(DocumentSnapshot doc, AdminAsesorInmobiliaria asesor) {
