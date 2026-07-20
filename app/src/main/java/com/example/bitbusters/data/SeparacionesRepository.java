@@ -248,6 +248,27 @@ public final class SeparacionesRepository {
                 doc.getString("inmobiliariaId"),
                 doc.getString("empresaId")
         ));
+        separacion.setEstadoPago(normalizarEstadoPago(firstNonEmpty(
+                doc.getString("estadoPago"),
+                doc.getString("pagoEstado"),
+                doc.getString("estado_pago")
+        ), estado));
+        separacion.setMetodoPago(firstNonEmpty(
+                doc.getString("metodoPago"),
+                doc.getString("medioPago"),
+                doc.getString("paymentMethod")
+        ));
+        separacion.setComprobantePago(firstNonEmpty(
+                doc.getString("comprobantePago"),
+                doc.getString("comprobante"),
+                doc.getString("comprobanteUrl"),
+                doc.getString("voucherUrl")
+        ));
+        separacion.setObservacionPago(firstNonEmpty(
+                doc.getString("observacionPago"),
+                doc.getString("observacion"),
+                doc.getString("comentarioPago")
+        ));
         return separacion;
     }
 
@@ -374,6 +395,27 @@ public final class SeparacionesRepository {
             return "Rechazada";
         }
         return "Pendiente";
+    }
+
+    private static String normalizarEstadoPago(String estadoPago, String estadoSeparacion) {
+        String normalized = estadoPago == null ? "" : estadoPago.trim().toLowerCase(Locale.ROOT);
+        if (normalized.equals("pagada") || normalized.equals("pagado")
+                || normalized.equals("paid") || normalized.equals("completado")
+                || normalized.equals("completada")) {
+            return "Pagado";
+        }
+        if (normalized.equals("rechazado") || normalized.equals("rechazada")
+                || normalized.equals("failed") || normalized.equals("fallido")) {
+            return "Rechazado";
+        }
+        if (normalized.equals("pendiente") || normalized.equals("pendiente_pago")
+                || normalized.equals("pending")) {
+            return "Pendiente";
+        }
+        if ("Aprobada".equalsIgnoreCase(estadoSeparacion)) {
+            return "Pendiente";
+        }
+        return "No habilitado";
     }
 
     private static boolean perteneceAInmobiliaria(DocumentSnapshot doc, String inmobiliariaId) {

@@ -12,6 +12,10 @@ public class AdminSeparacion {
     public String asesorNombre;
     public String proyectoId;
     public String inmobiliariaId;
+    public String estadoPago;
+    public String metodoPago;
+    public String comprobantePago;
+    public String observacionPago;
 
     public AdminSeparacion() {
         // Constructor vacío requerido para compatibilidad con Firestore/serialización.
@@ -37,6 +41,10 @@ public class AdminSeparacion {
     public String getAsesorNombre() { return asesorNombre != null ? asesorNombre : ""; }
     public String getProyectoId() { return proyectoId != null ? proyectoId : ""; }
     public String getInmobiliariaId() { return inmobiliariaId != null ? inmobiliariaId : ""; }
+    public String getEstadoPago() { return estadoPago != null ? estadoPago : ""; }
+    public String getMetodoPago() { return metodoPago != null ? metodoPago : ""; }
+    public String getComprobantePago() { return comprobantePago != null ? comprobantePago : ""; }
+    public String getObservacionPago() { return observacionPago != null ? observacionPago : ""; }
 
     public void setId(String id) { this.id = id; }
     public void setNombreProyecto(String nombreProyecto) { this.nombreProyecto = nombreProyecto; }
@@ -48,6 +56,10 @@ public class AdminSeparacion {
     public void setAsesorNombre(String asesorNombre) { this.asesorNombre = asesorNombre; }
     public void setProyectoId(String proyectoId) { this.proyectoId = proyectoId; }
     public void setInmobiliariaId(String inmobiliariaId) { this.inmobiliariaId = inmobiliariaId; }
+    public void setEstadoPago(String estadoPago) { this.estadoPago = estadoPago; }
+    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
+    public void setComprobantePago(String comprobantePago) { this.comprobantePago = comprobantePago; }
+    public void setObservacionPago(String observacionPago) { this.observacionPago = observacionPago; }
 
     /**
      * Actualiza el estado de la separación.
