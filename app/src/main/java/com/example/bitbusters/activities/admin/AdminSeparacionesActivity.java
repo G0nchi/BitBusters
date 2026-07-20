@@ -2,20 +2,23 @@ package com.example.bitbusters.activities.admin;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
+import android.view.View;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.AdminSeparacionAdapter;
+import com.example.bitbusters.data.AdminProyectosRepository;
 import com.example.bitbusters.data.SeparacionesRepository;
+import com.example.bitbusters.models.AdminProyecto;
 import com.example.bitbusters.models.AdminSeparacion;
 import com.example.bitbusters.utils.AdminPreferencesManager;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,16 +38,16 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
     // Clave del Intent extra para scroll/resalte post-notificación
     public static final String EXTRA_SEPARACION_ID = "separacion_id";
 
-    private Button btnPendientes, btnAprobadas, btnRechazadas;
-    private AutoCompleteTextView actvProyectoFilter, actvFechaFilter;
+    private ChipGroup chipGroupEstadosSeparacion, chipGroupProyectoFilter, chipGroupFechaFilter;
+    private Chip chipEstadoTodos, chipEstadoPendientes, chipEstadoAprobadas, chipEstadoRechazadas;
+    private TextView tvSeparacionesEmpty;
     private RecyclerView rvSeparaciones;
     private AdminSeparacionAdapter adapter;
     private String currentEstadoFilter = "Pendiente";
     private String currentProyectoFilter = "Todos los proyectos";
     private String currentFechaFilter = "Todo el tiempo";
-    private ArrayAdapter<String> adapterProyectos;
-    private ArrayAdapter<String> adapterFechas;
     private ListenerRegistration separacionesListener;
+    private ListenerRegistration proyectosListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +89,10 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
             separacionesListener.remove();
             separacionesListener = null;
         }
+        if (proyectosListener != null) {
+            proyectosListener.remove();
+            proyectosListener = null;
+        }
     }
 
     @Override
@@ -98,40 +105,48 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
     // ── Inicialización ───────────────────────────────────────────────────────
 
     private void initializeViews() {
-        btnPendientes = findViewById(R.id.btnPendientes);
-        btnAprobadas  = findViewById(R.id.btnAprobadas);
-        btnRechazadas = findViewById(R.id.btnRechazadas);
+        chipGroupEstadosSeparacion = findViewById(R.id.chipGroupEstadosSeparacion);
+        chipGroupProyectoFilter = findViewById(R.id.chipGroupProyectoFilter);
+        chipGroupFechaFilter = findViewById(R.id.chipGroupFechaFilter);
+        chipEstadoTodos = findViewById(R.id.chipEstadoTodos);
+        chipEstadoPendientes = findViewById(R.id.chipEstadoPendientes);
+        chipEstadoAprobadas = findViewById(R.id.chipEstadoAprobadas);
+        chipEstadoRechazadas = findViewById(R.id.chipEstadoRechazadas);
 
-        actvProyectoFilter = findViewById(R.id.actvProyectoFilter);
-        actvFechaFilter    = findViewById(R.id.actvFechaFilter);
         rvSeparaciones     = findViewById(R.id.rvSeparaciones);
+        tvSeparacionesEmpty = findViewById(R.id.tvSeparacionesEmpty);
 
-        setupDropdowns();
+        setupChips();
     }
 
-    private void setupDropdowns() {
-        adapterProyectos = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, new ArrayList<>());
-        actvProyectoFilter.setAdapter(adapterProyectos);
-        actvProyectoFilter.setOnClickListener(v -> actvProyectoFilter.showDropDown());
-        actvProyectoFilter.setOnItemClickListener((parent, view, position, id) -> {
-            Object item = parent.getItemAtPosition(position);
-            currentProyectoFilter = item != null ? item.toString() : "Todos los proyectos";
-            renderSeparaciones();
-        });
+    private void setupChips() {
+        if (chipGroupEstadosSeparacion != null) {
+            chipGroupEstadosSeparacion.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (checkedIds == null || checkedIds.isEmpty()) return;
+                int checkedId = checkedIds.get(0);
+                if (checkedId == R.id.chipEstadoTodos) {
+                    currentEstadoFilter = null;
+                } else if (checkedId == R.id.chipEstadoAprobadas) {
+                    currentEstadoFilter = "Aprobada";
+                } else if (checkedId == R.id.chipEstadoRechazadas) {
+                    currentEstadoFilter = "Rechazada";
+                } else {
+                    currentEstadoFilter = "Pendiente";
+                }
+                renderSeparaciones();
+            });
+        }
 
-        String[] fechas = {"Todo el tiempo", "Esta semana", "Este mes", "Este bimestre", "Este año"};
-        adapterFechas = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, fechas);
-        actvFechaFilter.setAdapter(adapterFechas);
-        actvFechaFilter.setOnClickListener(v -> actvFechaFilter.showDropDown());
-        actvFechaFilter.setOnItemClickListener((parent, view, position, id) -> {
-            Object item = parent.getItemAtPosition(position);
-            currentFechaFilter = item != null ? item.toString() : "Todo el tiempo";
-            renderSeparaciones();
-        });
-        actvProyectoFilter.setText(currentProyectoFilter, false);
-        actvFechaFilter.setText(currentFechaFilter, false);
+        if (chipGroupFechaFilter != null) {
+            chipGroupFechaFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (checkedIds == null || checkedIds.isEmpty()) return;
+                Chip selected = group.findViewById(checkedIds.get(0));
+                currentFechaFilter = selected != null ? selected.getText().toString() : "Todo el tiempo";
+                renderSeparaciones();
+            });
+        }
+
+        actualizarOpcionesProyecto();
     }
 
     private void setupRecyclerView() {
@@ -175,16 +190,30 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
                         renderSeparaciones();
                     }
                 });
+
+        if (proyectosListener != null) {
+            proyectosListener.remove();
+        }
+        String inmobiliariaId = AdminPreferencesManager.obtenerInmobiliariaId(this);
+        proyectosListener = AdminProyectosRepository.escucharPorAdministrador(
+                null,
+                inmobiliariaId,
+                new AdminProyectosRepository.ProyectosListener() {
+                    @Override
+                    public void onProyectosActualizados(List<AdminProyecto> proyectos) {
+                        actualizarOpcionesProyecto();
+                        renderSeparaciones();
+                    }
+
+                    @Override
+                    public void onError(String mensaje) {
+                        actualizarOpcionesProyecto();
+                        renderSeparaciones();
+                    }
+                });
     }
 
     private void setupListeners() {
-        if (btnPendientes != null)
-            btnPendientes.setOnClickListener(v -> filtrarPorEstado("Pendiente"));
-        if (btnAprobadas != null)
-            btnAprobadas.setOnClickListener(v -> filtrarPorEstado("Aprobada"));
-        if (btnRechazadas != null)
-            btnRechazadas.setOnClickListener(v -> filtrarPorEstado("Rechazada"));
-
     }
 
     private void setupNotificationsButton() {
@@ -200,7 +229,7 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
 
     private void filtrarPorEstado(String estado) {
         currentEstadoFilter = estado;
-        seleccionarTab(estado);
+        seleccionarChipEstado(estado);
         renderSeparaciones();
     }
 
@@ -215,8 +244,9 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
             }
         }
         adapter.setData(filtradas);
+        actualizarEmptyState(filtradas.isEmpty());
         actualizarContadoresTabs();
-        seleccionarTab(currentEstadoFilter);
+        seleccionarChipEstado(currentEstadoFilter);
     }
 
     private boolean cumpleFiltroEstado(AdminSeparacion separacion) {
@@ -263,9 +293,16 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
     }
 
     private void actualizarOpcionesProyecto() {
-        if (adapterProyectos == null) return;
+        if (chipGroupProyectoFilter == null) return;
 
         LinkedHashSet<String> nombres = new LinkedHashSet<>();
+        for (AdminProyecto proyecto : AdminProyectosRepository.getTodos()) {
+            if (proyecto == null) continue;
+            String nombre = proyecto.getNombre();
+            if (nombre != null && !nombre.trim().isEmpty()) {
+                nombres.add(nombre.trim());
+            }
+        }
         for (AdminSeparacion sep : SeparacionesRepository.getLista()) {
             if (sep == null) continue;
             String proyecto = sep.getNombreProyecto();
@@ -278,25 +315,31 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
         Collections.sort(opciones);
         opciones.add(0, "Todos los proyectos");
 
-        adapterProyectos.clear();
-        adapterProyectos.addAll(opciones);
-        adapterProyectos.notifyDataSetChanged();
-
         if (!opciones.contains(currentProyectoFilter)) {
             currentProyectoFilter = "Todos los proyectos";
-            if (actvProyectoFilter != null) {
-                actvProyectoFilter.setText(currentProyectoFilter, false);
-            }
+        }
+
+        chipGroupProyectoFilter.removeAllViews();
+        for (String opcion : opciones) {
+            Chip chip = crearChipFiltro(opcion);
+            chip.setChecked(opcion.equals(currentProyectoFilter));
+            chip.setOnClickListener(v -> {
+                currentProyectoFilter = ((Chip) v).getText().toString();
+                renderSeparaciones();
+            });
+            chipGroupProyectoFilter.addView(chip);
         }
     }
 
     private void actualizarContadoresTabs() {
+        int total = 0;
         int pendientes = 0;
         int aprobadas = 0;
         int rechazadas = 0;
 
         for (AdminSeparacion sep : SeparacionesRepository.getLista()) {
             if (!cumpleFiltroProyecto(sep) || !cumpleFiltroFecha(sep)) continue;
+            total++;
             if ("Aprobada".equalsIgnoreCase(sep.getEstado())) {
                 aprobadas++;
             } else if ("Rechazada".equalsIgnoreCase(sep.getEstado())) {
@@ -306,30 +349,54 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
             }
         }
 
-        if (btnPendientes != null) btnPendientes.setText("Pendientes (" + pendientes + ")");
-        if (btnAprobadas != null) btnAprobadas.setText("Aprobadas (" + aprobadas + ")");
-        if (btnRechazadas != null) btnRechazadas.setText("Rechazadas (" + rechazadas + ")");
+        if (chipEstadoTodos != null) chipEstadoTodos.setText("Todos (" + total + ")");
+        if (chipEstadoPendientes != null) chipEstadoPendientes.setText("Pendientes (" + pendientes + ")");
+        if (chipEstadoAprobadas != null) chipEstadoAprobadas.setText("Aprobadas (" + aprobadas + ")");
+        if (chipEstadoRechazadas != null) chipEstadoRechazadas.setText("Rechazadas (" + rechazadas + ")");
     }
 
-    private void seleccionarTab(String estadoSeleccionado) {
-        // Resetear todos los botones al estilo inactivo
-        btnPendientes.setBackground(getDrawable(R.drawable.button_outline_state_bg));
-        btnAprobadas.setBackground(getDrawable(R.drawable.button_outline_state_bg));
-        btnRechazadas.setBackground(getDrawable(R.drawable.button_outline_state_bg));
-        btnPendientes.setTextColor(getColor(R.color.neutral_medium));
-        btnAprobadas.setTextColor(getColor(R.color.neutral_medium));
-        btnRechazadas.setTextColor(getColor(R.color.neutral_medium));
-
-        // Resaltar el botón seleccionado
-        Button seleccionado = null;
-        if ("Pendiente".equals(estadoSeleccionado))  seleccionado = btnPendientes;
-        else if ("Aprobada".equals(estadoSeleccionado))  seleccionado = btnAprobadas;
-        else if ("Rechazada".equals(estadoSeleccionado)) seleccionado = btnRechazadas;
-
-        if (seleccionado != null) {
-            seleccionado.setBackground(getDrawable(R.color.brand_deep_blue));
-            seleccionado.setTextColor(getColor(android.R.color.white));
+    private void seleccionarChipEstado(String estadoSeleccionado) {
+        if (chipGroupEstadosSeparacion == null) return;
+        int chipId;
+        if ("Aprobada".equals(estadoSeleccionado)) {
+            chipId = R.id.chipEstadoAprobadas;
+        } else if ("Rechazada".equals(estadoSeleccionado)) {
+            chipId = R.id.chipEstadoRechazadas;
+        } else if ("Pendiente".equals(estadoSeleccionado)) {
+            chipId = R.id.chipEstadoPendientes;
+        } else {
+            chipId = R.id.chipEstadoTodos;
         }
+        if (chipGroupEstadosSeparacion.getCheckedChipId() != chipId) {
+            chipGroupEstadosSeparacion.check(chipId);
+        }
+    }
+
+    private Chip crearChipFiltro(String texto) {
+        Chip chip = new Chip(this, null, com.google.android.material.R.style.Widget_Material3_Chip_Filter);
+        chip.setText(texto);
+        chip.setCheckable(true);
+        chip.setCheckedIconVisible(false);
+        chip.setEnsureMinTouchTargetSize(true);
+        return chip;
+    }
+
+    private void actualizarEmptyState(boolean listaVacia) {
+        if (tvSeparacionesEmpty == null || rvSeparaciones == null) return;
+
+        tvSeparacionesEmpty.setText(obtenerMensajeVacio());
+        tvSeparacionesEmpty.setVisibility(listaVacia ? View.VISIBLE : View.GONE);
+        rvSeparaciones.setVisibility(listaVacia ? View.GONE : View.VISIBLE);
+    }
+
+    private String obtenerMensajeVacio() {
+        if ("Pendiente".equals(currentEstadoFilter)) return "No hay separaciones pendientes";
+        if ("Aprobada".equals(currentEstadoFilter)) return "No hay separaciones aprobadas";
+        if ("Rechazada".equals(currentEstadoFilter)) return "No hay separaciones rechazadas";
+        if (!"Todos los proyectos".equals(currentProyectoFilter)) {
+            return "No hay separaciones para " + currentProyectoFilter;
+        }
+        return "No hay separaciones para los filtros seleccionados";
     }
 
     // ── Scroll / Resalte tras notificación (Corrección 3) ───────────────────
@@ -349,7 +416,8 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
         if (adapter != null) {
             adapter.setData(new ArrayList<>(SeparacionesRepository.getLista()));
         }
-        seleccionarTab(currentEstadoFilter);
+        actualizarEmptyState(SeparacionesRepository.getLista().isEmpty());
+        seleccionarChipEstado(currentEstadoFilter);
         actualizarContadoresTabs();
 
         // Hacer scroll hasta la posición del ítem resaltado
