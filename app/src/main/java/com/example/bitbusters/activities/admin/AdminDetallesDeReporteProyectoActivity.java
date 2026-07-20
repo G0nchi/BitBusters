@@ -2,6 +2,7 @@ package com.example.bitbusters.activities.admin;
 
 import android.os.Bundle;
 import android.widget.AutoCompleteTextView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -11,55 +12,36 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.AdminHistorialSeparacionAdapter;
-import com.example.bitbusters.data.AdminDataRepository;
+import com.example.bitbusters.data.SeparacionesRepository;
+import com.example.bitbusters.models.AdminHistorialSeparacion;
+import com.example.bitbusters.models.AdminSeparacion;
+import com.example.bitbusters.utils.AdminPreferencesManager;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.firestore.ListenerRegistration;
+
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
 
-    private String[] proyectos = {"Edificio Los Álamos", "Mirador Surco", "Alto San Felipe", "R. Balta"};
+    private List<String> proyectos = new ArrayList<>();
     private String selectedPeriodo = "Mensual";
-    private String selectedProyecto = "Edificio Los Álamos";
-    
-    // Valores por proyecto y período
-    private int[][] montos = {
-        // Edificio Los Álamos
-        {12000, 42000, 85000},
-        // Mirador Surco
-        {8500, 28500, 56000},
-        // Alto San Felipe
-        {5000, 18200, 36400},
-        // R. Balta
-        {3200, 6700, 13400}
-    };
-    
-    private int[][] separaciones = {
-        // Edificio Los Álamos
-        {2, 7, 14},
-        // Mirador Surco
-        {1, 3, 6},
-        // Alto San Felipe
-        {1, 2, 4},
-        // R. Balta
-        {1, 1, 2}
-    };
-    
-    private int[][] asesores = {
-        // Edificio Los Álamos
-        {1, 2, 3},
-        // Mirador Surco
-        {1, 1, 2},
-        // Alto San Felipe
-        {1, 1, 1},
-        // R. Balta
-        {1, 1, 1}
-    };
+    private String selectedProyecto = "";
 
     private TextView tvResumenMonto, tvResumenSeparaciones, tvResumenAsesores;
     private Button btnDiario, btnMensual, btnAnual;
     private AutoCompleteTextView actvProjecto;
     private RecyclerView rvHistorial;
     private AdminHistorialSeparacionAdapter adapter;
+    private ArrayAdapter<String> proyectosAdapter;
+    private ListenerRegistration separacionesListener;
+    private List<AdminSeparacion> separacionesActuales = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,15 +50,29 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
         setupListeners();
         setupDropdown();
         updateButtonStyles();
-        updateResumen();
         setupRecyclerView();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        iniciarListenerSeparaciones();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (separacionesListener != null) {
+            separacionesListener.remove();
+            separacionesListener = null;
+        }
     }
 
     private void setupRecyclerView() {
         rvHistorial = findViewById(R.id.rvHistorialSeparaciones);
         if (rvHistorial != null) {
             rvHistorial.setLayoutManager(new LinearLayoutManager(this));
-            adapter = new AdminHistorialSeparacionAdapter(AdminDataRepository.getHistorialSeparaciones());
+            adapter = new AdminHistorialSeparacionAdapter(new ArrayList<>());
             rvHistorial.setAdapter(adapter);
         }
     }
@@ -108,11 +104,9 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
     }
 
     private void setupDropdown() {
-        // Crear adapter para AutoCompleteTextView
-        android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
+        proyectosAdapter = new ArrayAdapter<>(
             this, android.R.layout.simple_dropdown_item_1line, proyectos);
-        actvProjecto.setAdapter(adapter);
-        actvProjecto.setText(selectedProyecto, false);
+        actvProjecto.setAdapter(proyectosAdapter);
         
         // Abrir dropdown al hacer click
         actvProjecto.setOnClickListener(v -> {
@@ -121,7 +115,7 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
         
         // Listener para cuando se selecciona un proyecto
         actvProjecto.setOnItemClickListener((parent, view, position, id) -> {
-            selectedProyecto = proyectos[position];
+            selectedProyecto = proyectos.get(position);
             updateResumen();
         });
     }
@@ -180,34 +174,154 @@ public class AdminDetallesDeReporteProyectoActivity extends AppCompatActivity {
     }
 
     private void updateResumen() {
-        // Solo actualizar valores si es Edificio Los Álamos o Mirador Surco
-        int proyectoIndex = -1;
-        for (int i = 0; i < proyectos.length; i++) {
-            if (proyectos[i].equals(selectedProyecto)) {
-                proyectoIndex = i;
-                break;
+        double monto = 0;
+        int totalSeparaciones = 0;
+        Set<String> asesores = new HashSet<>();
+        List<AdminHistorialSeparacion> historial = new ArrayList<>();
+
+        for (AdminSeparacion separacion : separacionesFiltradas()) {
+            double montoSeparacion = parseMonto(separacion.getMonto());
+            monto += montoSeparacion;
+            totalSeparaciones++;
+
+            String asesorKey = !separacion.getUidAsesor().isEmpty()
+                    ? separacion.getUidAsesor()
+                    : separacion.getAsesorNombre();
+            if (asesorKey != null && !asesorKey.trim().isEmpty()) {
+                asesores.add(asesorKey.trim());
             }
+
+            historial.add(new AdminHistorialSeparacion(
+                    separacion.getId(),
+                    selectedPeriodo,
+                    formatearSoles(montoSeparacion),
+                    1,
+                    asesorKey == null || asesorKey.trim().isEmpty() ? 0 : 1,
+                    separacion.getFecha(),
+                    separacion.getNombreProyecto()
+            ));
         }
 
-        if (proyectoIndex == 0 || proyectoIndex == 1) { // Solo Alamos y Mirador
-            int periodoIndex = getPeriodoIndex();
-            
-            if (tvResumenMonto != null) {
-                tvResumenMonto.setText("S/" + montos[proyectoIndex][periodoIndex] + ",000");
-            }
-            if (tvResumenSeparaciones != null) {
-                tvResumenSeparaciones.setText(String.valueOf(separaciones[proyectoIndex][periodoIndex]));
-            }
-            if (tvResumenAsesores != null) {
-                tvResumenAsesores.setText(String.valueOf(asesores[proyectoIndex][periodoIndex]));
-            }
+        if (tvResumenMonto != null) {
+            tvResumenMonto.setText(formatearSoles(monto));
+        }
+        if (tvResumenSeparaciones != null) {
+            tvResumenSeparaciones.setText(String.valueOf(totalSeparaciones));
+        }
+        if (tvResumenAsesores != null) {
+            tvResumenAsesores.setText(String.valueOf(asesores.size()));
+        }
+        if (adapter != null) {
+            adapter.setData(historial);
         }
     }
 
-    private int getPeriodoIndex() {
-        if (selectedPeriodo.equals("Diario")) return 0;
-        if (selectedPeriodo.equals("Mensual")) return 1;
-        if (selectedPeriodo.equals("Anual")) return 2;
-        return 1; // default Mensual
+    private void iniciarListenerSeparaciones() {
+        if (separacionesListener != null) {
+            separacionesListener.remove();
+        }
+        separacionesListener = SeparacionesRepository.escucharDesdeFirestore(
+                AdminPreferencesManager.obtenerInmobiliariaId(this),
+                new SeparacionesRepository.SeparacionesListener() {
+                    @Override
+                    public void onSeparacionesActualizadas(List<AdminSeparacion> separaciones) {
+                        separacionesActuales = separaciones != null
+                                ? new ArrayList<>(separaciones)
+                                : new ArrayList<>();
+                        actualizarProyectos();
+                        updateResumen();
+                    }
+
+                    @Override
+                    public void onError(String mensaje) {
+                        separacionesActuales = new ArrayList<>(SeparacionesRepository.getLista());
+                        actualizarProyectos();
+                        updateResumen();
+                    }
+                });
+    }
+
+    private void actualizarProyectos() {
+        LinkedHashSet<String> nombres = new LinkedHashSet<>();
+        for (AdminSeparacion separacion : separacionesActuales) {
+            if (separacion == null) continue;
+            String nombre = separacion.getNombreProyecto();
+            if (nombre != null && !nombre.trim().isEmpty()) {
+                nombres.add(nombre.trim());
+            }
+        }
+
+        proyectos.clear();
+        proyectos.addAll(nombres);
+        Collections.sort(proyectos);
+        if (proyectosAdapter != null) {
+            proyectosAdapter.notifyDataSetChanged();
+        }
+
+        if (proyectos.isEmpty()) {
+            selectedProyecto = "";
+            if (actvProjecto != null) actvProjecto.setText("Sin proyectos", false);
+            return;
+        }
+
+        if (selectedProyecto == null || selectedProyecto.trim().isEmpty()
+                || !proyectos.contains(selectedProyecto)) {
+            selectedProyecto = proyectos.get(0);
+        }
+        if (actvProjecto != null) {
+            actvProjecto.setText(selectedProyecto, false);
+        }
+    }
+
+    private List<AdminSeparacion> separacionesFiltradas() {
+        List<AdminSeparacion> resultado = new ArrayList<>();
+        if (selectedProyecto == null || selectedProyecto.trim().isEmpty()) {
+            return resultado;
+        }
+
+        long ahora = System.currentTimeMillis();
+        long inicio = ahora - obtenerDuracionPeriodoMillis();
+        for (AdminSeparacion separacion : separacionesActuales) {
+            if (separacion == null) continue;
+            if (!"Aprobada".equalsIgnoreCase(separacion.getEstado())) continue;
+            if (!selectedProyecto.equals(separacion.getNombreProyecto())) continue;
+            long fecha = fechaParaReporte(separacion);
+            if (fecha <= 0 || fecha < inicio || fecha > ahora) continue;
+            resultado.add(separacion);
+        }
+        return resultado;
+    }
+
+    private long fechaParaReporte(AdminSeparacion separacion) {
+        if (separacion.getFechaActualizacionMillis() > 0) {
+            return separacion.getFechaActualizacionMillis();
+        }
+        return separacion.getFechaRegistroMillis();
+    }
+
+    private long obtenerDuracionPeriodoMillis() {
+        long dia = 24L * 60L * 60L * 1000L;
+        if ("Diario".equals(selectedPeriodo)) return dia;
+        if ("Anual".equals(selectedPeriodo)) return 365L * dia;
+        return 30L * dia;
+    }
+
+    private double parseMonto(String monto) {
+        if (monto == null || monto.trim().isEmpty()) return 0;
+        String limpio = monto.replace("S/", "")
+                .replace("s/", "")
+                .replace(",", "")
+                .trim();
+        try {
+            return Double.parseDouble(limpio);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private String formatearSoles(double monto) {
+        NumberFormat format = NumberFormat.getNumberInstance(Locale.US);
+        format.setMaximumFractionDigits(0);
+        return "S/" + format.format(monto);
     }
 }
