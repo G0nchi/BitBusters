@@ -8,6 +8,10 @@ public class AdminSeparacion {
     public String cliente;
     public String estado; // "Pendiente", "Aprobada", "Rechazada"
 
+    public AdminSeparacion() {
+        // Constructor vacío requerido para compatibilidad con Firestore/serialización.
+    }
+
     public AdminSeparacion(String id, String nombreProyecto, String monto, String fecha, String cliente, String estado) {
         this.id = id;
         this.nombreProyecto = nombreProyecto;
@@ -23,6 +27,12 @@ public class AdminSeparacion {
     public String getFecha() { return fecha; }
     public String getCliente() { return cliente; }
     public String getEstado() { return estado; }
+
+    public void setId(String id) { this.id = id; }
+    public void setNombreProyecto(String nombreProyecto) { this.nombreProyecto = nombreProyecto; }
+    public void setMonto(String monto) { this.monto = monto; }
+    public void setFecha(String fecha) { this.fecha = fecha; }
+    public void setCliente(String cliente) { this.cliente = cliente; }
 
     /**
      * Actualiza el estado de la separación.

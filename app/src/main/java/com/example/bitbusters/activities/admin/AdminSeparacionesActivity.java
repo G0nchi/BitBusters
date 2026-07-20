@@ -17,6 +17,7 @@ import com.example.bitbusters.models.AdminSeparacion;
 import com.example.bitbusters.utils.AdminPreferencesManager;
 import com.example.bitbusters.utils.AdminStorageManager;
 import com.example.bitbusters.utils.NotificationHelper;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
     private RecyclerView rvSeparaciones;
     private AdminSeparacionAdapter adapter;
     private String currentEstadoFilter = null;
+    private ListenerRegistration separacionesListener;
 
     // Proyectos ficticios para la simulación (Corrección 2)
     private static final String[] PROYECTOS_DEMO = {
@@ -82,8 +84,24 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
      * Verifica si hay un "separacion_id" en el Intent para hacer scroll y resaltar.
      */
     @Override
+    protected void onStart() {
+        super.onStart();
+        iniciarListenerSeparaciones();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (separacionesListener != null) {
+            separacionesListener.remove();
+            separacionesListener = null;
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        renderSeparaciones();
         procesarIntentSeparacionId();
     }
 
@@ -141,6 +159,25 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
             startActivity(intent);
         });
         rvSeparaciones.setAdapter(adapter);
+    }
+
+    private void iniciarListenerSeparaciones() {
+        if (separacionesListener != null) {
+            separacionesListener.remove();
+        }
+        separacionesListener = SeparacionesRepository.escucharDesdeFirestore(
+                AdminPreferencesManager.obtenerInmobiliariaId(this),
+                new SeparacionesRepository.SeparacionesListener() {
+                    @Override
+                    public void onSeparacionesActualizadas(List<AdminSeparacion> separaciones) {
+                        renderSeparaciones();
+                    }
+
+                    @Override
+                    public void onError(String mensaje) {
+                        renderSeparaciones();
+                    }
+                });
     }
 
     private void setupListeners() {
@@ -201,7 +238,7 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
 
         // Limpiar filtro activo y mostrar toda la lista con la nueva separación al inicio
         currentEstadoFilter = null;
-        adapter.setData(new ArrayList<>(SeparacionesRepository.getLista()));
+        renderSeparaciones();
 
         // ── Corrección 2: notificación con separacion_id que abre el DETALLE ──
         // Al tocarla → AdminDetallesSeparacionActivity carga el item por ID para que el admin apruebe
@@ -221,9 +258,18 @@ public class AdminSeparacionesActivity extends AdminMainActivity {
     private void filtrarPorEstado(String estado) {
         currentEstadoFilter = estado;
         seleccionarTab(estado);
+        renderSeparaciones();
+    }
+
+    private void renderSeparaciones() {
+        if (adapter == null) return;
+        if (currentEstadoFilter == null || currentEstadoFilter.trim().isEmpty()) {
+            adapter.setData(new ArrayList<>(SeparacionesRepository.getLista()));
+            return;
+        }
         List<AdminSeparacion> filtradas = new ArrayList<>();
         for (AdminSeparacion sep : SeparacionesRepository.getLista()) {
-            if (sep.getEstado().equals(estado)) {
+            if (currentEstadoFilter.equals(sep.getEstado())) {
                 filtradas.add(sep);
             }
         }

@@ -125,6 +125,23 @@ public class AdminDetallesSeparacionActivity extends AppCompatActivity {
                 // Esto hace que la lista muestre "Aprobada" (en verde) al volver
                 if (separacionId != null) {
                     SeparacionesRepository.actualizarEstado(separacionId, "Aprobada");
+                    SeparacionesRepository.actualizarEstadoEnFirestore(
+                            separacionId,
+                            "Aprobada",
+                            new SeparacionesRepository.ActualizarEstadoCallback() {
+                                @Override
+                                public void onSuccess() { }
+
+                                @Override
+                                public void onError(String mensaje) {
+                                    Toast.makeText(
+                                            AdminDetallesSeparacionActivity.this,
+                                            "Cambio guardado localmente. No se pudo sincronizar Firebase.",
+                                            Toast.LENGTH_LONG
+                                    ).show();
+                                }
+                            }
+                    );
                 }
 
                 // ── Corrección 3: Notificación con ID para que la lista haga scroll ─
@@ -157,6 +174,23 @@ public class AdminDetallesSeparacionActivity extends AppCompatActivity {
                 // Actualizar estado en el repositorio
                 if (separacionId != null) {
                     SeparacionesRepository.actualizarEstado(separacionId, "Rechazada");
+                    SeparacionesRepository.actualizarEstadoEnFirestore(
+                            separacionId,
+                            "Rechazada",
+                            new SeparacionesRepository.ActualizarEstadoCallback() {
+                                @Override
+                                public void onSuccess() { }
+
+                                @Override
+                                public void onError(String mensaje) {
+                                    Toast.makeText(
+                                            AdminDetallesSeparacionActivity.this,
+                                            "Cambio guardado localmente. No se pudo sincronizar Firebase.",
+                                            Toast.LENGTH_LONG
+                                    ).show();
+                                }
+                            }
+                    );
                 }
                 // Decrementar pendientes (la separación ya no está pendiente)
                 AdminPreferencesManager.decrementarSeparacionesPendientes(this);
