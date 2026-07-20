@@ -23,8 +23,9 @@ import java.util.Map;
  * Actúa como fuente única de verdad (single source of truth) compartida entre
  * AdminSeparacionesActivity y AdminDetallesSeparacionActivity.
  *
- * La lista se inicializa una sola vez con los datos de AdminDataRepository y
- * persiste durante la sesión de la app (en memoria de proceso).
+ * La lista se alimenta desde Firestore y persiste durante la sesión de la app
+ * en memoria de proceso. No debe cargar datos demo porque Admin, Reportes y
+ * Dashboard deben reflejar solo separaciones reales de la inmobiliaria.
  */
 public final class SeparacionesRepository {
 
@@ -48,11 +49,11 @@ public final class SeparacionesRepository {
 
     /**
      * Retorna la lista viva de separaciones.
-     * Si aún no se ha inicializado, la carga desde AdminDataRepository.
+     * Si aún no se ha inicializado, empieza vacía hasta recibir Firestore.
      */
     public static List<AdminSeparacion> getLista() {
         if (lista == null) {
-            lista = new ArrayList<>(AdminDataRepository.getSeparaciones());
+            lista = new ArrayList<>();
         }
         return lista;
     }
