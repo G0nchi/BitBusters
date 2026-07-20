@@ -155,9 +155,12 @@ public final class SeparacionesRepository {
         Map<String, Object> cambios = new HashMap<>();
         cambios.put("estado", nuevoEstado);
         cambios.put("fechaActualizacion", FieldValue.serverTimestamp());
+        long pagoVenceEnMillis = 0L;
 
         if ("Aprobada".equalsIgnoreCase(nuevoEstado)) {
+            pagoVenceEnMillis = System.currentTimeMillis() + 10L * 60L * 1000L;
             cambios.put("estadoPago", "Pendiente");
+            cambios.put("pagoVenceEnMillis", pagoVenceEnMillis);
             cambios.put("fechaAprobacion", FieldValue.serverTimestamp());
             if (!adminUid.isEmpty()) cambios.put("aprobadoPorUid", adminUid);
         } else if ("Rechazada".equalsIgnoreCase(nuevoEstado)) {
@@ -167,7 +170,7 @@ public final class SeparacionesRepository {
 
         WriteBatch batch = db.batch();
         batch.update(separacionRef, cambios);
-        agregarNotificacionesCambioEstado(batch, db, separacion, nuevoEstado, adminUid);
+        agregarNotificacionesCambioEstado(batch, db, separacion, nuevoEstado, adminUid, pagoVenceEnMillis);
 
         batch.commit()
                 .addOnSuccessListener(unused -> {
@@ -207,7 +210,7 @@ public final class SeparacionesRepository {
                 doc.getString("nombreProyecto"),
                 doc.getString("proyectoNombre")
         );
-        String monto = formatearMonto(firstNonEmpty(doc.getString("monto"), doc.getString("precio")));
+        String monto = formatearMonto(firstNonEmpty(valorComoString(doc, "monto"), valorComoString(doc, "precio")));
         String fecha = firstNonEmpty(doc.getString("fecha"), fechaDesdeTimestamp(doc.getTimestamp("timestamp")));
         String hora = doc.getString("hora");
         if (hora != null && !hora.trim().isEmpty() && !fecha.contains(hora.trim())) {
@@ -218,7 +221,8 @@ public final class SeparacionesRepository {
                 doc.getString("clienteNombre"),
                 doc.getString("nombreCliente")
         );
-        String estado = normalizarEstado(firstNonEmpty(doc.getString("estado"), "Pendiente"));
+        String estadoRaw = firstNonEmpty(doc.getString("estado"), "Pendiente");
+        String estado = normalizarEstado(estadoRaw);
 
         AdminSeparacion separacion = new AdminSeparacion(
                 doc.getId(),
@@ -253,7 +257,7 @@ public final class SeparacionesRepository {
                 doc.getString("estadoPago"),
                 doc.getString("pagoEstado"),
                 doc.getString("estado_pago")
-        ), estado));
+        ), estadoRaw));
         separacion.setMetodoPago(firstNonEmpty(
                 doc.getString("metodoPago"),
                 doc.getString("medioPago"),
@@ -274,7 +278,8 @@ public final class SeparacionesRepository {
         separacion.setFechaActualizacionMillis(firstTimestampMillis(
                 doc.getTimestamp("fechaActualizacion"),
                 doc.getTimestamp("fechaAprobacion"),
-                doc.getTimestamp("fechaPago")
+                doc.getTimestamp("fechaPago"),
+                doc.getTimestamp("pagoRegistradoEn")
         ));
         return separacion;
     }
@@ -284,7 +289,8 @@ public final class SeparacionesRepository {
             FirebaseFirestore db,
             AdminSeparacion separacion,
             String nuevoEstado,
-            String adminUid
+            String adminUid,
+            long pagoVenceEnMillis
     ) {
         if (batch == null || db == null || separacion == null || nuevoEstado == null) return;
 
@@ -295,7 +301,6 @@ public final class SeparacionesRepository {
         String proyecto = firstNonEmpty(separacion.getNombreProyecto(), "el proyecto");
         String cliente = firstNonEmpty(separacion.getCliente(), "el cliente");
         String type = aprobada ? "separacion_aprobada" : "separacion_rechazada";
-
         if (!separacion.getClienteUid().isEmpty()) {
             String titulo = aprobada ? "Separación aprobada" : "Separación rechazada";
             String descripcion = aprobada
@@ -310,7 +315,8 @@ public final class SeparacionesRepository {
                             titulo,
                             descripcion,
                             separacion,
-                            adminUid
+                            adminUid,
+                            pagoVenceEnMillis
                     )
             );
         }
@@ -329,7 +335,8 @@ public final class SeparacionesRepository {
                             titulo,
                             descripcion,
                             separacion,
-                            adminUid
+                            adminUid,
+                            0L
                     )
             );
         }
@@ -342,13 +349,15 @@ public final class SeparacionesRepository {
             String title,
             String descripcion,
             AdminSeparacion separacion,
-            String adminUid
+            String adminUid,
+            long pagoVenceEnMillis
     ) {
         Map<String, Object> data = new HashMap<>();
         data.put("role", role);
         data.put("targetRole", role);
         data.put("targetUid", targetUid);
         data.put("type", type);
+        data.put("tipo", type);
         data.put("title", title);
         data.put("senderName", "Administrador de inmobiliaria");
         data.put("descripcion", descripcion);
@@ -360,11 +369,18 @@ public final class SeparacionesRepository {
         data.put("separacionId", separacion.getId());
         data.put("proyectoId", separacion.getProyectoId());
         data.put("proyecto", separacion.getNombreProyecto());
+        data.put("proyectoNombre", separacion.getNombreProyecto());
         data.put("clienteUid", separacion.getClienteUid());
+        data.put("uidCliente", separacion.getClienteUid());
         data.put("cliente", separacion.getCliente());
+        data.put("clienteNombre", separacion.getCliente());
         data.put("uidAsesor", separacion.getUidAsesor());
         data.put("asesorNombre", separacion.getAsesorNombre());
         data.put("inmobiliariaId", separacion.getInmobiliariaId());
+        data.put("montoSeparacion", separacion.getMonto());
+        if (pagoVenceEnMillis > 0) {
+            data.put("pagoVenceEnMillis", pagoVenceEnMillis);
+        }
         if (adminUid != null && !adminUid.isEmpty()) {
             data.put("adminUid", adminUid);
         }
@@ -387,6 +403,12 @@ public final class SeparacionesRepository {
         return limpio.toLowerCase(Locale.ROOT).startsWith("s/") ? limpio : "S/ " + limpio;
     }
 
+    private static String valorComoString(DocumentSnapshot doc, String field) {
+        if (doc == null || field == null) return "";
+        Object value = doc.get(field);
+        return value != null ? value.toString() : "";
+    }
+
     private static String fechaDesdeTimestamp(Timestamp timestamp) {
         return timestamp != null ? timestamp.toDate().toString() : "";
     }
@@ -407,11 +429,17 @@ public final class SeparacionesRepository {
     private static String normalizarEstado(String estado) {
         String normalized = estado == null ? "" : estado.trim().toLowerCase(Locale.ROOT);
         if (normalized.equals("aprobada") || normalized.equals("aprobado")
-                || normalized.equals("approved") || normalized.equals("active")) {
+                || normalized.equals("approved") || normalized.equals("active")
+                || normalized.equals("pago_registrado") || normalized.equals("pagada")
+                || normalized.equals("pagado")) {
             return "Aprobada";
         }
         if (normalized.equals("rechazada") || normalized.equals("rechazado")
                 || normalized.equals("rejected") || normalized.equals("inactive")) {
+            return "Rechazada";
+        }
+        if (normalized.equals("vencida") || normalized.equals("vencido")
+                || normalized.equals("expired")) {
             return "Rechazada";
         }
         return "Pendiente";
@@ -424,8 +452,18 @@ public final class SeparacionesRepository {
                 || normalized.equals("completada")) {
             return "Pagado";
         }
+        String estadoNormalized = estadoSeparacion == null
+                ? ""
+                : estadoSeparacion.trim().toLowerCase(Locale.ROOT);
+        if (estadoNormalized.equals("pago_registrado")
+                || estadoNormalized.equals("pagada")
+                || estadoNormalized.equals("pagado")) {
+            return "Pagado";
+        }
         if (normalized.equals("rechazado") || normalized.equals("rechazada")
-                || normalized.equals("failed") || normalized.equals("fallido")) {
+                || normalized.equals("failed") || normalized.equals("fallido")
+                || normalized.equals("vencido") || normalized.equals("vencida")
+                || estadoNormalized.equals("vencida") || estadoNormalized.equals("vencido")) {
             return "Rechazado";
         }
         if (normalized.equals("pendiente") || normalized.equals("pendiente_pago")

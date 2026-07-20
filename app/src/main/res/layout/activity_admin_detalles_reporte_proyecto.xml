@@ -156,7 +156,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total ventas"
+                            android:text="Total pagado"
                             android:textColor="@color/neutral_dark"
                             android:textSize="12sp" />
 
@@ -180,7 +180,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Separaciones"
+                            android:text="Pagos"
                             android:textColor="@color/neutral_dark"
                             android:textSize="12sp" />
 
@@ -212,11 +212,11 @@
 
                 </LinearLayout>
 
-                <!-- Separaciones por Asesor -->
+                <!-- Pagos por Asesor -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SEPARACIONES POR ASESOR"
+                    android:text="PAGOS POR ASESOR"
                     android:textColor="@color/text_secondary"
                     android:textSize="11sp"
                     android:textStyle="bold"
@@ -307,7 +307,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="HISTORIAL DE SEPARACIONES"
+                    android:text="HISTORIAL DE PAGOS"
                     android:textColor="@color/text_secondary"
                     android:textSize="11sp"
                     android:textStyle="bold"
@@ -325,7 +325,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
                     android:gravity="center"
-                    android:text="No hay separaciones aprobadas para este proyecto y periodo"
+                    android:text="No hay pagos registrados para este proyecto y periodo"
                     android:textColor="@color/neutral_medium"
                     android:textSize="14sp"
                     android:visibility="gone" />

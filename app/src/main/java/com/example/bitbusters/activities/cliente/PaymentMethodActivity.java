@@ -23,6 +23,7 @@ public class PaymentMethodActivity extends AppCompatActivity {
     public static final String EXTRA_UID_ASESOR = "extra_uid_asesor";
     public static final String EXTRA_INMOBILIARIA_ID = "extra_inmobiliaria_id";
     public static final String EXTRA_MONTO_SEPARACION = "extra_monto_separacion";
+    public static final String EXTRA_PAGO_VENCE_EN_MILLIS = "extra_pago_vence_en_millis";
 
     private EditText etNombreTitular;
     private EditText etNumeroTarjeta;
@@ -39,6 +40,7 @@ public class PaymentMethodActivity extends AppCompatActivity {
     private String uidAsesor;
     private String inmobiliariaId;
     private String montoSeparacion;
+    private long pagoVenceEnMillis;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +67,7 @@ public class PaymentMethodActivity extends AppCompatActivity {
         uidAsesor = getIntent().getStringExtra(EXTRA_UID_ASESOR);
         inmobiliariaId = getIntent().getStringExtra(EXTRA_INMOBILIARIA_ID);
         montoSeparacion = getIntent().getStringExtra(EXTRA_MONTO_SEPARACION);
+        pagoVenceEnMillis = getIntent().getLongExtra(EXTRA_PAGO_VENCE_EN_MILLIS, 0L);
     }
 
     private void enlazarVistas() {
@@ -239,6 +242,20 @@ public class PaymentMethodActivity extends AppCompatActivity {
 
         String nombreCliente = PreferencesManager.obtenerNombre(this);
         double monto = parseMontoSeparacion(montoSeparacion);
+
+        if (pagoVenceEnMillis > 0 && System.currentTimeMillis() > pagoVenceEnMillis) {
+            separacionRepository.marcarSeparacionVencida(separacionId)
+                    .addOnCompleteListener(task -> {
+                        Toast.makeText(
+                                this,
+                                "El tiempo para pagar esta separación venció.",
+                                Toast.LENGTH_LONG
+                        ).show();
+                        startActivity(new Intent(this, HomeActivity.class));
+                        finish();
+                    });
+            return;
+        }
 
         separacionRepository.registrarPagoDeSeparacionAprobada(
             separacionId,

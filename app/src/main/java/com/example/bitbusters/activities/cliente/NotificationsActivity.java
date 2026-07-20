@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bitbusters.R;
 import com.example.bitbusters.adapters.NotificationsAdapter;
 import com.example.bitbusters.models.Notification;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -119,7 +120,11 @@ public class NotificationsActivity extends AppCompatActivity {
                 if (snapshots != null) {
                     List<DocumentSnapshot> docs = new ArrayList<>(snapshots.getDocuments());
                     docs.sort((a, b) -> Long.compare(getOrderValue(b), getOrderValue(a)));
+                    String uidClienteActual = FirebaseAuth.getInstance().getCurrentUser() != null
+                            ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                            : "";
                     for (DocumentSnapshot doc : docs) {
+                        if (!perteneceAlClienteActual(doc, uidClienteActual)) continue;
                         Notification notification = mapNotification(doc);
                         if (notification != null) list.add(notification);
                     }
@@ -137,13 +142,14 @@ public class NotificationsActivity extends AppCompatActivity {
         String avatarName = doc.getString("avatarName");
         String propertyName = doc.getString("propertyName");
         Boolean isOld = doc.getBoolean("isOld");
-        String tipo = doc.getString("tipo");
+        String tipo = firstNonEmpty(doc.getString("tipo"), doc.getString("type"), "");
         String separacionId = doc.getString("separacionId");
         String proyectoId = firstNonEmpty(doc.getString("proyectoId"), separacionId, "");
-        String proyectoNombre = doc.getString("proyectoNombre");
+        String proyectoNombre = firstNonEmpty(doc.getString("proyectoNombre"), doc.getString("proyecto"), "");
         String uidAsesor = doc.getString("uidAsesor");
         String inmobiliariaId = doc.getString("inmobiliariaId");
-        String montoSeparacion = doc.getString("montoSeparacion");
+        String montoSeparacion = firstNonEmpty(doc.getString("montoSeparacion"), doc.getString("monto"), "");
+        Long pagoVenceEnMillis = doc.getLong("pagoVenceEnMillis");
 
         if (descripcion.isEmpty()) return null;
 
@@ -161,7 +167,8 @@ public class NotificationsActivity extends AppCompatActivity {
                 proyectoNombre,
                 uidAsesor,
                 inmobiliariaId,
-                montoSeparacion);
+                montoSeparacion,
+                pagoVenceEnMillis != null ? pagoVenceEnMillis : 0L);
     }
 
     private void abrirNotificacion(Notification notification) {
@@ -184,7 +191,20 @@ public class NotificationsActivity extends AppCompatActivity {
         intent.putExtra(PaymentMethodActivity.EXTRA_UID_ASESOR, notification.getUidAsesor());
         intent.putExtra(PaymentMethodActivity.EXTRA_INMOBILIARIA_ID, notification.getInmobiliariaId());
         intent.putExtra(PaymentMethodActivity.EXTRA_MONTO_SEPARACION, notification.getMontoSeparacion());
+        intent.putExtra(PaymentMethodActivity.EXTRA_PAGO_VENCE_EN_MILLIS, notification.getPagoVenceEnMillis());
         startActivity(intent);
+    }
+
+    private boolean perteneceAlClienteActual(DocumentSnapshot doc, String uidClienteActual) {
+        if (uidClienteActual == null || uidClienteActual.isEmpty()) {
+            return true;
+        }
+        String targetUid = firstNonEmpty(
+                doc.getString("targetUid"),
+                doc.getString("clienteUid"),
+                doc.getString("uidCliente")
+        );
+        return targetUid.isEmpty() || uidClienteActual.equals(targetUid);
     }
 
     private static String firstNonEmpty(String primary, String secondary, String fallback) {

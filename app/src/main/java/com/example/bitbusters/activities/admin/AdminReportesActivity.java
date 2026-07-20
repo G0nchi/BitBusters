@@ -147,7 +147,7 @@ public class AdminReportesActivity extends AdminMainActivity {
         int aprobadas = 0;
         int pendientes = 0;
         int rechazadas = 0;
-        double ventasAprobadas = 0;
+        double ventasPagadas = 0;
 
         if (separaciones != null) {
             for (AdminSeparacion separacion : separaciones) {
@@ -155,7 +155,9 @@ public class AdminReportesActivity extends AdminMainActivity {
                 String estado = separacion.getEstado() == null ? "" : separacion.getEstado();
                 if ("Aprobada".equalsIgnoreCase(estado)) {
                     aprobadas++;
-                    ventasAprobadas += parseMonto(separacion.getMonto());
+                    if (esPagoConfirmado(separacion)) {
+                        ventasPagadas += parseMonto(separacion.getMonto());
+                    }
                 } else if ("Rechazada".equalsIgnoreCase(estado)) {
                     rechazadas++;
                 } else {
@@ -164,7 +166,7 @@ public class AdminReportesActivity extends AdminMainActivity {
             }
         }
 
-        setText(tvReporteVentas, formatearSoles(ventasAprobadas));
+        setText(tvReporteVentas, formatearSoles(ventasPagadas));
         setText(tvReporteAprobadas, String.valueOf(aprobadas));
         setText(tvReportePendientes, String.valueOf(pendientes));
         setText(tvReporteRechazadas, String.valueOf(rechazadas));
@@ -175,7 +177,7 @@ public class AdminReportesActivity extends AdminMainActivity {
         Map<String, Double> ventasPorProyecto = new LinkedHashMap<>();
         if (separaciones != null) {
             for (AdminSeparacion separacion : separaciones) {
-                if (!"Aprobada".equalsIgnoreCase(separacion.getEstado())) continue;
+                if (!esPagoConfirmado(separacion)) continue;
                 if (!cumplePeriodo(separacion)) continue;
                 String proyecto = separacion.getNombreProyecto();
                 if (proyecto == null || proyecto.trim().isEmpty()) {
@@ -195,7 +197,7 @@ public class AdminReportesActivity extends AdminMainActivity {
         Collections.sort(ordenadas, (a, b) -> Double.compare(b.getValue(), a.getValue()));
 
         if (ordenadas.isEmpty()) {
-            mostrarFilaVentaProyecto(0, "Sin ventas aprobadas", 0, 0);
+            mostrarFilaVentaProyecto(0, "Sin pagos registrados", 0, 0);
             for (int i = 1; i < 4; i++) ocultarFilaVentaProyecto(i);
             return;
         }
@@ -259,6 +261,15 @@ public class AdminReportesActivity extends AdminMainActivity {
         if (fecha <= 0) return false;
         long inicio = ahora - obtenerDuracionPeriodoMillis();
         return fecha >= inicio && fecha <= ahora;
+    }
+
+    private boolean esPagoConfirmado(AdminSeparacion separacion) {
+        if (separacion == null) return false;
+        String estadoPago = separacion.getEstadoPago();
+        String estado = separacion.getEstado();
+        return "Pagado".equalsIgnoreCase(estadoPago)
+                || "Pagada".equalsIgnoreCase(estadoPago)
+                || "pago_registrado".equalsIgnoreCase(estado);
     }
 
     private long fechaParaReporte(AdminSeparacion separacion) {
