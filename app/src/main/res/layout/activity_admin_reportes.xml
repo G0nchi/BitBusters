@@ -427,42 +427,49 @@
                     android:padding="12dp">
 
                     <View
+                        android:id="@+id/barTendencia1"
                         android:layout_width="16dp"
                         android:layout_height="25dp"
                         android:background="@color/neutral_mid_1"
                         android:layout_margin="3dp" />
 
                     <View
+                        android:id="@+id/barTendencia2"
                         android:layout_width="16dp"
                         android:layout_height="35dp"
                         android:background="@color/neutral_mid_1"
                         android:layout_margin="3dp" />
 
                     <View
+                        android:id="@+id/barTendencia3"
                         android:layout_width="16dp"
                         android:layout_height="45dp"
                         android:background="@color/neutral_mid_1"
                         android:layout_margin="3dp" />
 
                     <View
+                        android:id="@+id/barTendencia4"
                         android:layout_width="16dp"
                         android:layout_height="40dp"
                         android:background="@color/neutral_mid_1"
                         android:layout_margin="3dp" />
 
                     <View
+                        android:id="@+id/barTendencia5"
                         android:layout_width="16dp"
                         android:layout_height="50dp"
                         android:background="@color/neutral_mid_1"
                         android:layout_margin="3dp" />
 
                     <View
+                        android:id="@+id/barTendencia6"
                         android:layout_width="16dp"
                         android:layout_height="55dp"
                         android:background="@color/neutral_mid_1"
                         android:layout_margin="3dp" />
 
                     <View
+                        android:id="@+id/barTendencia7"
                         android:layout_width="16dp"
                         android:layout_height="90dp"
                         android:background="@color/brand_deep_blue"

@@ -269,6 +269,12 @@ public final class SeparacionesRepository {
                 doc.getString("observacion"),
                 doc.getString("comentarioPago")
         ));
+        separacion.setFechaRegistroMillis(timestampMillis(doc.getTimestamp("timestamp")));
+        separacion.setFechaActualizacionMillis(firstTimestampMillis(
+                doc.getTimestamp("fechaActualizacion"),
+                doc.getTimestamp("fechaAprobacion"),
+                doc.getTimestamp("fechaPago")
+        ));
         return separacion;
     }
 
@@ -382,6 +388,19 @@ public final class SeparacionesRepository {
 
     private static String fechaDesdeTimestamp(Timestamp timestamp) {
         return timestamp != null ? timestamp.toDate().toString() : "";
+    }
+
+    private static long timestampMillis(Timestamp timestamp) {
+        return timestamp != null ? timestamp.toDate().getTime() : 0L;
+    }
+
+    private static long firstTimestampMillis(Timestamp... timestamps) {
+        if (timestamps == null) return 0L;
+        for (Timestamp timestamp : timestamps) {
+            long millis = timestampMillis(timestamp);
+            if (millis > 0) return millis;
+        }
+        return 0L;
     }
 
     private static String normalizarEstado(String estado) {

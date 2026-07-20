@@ -3,6 +3,7 @@ package com.example.bitbusters.activities.admin;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.example.bitbusters.R;
@@ -35,6 +36,8 @@ public class AdminReportesActivity extends AdminMainActivity {
     private TextView[] tvVentaProyectoNombre;
     private TextView[] tvVentaProyectoMonto;
     private ProgressBar[] progressVentaProyecto;
+    private View[] barrasTendencia;
+    private List<AdminSeparacion> separacionesActuales = new ArrayList<>();
     private ListenerRegistration separacionesListener;
 
     @Override
@@ -92,6 +95,15 @@ public class AdminReportesActivity extends AdminMainActivity {
                 findViewById(R.id.progressVentaProyecto3),
                 findViewById(R.id.progressVentaProyecto4)
         };
+        barrasTendencia = new View[] {
+                findViewById(R.id.barTendencia1),
+                findViewById(R.id.barTendencia2),
+                findViewById(R.id.barTendencia3),
+                findViewById(R.id.barTendencia4),
+                findViewById(R.id.barTendencia5),
+                findViewById(R.id.barTendencia6),
+                findViewById(R.id.barTendencia7)
+        };
     }
 
     private void setupListeners() {
@@ -129,6 +141,9 @@ public class AdminReportesActivity extends AdminMainActivity {
     }
 
     private void actualizarKpis(List<AdminSeparacion> separaciones) {
+        separacionesActuales = separaciones != null
+                ? new ArrayList<>(separaciones)
+                : new ArrayList<>();
         int aprobadas = 0;
         int pendientes = 0;
         int rechazadas = 0;
@@ -153,6 +168,7 @@ public class AdminReportesActivity extends AdminMainActivity {
         setText(tvReportePendientes, String.valueOf(pendientes));
         setText(tvReporteRechazadas, String.valueOf(rechazadas));
         actualizarVentasPorProyecto(separaciones);
+        actualizarTendencia(separaciones);
     }
 
     private void actualizarVentasPorProyecto(List<AdminSeparacion> separaciones) {
@@ -235,6 +251,72 @@ public class AdminReportesActivity extends AdminMainActivity {
         return "S/" + format.format(monto);
     }
 
+    private void actualizarTendencia(List<AdminSeparacion> separaciones) {
+        if (barrasTendencia == null) return;
+
+        double[] montos = new double[7];
+        long ahora = System.currentTimeMillis();
+        long duracion = obtenerDuracionPeriodoMillis();
+        long inicio = ahora - duracion;
+        long bucket = Math.max(1L, duracion / montos.length);
+
+        if (separaciones != null) {
+            for (AdminSeparacion separacion : separaciones) {
+                if (separacion == null || !"Aprobada".equalsIgnoreCase(separacion.getEstado())) {
+                    continue;
+                }
+                long fecha = fechaParaReporte(separacion);
+                if (fecha <= 0 || fecha < inicio || fecha > ahora) {
+                    continue;
+                }
+                int index = (int) Math.min(montos.length - 1, Math.max(0, (fecha - inicio) / bucket));
+                montos[index] += parseMonto(separacion.getMonto());
+            }
+        }
+
+        double max = 0;
+        for (double monto : montos) {
+            if (monto > max) max = monto;
+        }
+
+        for (int i = 0; i < barrasTendencia.length; i++) {
+            View barra = barrasTendencia[i];
+            if (barra == null) continue;
+            ViewGroup.LayoutParams params = barra.getLayoutParams();
+            int alturaMin = dpToPx(12);
+            int alturaMax = dpToPx(90);
+            params.height = max > 0
+                    ? alturaMin + (int) Math.round((montos[i] / max) * (alturaMax - alturaMin))
+                    : alturaMin;
+            barra.setLayoutParams(params);
+            barra.setAlpha(max > 0 ? 1f : 0.45f);
+        }
+
+        actualizarTituloTendencia(max > 0);
+    }
+
+    private long fechaParaReporte(AdminSeparacion separacion) {
+        if (separacion.getFechaActualizacionMillis() > 0) {
+            return separacion.getFechaActualizacionMillis();
+        }
+        return separacion.getFechaRegistroMillis();
+    }
+
+    private long obtenerDuracionPeriodoMillis() {
+        long dia = 24L * 60L * 60L * 1000L;
+        switch (selectedOption) {
+            case 1: return 7L * dia;    // Esta semana
+            case 2: return 182L * dia;  // Este semestre
+            case 3: return 365L * dia;  // Este año
+            case 0:
+            default: return 30L * dia;  // Este mes
+        }
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
+    }
+
     private void setText(TextView textView, String value) {
         if (textView != null) {
             textView.setText(value);
@@ -254,14 +336,19 @@ public class AdminReportesActivity extends AdminMainActivity {
     }
 
     private void updateTendenciaTitle() {
-        if (tvTendenciaTitle != null) {
-            tvTendenciaTitle.setText("Tendencia " + tendenciaOptions[selectedOption].toLowerCase());
-        }
+        actualizarTituloTendencia(true);
+        actualizarTendencia(separacionesActuales);
     }
 
     private void updateChipText() {
         if (chipEstesMes != null) {
             chipEstesMes.setText(tendenciaOptions[selectedOption]);
         }
+    }
+
+    private void actualizarTituloTendencia(boolean conDatos) {
+        if (tvTendenciaTitle == null) return;
+        String base = "Tendencia " + tendenciaOptions[selectedOption].toLowerCase();
+        tvTendenciaTitle.setText(conDatos ? base : base + " · sin ventas aprobadas");
     }
 }

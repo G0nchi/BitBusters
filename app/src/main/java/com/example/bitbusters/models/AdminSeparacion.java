@@ -16,6 +16,8 @@ public class AdminSeparacion {
     public String metodoPago;
     public String comprobantePago;
     public String observacionPago;
+    public long fechaRegistroMillis;
+    public long fechaActualizacionMillis;
 
     public AdminSeparacion() {
         // Constructor vacío requerido para compatibilidad con Firestore/serialización.
@@ -45,6 +47,8 @@ public class AdminSeparacion {
     public String getMetodoPago() { return metodoPago != null ? metodoPago : ""; }
     public String getComprobantePago() { return comprobantePago != null ? comprobantePago : ""; }
     public String getObservacionPago() { return observacionPago != null ? observacionPago : ""; }
+    public long getFechaRegistroMillis() { return fechaRegistroMillis; }
+    public long getFechaActualizacionMillis() { return fechaActualizacionMillis; }
 
     public void setId(String id) { this.id = id; }
     public void setNombreProyecto(String nombreProyecto) { this.nombreProyecto = nombreProyecto; }
@@ -60,6 +64,8 @@ public class AdminSeparacion {
     public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
     public void setComprobantePago(String comprobantePago) { this.comprobantePago = comprobantePago; }
     public void setObservacionPago(String observacionPago) { this.observacionPago = observacionPago; }
+    public void setFechaRegistroMillis(long fechaRegistroMillis) { this.fechaRegistroMillis = fechaRegistroMillis; }
+    public void setFechaActualizacionMillis(long fechaActualizacionMillis) { this.fechaActualizacionMillis = fechaActualizacionMillis; }
 
     /**
      * Actualiza el estado de la separación.
