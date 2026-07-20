@@ -11,6 +11,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.bitbusters.utils.PreferencesManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -96,9 +97,12 @@ public class AddCommentActivity extends AppCompatActivity {
         }
 
         String uidCliente = FirebaseAuth.getInstance().getCurrentUser().getUid().trim();
+        String nombreCliente = PreferencesManager.obtenerNombre(this);
 
         Map<String, Object> data = new HashMap<>();
         data.put("uidCliente", uidCliente);
+        data.put("clienteNombre", nombreCliente != null ? nombreCliente : "");
+        data.put("nombreCliente", nombreCliente != null ? nombreCliente : "");
         data.put("uidAsesor", uidAsesor != null ? uidAsesor : "");
         data.put("proyecto", proyectoNombre != null ? proyectoNombre : "");
         data.put("proyectoId", proyectoId != null ? proyectoId : "");

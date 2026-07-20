@@ -1,14 +1,11 @@
 package com.example.bitbusters.repository;
 
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,23 +63,6 @@ public class ClienteSeparacionRepository {
             this.metodoPago = metodoPago;
             this.cardLast4 = cardLast4;
         }
-    }
-
-    public Task<DocumentReference> crearSeparacionPendiente(SeparacionPendienteRequest request) {
-        Instant venceEn = Instant.now().plus(Duration.ofMinutes(10));
-
-        Map<String, Object> data = new HashMap<>();
-        putClienteData(data, request.clienteInfo);
-        putProyectoData(data, request.proyectoInfo);
-        putPagoData(data, request.pagoInfo);
-        data.put("estado", "pago_pendiente");
-        data.put("pagoVenceEn", venceEn);
-        data.put("cardLast4", request.pagoInfo != null && request.pagoInfo.cardLast4 != null
-            ? request.pagoInfo.cardLast4 : "");
-        data.put("createdAt", FieldValue.serverTimestamp());
-        data.put("updatedAt", FieldValue.serverTimestamp());
-
-        return db.collection(COLECCION).add(data);
     }
 
     public Task<Void> registrarPagoDeSeparacionAprobada(String separacionId,

@@ -204,6 +204,10 @@ public class NotificationsActivity extends AppCompatActivity {
                 doc.getString("clienteUid"),
                 doc.getString("uidCliente")
         );
+        String tipo = firstNonEmpty(doc.getString("tipo"), doc.getString("type"), "");
+        if (targetUid.isEmpty() && tipo.startsWith("separacion_")) {
+            return false;
+        }
         return targetUid.isEmpty() || uidClienteActual.equals(targetUid);
     }
 
