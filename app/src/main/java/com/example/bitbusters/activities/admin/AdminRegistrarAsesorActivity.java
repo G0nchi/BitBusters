@@ -1,9 +1,12 @@
 package com.example.bitbusters.activities.admin;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Patterns;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -14,20 +17,29 @@ import com.example.bitbusters.R;
 import com.example.bitbusters.data.FirestoreAsesoresRepository;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Locale;
 
 public class AdminRegistrarAsesorActivity extends AppCompatActivity {
 
     private TextInputEditText etNombreAsesor;
+    private TextInputEditText etApellidosAsesor;
     private TextInputEditText etCorreoAsesor;
     private TextInputEditText etTelefonoAsesor;
+    private AutoCompleteTextView actvTipoDocAsesor;
     private TextInputEditText etDniAsesor;
+    private TextInputEditText etFechaNacimientoAsesor;
+    private TextInputEditText etDomicilioAsesor;
     private TextView tvInitials;
     private TextView tvPreviewNombre;
     private TextView tvPreviewCorreo;
     private TextView tvPreviewTelefono;
     private TextView tvPreviewDni;
     private Button btnRegisterAdvisor;
+    private final Calendar fechaNacimientoSeleccionada = Calendar.getInstance();
+    private final SimpleDateFormat formatoFechaNacimiento =
+            new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
     private final FirestoreAsesoresRepository asesoresRepository = new FirestoreAsesoresRepository();
 
     @Override
@@ -37,18 +49,49 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
         initializeViews();
         setupNavigationListeners();
         setupPreviewUpdates();
+        setupTipoDocDropdown();
+        setupFechaNacimientoPicker();
     }
 
     private void initializeViews() {
         etNombreAsesor = findViewById(R.id.etNombreAsesor);
+        etApellidosAsesor = findViewById(R.id.etApellidosAsesor);
         etCorreoAsesor = findViewById(R.id.etCorreoAsesor);
         etTelefonoAsesor = findViewById(R.id.etTelefonoAsesor);
+        actvTipoDocAsesor = findViewById(R.id.actvTipoDocAsesor);
         etDniAsesor = findViewById(R.id.etDniAsesor);
+        etFechaNacimientoAsesor = findViewById(R.id.etFechaNacimientoAsesor);
+        etDomicilioAsesor = findViewById(R.id.etDomicilioAsesor);
         tvInitials = findViewById(R.id.tvInitials);
         tvPreviewNombre = findViewById(R.id.tvPreviewNombre);
         tvPreviewCorreo = findViewById(R.id.tvPreviewCorreo);
         tvPreviewTelefono = findViewById(R.id.tvPreviewTelefono);
         tvPreviewDni = findViewById(R.id.tvPreviewDni);
+    }
+
+    private void setupTipoDocDropdown() {
+        if (actvTipoDocAsesor == null) return;
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this, R.array.doc_types_asesor, android.R.layout.simple_list_item_1);
+        actvTipoDocAsesor.setAdapter(adapter);
+        actvTipoDocAsesor.setText(getString(R.string.doc_type_dni), false);
+    }
+
+    private void setupFechaNacimientoPicker() {
+        if (etFechaNacimientoAsesor == null) return;
+        etFechaNacimientoAsesor.setOnClickListener(v -> {
+            DatePickerDialog dialog = new DatePickerDialog(this,
+                    (view, year, month, day) -> {
+                        fechaNacimientoSeleccionada.set(year, month, day);
+                        etFechaNacimientoAsesor.setText(
+                                formatoFechaNacimiento.format(fechaNacimientoSeleccionada.getTime()));
+                    },
+                    fechaNacimientoSeleccionada.get(Calendar.YEAR),
+                    fechaNacimientoSeleccionada.get(Calendar.MONTH),
+                    fechaNacimientoSeleccionada.get(Calendar.DAY_OF_MONTH));
+            dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+            dialog.show();
+        });
     }
 
     private void setupPreviewUpdates() {
@@ -190,12 +233,17 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
 
     private void registrarAsesorEnFirestore() {
         String nombre = getText(etNombreAsesor);
+        String apellidos = getText(etApellidosAsesor);
         String correo = getText(etCorreoAsesor).toLowerCase(Locale.ROOT);
         String telefono = getText(etTelefonoAsesor);
+        String tipoDoc = actvTipoDocAsesor != null ? actvTipoDocAsesor.getText().toString().trim() : "";
         String dni = getText(etDniAsesor);
+        String fechaNacimiento = getText(etFechaNacimientoAsesor);
+        String domicilio = getText(etDomicilioAsesor);
 
         setSavingState(true);
-        asesoresRepository.registrarAsesor(this, nombre, correo, telefono, dni,
+        asesoresRepository.registrarAsesor(this, nombre, apellidos, correo, telefono,
+                tipoDoc, dni, fechaNacimiento, domicilio,
                 new FirestoreAsesoresRepository.GuardarAsesorCallback() {
                     @Override
                     public void onSuccess(String mensaje) {
@@ -228,12 +276,16 @@ public class AdminRegistrarAsesorActivity extends AppCompatActivity {
 
     private boolean isFormValid() {
         String nombre = getText(etNombreAsesor);
+        String apellidos = getText(etApellidosAsesor);
         String correo = getText(etCorreoAsesor);
         String telefono = getText(etTelefonoAsesor);
         String dni = getText(etDniAsesor);
+        String fechaNacimiento = getText(etFechaNacimientoAsesor);
+        String domicilio = getText(etDomicilioAsesor);
 
-        if (nombre.isEmpty() || correo.isEmpty() || telefono.isEmpty() || dni.isEmpty()) {
-            Toast.makeText(this, "Completa Nombre, Correo, Teléfono y DNI", Toast.LENGTH_SHORT).show();
+        if (nombre.isEmpty() || apellidos.isEmpty() || correo.isEmpty() || telefono.isEmpty()
+                || dni.isEmpty() || fechaNacimiento.isEmpty() || domicilio.isEmpty()) {
+            Toast.makeText(this, "Completa todos los campos obligatorios (*)", Toast.LENGTH_SHORT).show();
             return false;
         }
         if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {

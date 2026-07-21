@@ -10,9 +10,9 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
@@ -45,12 +45,22 @@ public class FirestoreAsesoresRepository {
 
     private final FirebaseFirestore firestore = FirebaseFirestore.getInstance();
 
+    /**
+     * Registra un asesor: crea su cuenta de Firebase Auth con una contraseña
+     * aleatoria (usando una instancia secundaria de FirebaseApp para no cerrar
+     * la sesión del Admin) y le envía un correo para que la configure él mismo.
+     * Escribe el perfil completo en users/{uid} (y usuarios/{uid} por compatibilidad).
+     */
     public void registrarAsesor(
             Context context,
             String nombre,
+            String apellidos,
             String email,
             String telefono,
-            String dni,
+            String tipoDoc,
+            String numDoc,
+            String fechaNacimiento,
+            String domicilio,
             GuardarAsesorCallback callback
     ) {
         String inmobiliariaNombre = AdminPreferencesManager.obtenerInmobiliaria(context);
@@ -61,9 +71,13 @@ public class FirestoreAsesoresRepository {
                 crearCuentaAuthYPerfilAsesor(
                         context,
                         nombre,
+                        apellidos,
                         emailNormalizado,
                         telefono,
-                        dni,
+                        tipoDoc,
+                        numDoc,
+                        fechaNacimiento,
+                        domicilio,
                         inmobiliariaNombre,
                         inmobiliariaId,
                         callback
@@ -98,9 +112,13 @@ public class FirestoreAsesoresRepository {
     private void crearCuentaAuthYPerfilAsesor(
             Context context,
             String nombre,
+            String apellidos,
             String emailNormalizado,
             String telefono,
-            String dni,
+            String tipoDoc,
+            String numDoc,
+            String fechaNacimiento,
+            String domicilio,
             String inmobiliariaNombre,
             String inmobiliariaId,
             GuardarAsesorCallback callback
@@ -130,9 +148,13 @@ public class FirestoreAsesoresRepository {
                             secondaryApp,
                             authUser,
                             nombre,
+                            apellidos,
                             emailNormalizado,
                             telefono,
-                            dni,
+                            tipoDoc,
+                            numDoc,
+                            fechaNacimiento,
+                            domicilio,
                             inmobiliariaNombre,
                             inmobiliariaId,
                             callback
@@ -155,17 +177,25 @@ public class FirestoreAsesoresRepository {
             FirebaseApp secondaryApp,
             FirebaseUser authUser,
             String nombre,
+            String apellidos,
             String emailNormalizado,
             String telefono,
-            String dni,
+            String tipoDoc,
+            String numDoc,
+            String fechaNacimiento,
+            String domicilio,
             String inmobiliariaNombre,
             String inmobiliariaId,
             GuardarAsesorCallback callback
     ) {
         String uid = authUser.getUid();
         String nombreLimpio = nombre == null ? "" : nombre.trim();
+        String apellidosLimpio = apellidos == null ? "" : apellidos.trim();
         String telefonoLimpio = telefono == null ? "" : telefono.trim();
-        String dniLimpio = dni == null ? "" : dni.trim();
+        String tipoDocLimpio = tipoDoc == null ? "" : tipoDoc.trim();
+        String numDocLimpio = numDoc == null ? "" : numDoc.trim();
+        String fechaNacimientoLimpia = fechaNacimiento == null ? "" : fechaNacimiento.trim();
+        String domicilioLimpio = domicilio == null ? "" : domicilio.trim();
         String adminUid = AdminProyectosRepository.obtenerAdminUidActual();
 
         Map<String, Object> data = new HashMap<>();
@@ -177,6 +207,7 @@ public class FirestoreAsesoresRepository {
         data.put("inmobiliariaId", inmobiliariaId);
         data.put("empresa", inmobiliariaNombre);
         data.put("nombre", nombreLimpio);
+        data.put("apellidos", apellidosLimpio);
         data.put("role", "asesor");
         data.put("rol", "ASESOR");
         data.put("status", "pending");
@@ -185,7 +216,12 @@ public class FirestoreAsesoresRepository {
         data.put("habilitado", false);
         data.put("telefono", telefonoLimpio);
         data.put("phone", telefonoLimpio);
-        data.put("dni", dniLimpio);
+        data.put("tipoDoc", tipoDocLimpio);
+        data.put("numDoc", numDocLimpio);
+        data.put("dni", numDocLimpio);
+        data.put("fechaNacimiento", fechaNacimientoLimpia);
+        data.put("domicilio", domicilioLimpio);
+        data.put("fotoUrl", "");
         data.put("createdByAdminUid", adminUid);
         data.put("requiereAprobacionSuperadmin", true);
         data.put("debeConfigurarPassword", true);
@@ -195,9 +231,10 @@ public class FirestoreAsesoresRepository {
         Map<String, Object> usuario = new HashMap<>();
         usuario.put("uid", uid);
         usuario.put("nombre", nombreLimpio);
+        usuario.put("apellidos", apellidosLimpio);
         usuario.put("email", emailNormalizado);
         usuario.put("telefono", telefonoLimpio);
-        usuario.put("dni", dniLimpio);
+        usuario.put("dni", numDocLimpio);
         usuario.put("rol", "ASESOR");
         usuario.put("fotoUrl", null);
         usuario.put("fechaRegistro", FieldValue.serverTimestamp());

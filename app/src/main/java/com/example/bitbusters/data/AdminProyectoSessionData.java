@@ -31,6 +31,7 @@ public class AdminProyectoSessionData {
 
     // ── Parte 2: asesores asignados desde AdminAsignarAsesoresActivity ───────
     public List<String> asesoresAsignados = new ArrayList<>();
+    /** UIDs reales de Firebase Auth, alineados por posición con asesoresAsignados — ver PC-05. */
     public List<String> uidAsesoresAsignados = new ArrayList<>();
 
     // ── Áreas comunes seleccionadas en el formulario de proyecto ─────────────

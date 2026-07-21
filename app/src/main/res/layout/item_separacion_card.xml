@@ -17,13 +17,22 @@
         android:padding="14dp"
         android:gravity="center_vertical">
 
-        <!-- Placeholder color del proyecto -->
-        <View
-            android:id="@+id/v_placeholder"
+        <!-- Miniatura real del proyecto (con color de respaldo mientras carga / si no hay imagen) -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="70dp"
             android:layout_height="70dp"
-            android:background="@color/slate_300"
-            android:layout_marginEnd="12dp"/>
+            android:layout_marginEnd="12dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/v_placeholder"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:background="@color/slate_300"
+                android:contentDescription="@null"/>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Info del lado derecho -->
         <LinearLayout

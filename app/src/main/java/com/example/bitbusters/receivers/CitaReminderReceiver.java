@@ -4,20 +4,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import com.example.bitbusters.models.AsesorCita;
 import com.example.bitbusters.utils.AsesorNotificationHelper;
-import com.example.bitbusters.utils.AsesorStorage;
-import com.example.bitbusters.utils.AsesorWorkHelper;
-
-import java.util.List;
 
 /**
  * BroadcastReceiver de compatibilidad.
  *
  * - ACTION_CITA_REMINDER: mantiene compatibilidad con cualquier alarma legacy.
- * - BOOT_COMPLETED: re-programa en WorkManager todos los recordatorios de
- *   citas confirmadas que aún no hayan pasado (WorkManager persiste sus tareas
- *   internamente, pero reprogramamos por si acaso el scheduler se perdió).
+ * - BOOT_COMPLETED: no requiere acción propia — WorkManager persiste y
+ *   re-programa sus tareas pendientes automáticamente tras un reinicio.
  */
 public class CitaReminderReceiver extends BroadcastReceiver {
 
@@ -39,15 +33,6 @@ public class CitaReminderReceiver extends BroadcastReceiver {
                 AsesorNotificationHelper.showRecordatorioCita(ctx, cliente);
             } else {
                 AsesorNotificationHelper.showRecordatorioCitas(ctx, numCitas);
-            }
-
-        } else if (Intent.ACTION_BOOT_COMPLETED.equals(action)) {
-            // Re-programar recordatorios de citas confirmadas tras reinicio
-            List<AsesorCita> confirmadas = AsesorStorage.getConfirmedCitas(ctx);
-            for (AsesorCita cita : confirmadas) {
-                String key = AsesorStorage.buildCitaKey(cita.nombre, cita.fecha, cita.hora);
-                AsesorWorkHelper.scheduleRecordatorio(
-                        ctx, key, cita.nombre, cita.fecha, cita.hora);
             }
         }
     }

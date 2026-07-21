@@ -276,8 +276,14 @@
     <!-- Doc Types -->
     <string name="doc_type_dni">DNI</string>
     <string name="doc_type_ce">Carné de extranjería</string>
+    <string name="doc_type_pasaporte">Pasaporte</string>
     <string-array name="doc_types">
         <item>@string/doc_type_dni</item>
+        <item>@string/doc_type_ce</item>
+    </string-array>
+    <string-array name="doc_types_asesor">
+        <item>@string/doc_type_dni</item>
+        <item>@string/doc_type_pasaporte</item>
         <item>@string/doc_type_ce</item>
     </string-array>
 
@@ -380,6 +386,9 @@
     <string name="sa_reports_kpi_cancellation">Cancelación de Citas</string>
     <string name="sa_reports_kpi_expired">Separaciones Vencidas</string>
     <string name="sa_reports_kpi_advisor_enablement">Habilitación de Asesores</string>
+    <string name="sa_reports_kpi_attendance">Asistencia a Citas</string>
+    <string name="sa_reports_kpi_payment_approval">Aprobacion de Pagos</string>
+    <string name="sa_reports_kpi_enablement_time">Tiempo Habilitacion Asesor</string>
     <string name="sa_reports_alert_title">Alerta operativa global</string>
     <string name="sa_reports_alert_body">Inmobiliaria Sur supera 10% de separaciones vencidas. Revisar flujo de cobro y seguimiento.</string>
     <string name="sa_reports_alert_body_dynamic">%1$s supera %2$.0f%% de separaciones vencidas. Revisar flujo de cobro y seguimiento.</string>

@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bitbusters.R;
 import com.example.bitbusters.databinding.ActivityAsesorReportesBinding;
+import com.example.bitbusters.models.Cita;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -49,7 +50,7 @@ public class AsesorReportesActivity extends AppCompatActivity {
                 int confirmadas = 0;
                 for (QueryDocumentSnapshot doc : citas) {
                     String estado = doc.getString("estado");
-                    if ("Confirmada".equals(estado) || "Realizada".equals(estado)) confirmadas++;
+                    if (Cita.ESTADO_CONFIRMADA.equals(estado) || Cita.ESTADO_COMPLETADA.equals(estado)) confirmadas++;
                 }
                 final int citasConfirmadas = confirmadas;
 

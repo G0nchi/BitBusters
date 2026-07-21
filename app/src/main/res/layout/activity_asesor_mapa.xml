@@ -86,109 +86,20 @@
                 android:fontFamily="@font/lato_bold"
                 android:layout_marginBottom="10dp"/>
 
-            <!-- Proyecto 1 -->
-            <LinearLayout
-                android:id="@+id/item_marina"
+            <TextView
+                android:id="@+id/tvSinProyectosMapa"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingBottom="10dp">
-                <View
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:background="@drawable/bg_proyecto_marina"
-                    android:layout_marginEnd="10dp"/>
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Vista Marina Residencial"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp"
-                        android:fontFamily="@font/lato_bold"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="San Miguel, Lima"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp"
-                        android:fontFamily="@font/lato_regular"/>
-                </LinearLayout>
-            </LinearLayout>
+                android:text="No tienes proyectos asignados todavía"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                android:fontFamily="@font/lato_regular"
+                android:visibility="gone"/>
 
-            <!-- Proyecto 2 -->
-            <LinearLayout
-                android:id="@+id/item_torres"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvProyectosMapa"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingBottom="10dp">
-                <View
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:background="@drawable/bg_proyecto_torres"
-                    android:layout_marginEnd="10dp"/>
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Torres del Sol"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp"
-                        android:fontFamily="@font/lato_bold"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Miraflores, Lima"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp"
-                        android:fontFamily="@font/lato_regular"/>
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Proyecto 3 -->
-            <LinearLayout
-                android:id="@+id/item_pinos"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-                <View
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:background="@drawable/bg_proyecto_pinos"
-                    android:layout_marginEnd="10dp"/>
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Condominio Los Pinos"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp"
-                        android:fontFamily="@font/lato_bold"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Surco, Lima"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp"
-                        android:fontFamily="@font/lato_regular"/>
-                </LinearLayout>
-            </LinearLayout>
+                android:layout_height="220dp"/>
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

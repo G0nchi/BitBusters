@@ -35,7 +35,10 @@ public class ProyectoApi {
     public String tipo;         // "Departamento" | "Villa"
 
     @SerializedName("imagen_key")
-    public String imagenKey;    // Clave para mapear a drawable local
+    public String imagenKey;    // Clave para mapear a drawable local (datos de ejemplo)
+
+    /** URL real de imagen (proyectos.imagenesUri[0] o imageUrl en Firestore); prevalece sobre imagenKey. */
+    public String imageUrl;
 
     public ProyectoApi() {}
 

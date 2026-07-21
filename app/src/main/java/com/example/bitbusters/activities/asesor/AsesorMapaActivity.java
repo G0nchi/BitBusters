@@ -3,13 +3,17 @@ package com.example.bitbusters.activities.asesor;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.bitbusters.databinding.ActivityAsesorMapaBinding;
+import com.example.bitbusters.models.Proyecto;
+import com.example.bitbusters.repository.ProyectoRepository;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -18,8 +22,16 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import com.example.bitbusters.R;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AsesorMapaActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -27,11 +39,12 @@ public class AsesorMapaActivity extends AppCompatActivity implements OnMapReadyC
 
     private static final int PERMISO_UBICACION = 101;
     private GoogleMap mMap;
+    private ProyectoMapaAdapter adapter;
+    private final ProyectoRepository proyectoRepository = new ProyectoRepository();
+    private ListenerRegistration listenerProyectos;
 
-    // Coordenadas de los proyectos asignados
-    private static final LatLng MARINA = new LatLng(-12.0773, -77.0905);   // San Miguel
-    private static final LatLng TORRES = new LatLng(-12.1191, -77.0296);   // Miraflores
-    private static final LatLng PINOS  = new LatLng(-12.1500, -77.0000);   // Surco
+    /** proyectoId → LatLng, para poder centrar la cámara al tocar un ítem de la lista. */
+    private final Map<String, LatLng> posicionesPorProyecto = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,10 +60,12 @@ public class AsesorMapaActivity extends AppCompatActivity implements OnMapReadyC
 
         binding.btnBack.setOnClickListener(v -> finish());
 
-        // Tap en un proyecto del panel → centra la cámara
-        binding.itemMarina.setOnClickListener(v -> moveCamera(MARINA));
-        binding.itemTorres.setOnClickListener(v -> moveCamera(TORRES));
-        binding.itemPinos.setOnClickListener(v -> moveCamera(PINOS));
+        binding.rvProyectosMapa.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new ProyectoMapaAdapter(proyecto -> {
+            LatLng pos = posicionesPorProyecto.get(proyecto.getId());
+            if (pos != null) moveCamera(pos);
+        });
+        binding.rvProyectosMapa.setAdapter(adapter);
     }
 
     private void moveCamera(LatLng pos) {
@@ -63,28 +78,7 @@ public class AsesorMapaActivity extends AppCompatActivity implements OnMapReadyC
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
-        mMap.addMarker(new MarkerOptions()
-            .position(MARINA)
-            .title("Vista Marina Residencial")
-            .snippet("San Miguel · S/ 320,000")
-            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-
-        mMap.addMarker(new MarkerOptions()
-            .position(TORRES)
-            .title("Torres del Sol")
-            .snippet("Miraflores · S/ 450,000")
-            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
-
-        mMap.addMarker(new MarkerOptions()
-            .position(PINOS)
-            .title("Condominio Los Pinos")
-            .snippet("Surco · S/ 580,000")
-            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-
-        // Encuadra todos los marcadores
-        LatLngBounds bounds = new LatLngBounds.Builder()
-            .include(MARINA).include(TORRES).include(PINOS).build();
-        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120));
+        cargarProyectosAsignados();
 
         if (ContextCompat.checkSelfPermission(this,
             Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -92,6 +86,64 @@ public class AsesorMapaActivity extends AppCompatActivity implements OnMapReadyC
         } else {
             ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISO_UBICACION);
+        }
+    }
+
+    /** Se suscribe (misma vía que Cliente: ProyectoRepository) a los proyectos asignados al asesor y dibuja un marcador por cada uno. */
+    private void cargarProyectosAsignados() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        listenerProyectos = proyectoRepository.escucharProyectosAsesor(user.getUid(),
+                new ProyectoRepository.ProyectosListener() {
+                    @Override
+                    public void onProyectosActualizados(List<Proyecto> proyectos) {
+                        dibujarProyectos(proyectos);
+                    }
+
+                    @Override
+                    public void onError(String mensaje) {
+                        binding.tvSinProyectosMapa.setVisibility(View.VISIBLE);
+                        binding.rvProyectosMapa.setVisibility(View.GONE);
+                    }
+                });
+    }
+
+    private void dibujarProyectos(List<Proyecto> proyectos) {
+        List<Proyecto> conUbicacion = new ArrayList<>();
+        LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+        posicionesPorProyecto.clear();
+        if (mMap != null) mMap.clear();
+
+        for (Proyecto p : proyectos) {
+            Double lat = p.getLatitud();
+            Double lng = p.getLongitud();
+            if (lat == null || lng == null) continue;
+
+            LatLng pos = new LatLng(lat, lng);
+            posicionesPorProyecto.put(p.getId(), pos);
+            conUbicacion.add(p);
+            bounds.include(pos);
+
+            String ubicacion = p.getUbicacion() != null && !p.getUbicacion().isEmpty()
+                    ? p.getUbicacion() : p.getDistrito();
+            if (mMap != null) {
+                mMap.addMarker(new MarkerOptions()
+                    .position(pos)
+                    .title(p.getNombre())
+                    .snippet(ubicacion != null ? ubicacion : "")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+            }
+        }
+
+        adapter.setData(conUbicacion);
+        binding.tvSinProyectosMapa.setVisibility(
+                conUbicacion.isEmpty() ? View.VISIBLE : View.GONE);
+        binding.rvProyectosMapa.setVisibility(
+                conUbicacion.isEmpty() ? View.GONE : View.VISIBLE);
+
+        if (!conUbicacion.isEmpty() && mMap != null) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 120));
         }
     }
 
@@ -111,6 +163,10 @@ public class AsesorMapaActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (listenerProyectos != null) {
+            listenerProyectos.remove();
+            listenerProyectos = null;
+        }
         binding = null;
     }
 }

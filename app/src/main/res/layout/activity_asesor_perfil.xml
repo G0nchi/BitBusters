@@ -93,9 +93,10 @@
                         android:tint="@color/star_yellow"
                         android:contentDescription="@null"/>
                     <TextView
+                        android:id="@+id/tvRatingPerfil"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="4.9 · Muy bueno"
+                        android:text="— · Sin valoraciones"
                         android:textColor="@color/star_yellow"
                         android:textSize="12sp"
                         android:fontFamily="@font/lato_bold"
@@ -127,9 +128,10 @@
                     android:orientation="vertical"
                     android:gravity="center">
                     <TextView
+                        android:id="@+id/tvStatSeparaciones"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="12"
+                        android:text="0"
                         android:textColor="@color/white"
                         android:textSize="20sp"
                         android:fontFamily="@font/lato_bold"/>
@@ -156,9 +158,10 @@
                     android:orientation="vertical"
                     android:gravity="center">
                     <TextView
+                        android:id="@+id/tvStatCitas"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="38"
+                        android:text="0"
                         android:textColor="@color/white"
                         android:textSize="20sp"
                         android:fontFamily="@font/lato_bold"/>
@@ -185,9 +188,10 @@
                     android:orientation="vertical"
                     android:gravity="center">
                     <TextView
+                        android:id="@+id/tvStatVentas"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="S/ 3.2M"
+                        android:text="S/ 0"
                         android:textColor="@color/brand_lime"
                         android:textSize="18sp"
                         android:fontFamily="@font/lato_bold"/>
@@ -263,6 +267,6 @@
         app:menu="@menu/bottom_nav_menu"
         app:itemIconTint="@color/nav_icon_color"
         app:itemTextColor="@color/nav_text_color"
-        app:labelVisibilityMode="labeled"/>
+        app:labelVisibilityMode="unlabeled"/>
 
 </LinearLayout>

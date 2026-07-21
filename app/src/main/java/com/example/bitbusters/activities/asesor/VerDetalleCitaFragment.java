@@ -51,6 +51,10 @@ public class VerDetalleCitaFragment extends Fragment {
         String badge       = args.getString("badge",    "");
         String initials    = args.getString("initials", "");
         int    avatarColor = args.getInt("avatarColor", Color.parseColor("#4ECDC4"));
+        String citaId      = args.getString("citaId",     "");
+        String slotId      = args.getString("slotId",     "");
+        String proyectoId  = args.getString("proyectoId", "");
+        String uidCliente  = args.getString("uidCliente", "");
 
         // ── Poblar vistas ──────────────────────────────────────────────────────
         binding.tvNombre.setText(nombre);
@@ -103,6 +107,10 @@ public class VerDetalleCitaFragment extends Fragment {
         final String fhora    = hora;
         final String finitials = initials;
         final int    fcolor   = avatarColor;
+        final String fcitaId     = citaId;
+        final String fslotId     = slotId;
+        final String fproyectoId = proyectoId;
+        final String fuidCliente = uidCliente;
 
         binding.btnReagendar.setOnClickListener(v -> {
             android.content.Intent i =
@@ -113,12 +121,25 @@ public class VerDetalleCitaFragment extends Fragment {
             i.putExtra(ReagendarCitaActivity.EXTRA_HORA,         fhora);
             i.putExtra(ReagendarCitaActivity.EXTRA_INITIALS,     finitials);
             i.putExtra(ReagendarCitaActivity.EXTRA_AVATAR_COLOR, fcolor);
+            i.putExtra(ReagendarCitaActivity.EXTRA_CITA_ID,      fcitaId);
+            i.putExtra(ReagendarCitaActivity.EXTRA_SLOT_ID,      fslotId);
+            i.putExtra(ReagendarCitaActivity.EXTRA_PROYECTO_ID,  fproyectoId);
+            i.putExtra(ReagendarCitaActivity.EXTRA_UID_CLIENTE,  fuidCliente);
             startActivity(i);
         });
 
-        binding.btnSeparar.setOnClickListener(v ->
-            startActivity(new android.content.Intent(
-                requireContext(), NuevaSeparacionActivity.class)));
+        binding.btnSeparar.setOnClickListener(v -> {
+            android.content.Intent i =
+                new android.content.Intent(requireContext(), NuevaSeparacionActivity.class);
+            i.putExtra(NuevaSeparacionActivity.EXTRA_CLIENTE,     fnombre);
+            i.putExtra(NuevaSeparacionActivity.EXTRA_PROYECTO,    fproyecto);
+            i.putExtra(NuevaSeparacionActivity.EXTRA_INITIALS,    finitials);
+            i.putExtra(NuevaSeparacionActivity.EXTRA_COLOR,       fcolor);
+            i.putExtra(NuevaSeparacionActivity.EXTRA_CITA_ID,     fcitaId);
+            i.putExtra(NuevaSeparacionActivity.EXTRA_UID_CLIENTE, fuidCliente);
+            i.putExtra(NuevaSeparacionActivity.EXTRA_PROYECTO_ID, fproyectoId);
+            startActivity(i);
+        });
     }
 
     @Override

@@ -21,8 +21,8 @@ public class AdminProyecto {
     private String fechaEntrega;     // ej: "30/12/2026"
     private String estado;           // "En planos" | "Preventa" | "En venta"
     private List<Tipologia> tipologias;
-    private List<String>    asesores;     // nombres de asesores asignados
-    private List<String>    uidAsesores;  // IDs/UIDs de asesores asignados para integración con Cliente/Asesor
+    private List<String>    asesores;     // nombres de asesores asignados (solo display)
+    private List<String>    uidAsesores;  // UIDs reales de Firebase Auth — ver PC-05
     private List<String>    areasComunes; // amenidades seleccionadas del proyecto
     private List<String>    imagenesUri;  // URIs de las imágenes del proyecto
     private String          fechaCreacion;// timestamp ej: "01/01/2025"

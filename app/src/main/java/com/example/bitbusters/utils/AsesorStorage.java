@@ -3,9 +3,7 @@ package com.example.bitbusters.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.example.bitbusters.models.AsesorCita;
 import com.example.bitbusters.models.AsesorNotif;
-import com.example.bitbusters.models.CitaEstadoEntity;
 import com.example.bitbusters.models.DeletedChatEntity;
 import com.example.bitbusters.models.NotificacionEntity;
 
@@ -15,11 +13,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Capa de acceso a datos del módulo asesor.
+ * Capa de acceso a datos local del módulo asesor.
  *
- * Las listas estructuradas (notificaciones, estados de citas, chats eliminados)
- * se persisten en Room Database.  Los valores escalares de UI (tab, filtro)
- * siguen en SharedPreferences por su bajo coste y acceso inmediato.
+ * Las listas estructuradas (notificaciones, chats eliminados) se persisten en
+ * Room Database. Los valores escalares de UI (tab, filtro) siguen en
+ * SharedPreferences por su bajo coste y acceso inmediato. El estado de las
+ * citas ya no vive aquí — se lee/escribe directamente en Firestore vía
+ * {@link com.example.bitbusters.repository.CitaRepository}.
  */
 public class AsesorStorage {
 
@@ -91,57 +91,6 @@ public class AsesorStorage {
         return prefs(ctx).getString(KEY_HOME_FILTER, "Todos");
     }
 
-    // ── Estado de citas ───────────────────────────────────────────────────────
-
-    public static void confirmPendienteCita(Context ctx,
-                                            String nombre, String proyecto,
-                                            String fecha, String hora,
-                                            String initials, int color) {
-        String key = buildCitaKey(nombre, fecha, hora);
-        db(ctx).citaEstadoDao().insert(
-            new CitaEstadoEntity(key, "confirmada",
-                                 nombre, proyecto, fecha, hora, initials, color));
-    }
-
-    public static void cancelCita(Context ctx,
-                                  String nombre, String proyecto,
-                                  String fecha, String hora,
-                                  String initials, int color) {
-        String key = buildCitaKey(nombre, fecha, hora);
-        // REPLACE: si ya existía "confirmada", la sobreescribe como "cancelada"
-        db(ctx).citaEstadoDao().insert(
-            new CitaEstadoEntity(key, "cancelada",
-                                 nombre, proyecto, fecha, hora, initials, color));
-    }
-
-    public static Set<String> getConfirmedPendKeys(Context ctx) {
-        return new HashSet<>(db(ctx).citaEstadoDao().getKeysByEstado("confirmada"));
-    }
-
-    public static Set<String> getCancelledKeys(Context ctx) {
-        return new HashSet<>(db(ctx).citaEstadoDao().getKeysByEstado("cancelada"));
-    }
-
-    public static List<AsesorCita> getConfirmedCitas(Context ctx) {
-        List<CitaEstadoEntity> entities =
-                db(ctx).citaEstadoDao().getByEstado("confirmada");
-        List<AsesorCita> result = new ArrayList<>(entities.size());
-        for (CitaEstadoEntity e : entities) result.add(e.toAsesorCita());
-        return result;
-    }
-
-    public static List<AsesorCita> getCancelledCitas(Context ctx) {
-        List<CitaEstadoEntity> entities =
-                db(ctx).citaEstadoDao().getByEstado("cancelada");
-        List<AsesorCita> result = new ArrayList<>(entities.size());
-        for (CitaEstadoEntity e : entities) result.add(e.toAsesorCita());
-        return result;
-    }
-
-    public static String buildCitaKey(String nombre, String fecha, String hora) {
-        return nombre + "||" + fecha + "||" + hora;
-    }
-
     // ── Chats eliminados ──────────────────────────────────────────────────────
 
     public static void saveDeletedChatId(Context ctx, String chatId) {
@@ -169,7 +118,6 @@ public class AsesorStorage {
     public static void clearAll(Context ctx) {
         prefs(ctx).edit().clear().apply();
         db(ctx).notificacionDao().deleteAll();
-        db(ctx).citaEstadoDao().deleteAll();
         db(ctx).deletedChatDao().deleteAll();
     }
 }

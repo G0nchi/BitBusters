@@ -52,24 +52,6 @@
                     android:textSize="13sp"
                     android:fontFamily="@font/lato_regular"/>
             </LinearLayout>
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="20dp"
-                app:cardBackgroundColor="@color/overlay_white_30"
-                app:strokeWidth="0dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Filtrar"
-                    android:textColor="@color/white"
-                    android:textSize="13sp"
-                    android:fontFamily="@font/lato_bold"
-                    android:paddingLeft="12dp"
-                    android:paddingRight="12dp"
-                    android:paddingTop="6dp"
-                    android:paddingBottom="6dp"/>
-            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
     </LinearLayout>
@@ -97,5 +79,5 @@
         app:menu="@menu/bottom_nav_menu"
         app:itemIconTint="@color/nav_icon_color"
         app:itemTextColor="@color/nav_text_color"
-        app:labelVisibilityMode="labeled"/>
+        app:labelVisibilityMode="unlabeled"/>
 </LinearLayout>
