@@ -100,6 +100,11 @@ public class SuperadminUsersActivity extends AppCompatActivity {
             case TAB_ADVISORS: showAdvisors(); break;
             default:           showClients();  break;
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         loadUsersFromFirestore();
     }
 

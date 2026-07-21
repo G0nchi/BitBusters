@@ -13,16 +13,22 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bitbusters.R;
+import com.example.bitbusters.utils.LogHelper;
 import com.example.bitbusters.utils.NotificationHelper;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class SuperadminApprovalEvaluationActivity extends AppCompatActivity {
 
     private String asesorUid;
+    private String asesorNombre;
+    private String asesorCompany;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +61,8 @@ public class SuperadminApprovalEvaluationActivity extends AppCompatActivity {
         String nombre   = intent.getStringExtra("nombre");
         String email    = intent.getStringExtra("email");
         String company  = intent.getStringExtra("company");
+        asesorNombre = nombre;
+        asesorCompany = company;
 
         TextView tvInitials = findViewById(R.id.asesorInitials);
         TextView tvName     = findViewById(R.id.asesorName);
@@ -95,6 +103,7 @@ public class SuperadminApprovalEvaluationActivity extends AppCompatActivity {
             .update("status", newStatus)
             .addOnSuccessListener(aVoid -> {
                 writeNotificationToFirestore(approved);
+                logHabilitacionAsesor(approved);
 
                 Intent destino = new Intent(this, SuperadminApprovalsActivity.class);
                 if (approved) {
@@ -121,6 +130,25 @@ public class SuperadminApprovalEvaluationActivity extends AppCompatActivity {
             .addOnFailureListener(e ->
                 Toast.makeText(this, "Error al actualizar. Intente de nuevo.", Toast.LENGTH_SHORT).show()
             );
+    }
+
+    private void logHabilitacionAsesor(boolean approved) {
+        FirebaseUser superadmin = FirebaseAuth.getInstance().getCurrentUser();
+        String superadminEmail = (superadmin != null && superadmin.getEmail() != null)
+                ? superadmin.getEmail() : "superadmin";
+        String nombreLog = asesorNombre != null ? asesorNombre : asesorUid;
+        String companyLog = asesorCompany != null ? asesorCompany : "";
+
+        LogHelper.logEvent(
+                LogHelper.TYPE_ENABLEMENT,
+                approved ? LogHelper.STATUS_CONFIRMED : LogHelper.STATUS_FAILED,
+                approved ? "Asesor habilitado por superadmin" : "Solicitud de asesor rechazada por superadmin",
+                superadminEmail,
+                approved ? "Cambio de estado a habilitado" : "Cambio de estado a rechazado",
+                "Detalle del Cambio",
+                "Asesor " + nombreLog + ": Pendiente -> " + (approved ? "Activo" : "Rechazado"),
+                "Empresa: " + companyLog,
+                Arrays.asList("modulo:habilitaciones"));
     }
 
     private void writeNotificationToFirestore(boolean approved) {

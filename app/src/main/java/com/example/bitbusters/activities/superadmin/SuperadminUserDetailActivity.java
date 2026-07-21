@@ -13,8 +13,12 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bitbusters.R;
 import com.example.bitbusters.utils.ImmersiveMode;
+import com.example.bitbusters.utils.LogHelper;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Arrays;
 import java.util.Locale;
 
 public class SuperadminUserDetailActivity extends AppCompatActivity {
@@ -92,11 +96,35 @@ public class SuperadminUserDetailActivity extends AppCompatActivity {
                             ? R.string.sa_enable_user
                             : R.string.sa_disable_user;
                     Toast.makeText(this, getString(msg) + " exitoso", Toast.LENGTH_SHORT).show();
+
+                    if (STATUS_INACTIVE.equals(newStatus)) {
+                        logSuspensionUsuario();
+                    }
                 })
                 .addOnFailureListener(e -> {
                     toggleStatusButton.setEnabled(true);
                     Toast.makeText(this, "Error al actualizar estado", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void logSuspensionUsuario() {
+        String nombre = (userName != null && userName.getText() != null)
+                ? userName.getText().toString() : "";
+        String nombreLog = !nombre.isEmpty() ? nombre : userId;
+        FirebaseUser superadmin = FirebaseAuth.getInstance().getCurrentUser();
+        String superadminEmail = (superadmin != null && superadmin.getEmail() != null)
+                ? superadmin.getEmail() : "";
+
+        LogHelper.logEvent(
+                LogHelper.TYPE_ENABLEMENT,
+                LogHelper.STATUS_SUSPENDED,
+                "Usuario suspendido por superadmin",
+                !superadminEmail.isEmpty() ? superadminEmail : "superadmin",
+                "Cambio de estado a suspendido",
+                "Detalle del Cambio",
+                "Usuario " + nombreLog + ": Activo -> Suspendido",
+                "ID: " + userId,
+                Arrays.asList("modulo:habilitaciones"));
     }
 
     private void updateStatusUI() {

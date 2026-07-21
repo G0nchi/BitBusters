@@ -103,7 +103,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:text="182"
+                            android:text="—"
                             android:textColor="@color/brand_deep_blue"
                             android:textSize="24sp" />
 
@@ -141,7 +141,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:text="S/ 1.26M"
+                            android:text="—"
                             android:textColor="@color/brand_deep_blue"
                             android:textSize="24sp" />
 
@@ -186,7 +186,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:text="89%"
+                            android:text="—"
                             android:textColor="@color/brand_deep_blue"
                             android:textSize="24sp"
                             android:textStyle="bold" />
@@ -225,7 +225,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:text="11%"
+                            android:text="—"
                             android:textColor="@color/brand_deep_blue"
                             android:textSize="24sp"
                             android:textStyle="bold" />
@@ -269,7 +269,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:text="93%"
+                            android:text="—"
                             android:textColor="@color/brand_deep_blue"
                             android:textSize="24sp"
                             android:textStyle="bold" />
@@ -291,7 +291,8 @@
                     android:background="@drawable/sa_warning_card_bg"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="12dp">
+                    android:padding="12dp"
+                    android:visibility="gone">
 
                     <FrameLayout
                         android:layout_width="24dp"
@@ -383,7 +384,7 @@
                                 android:id="@+id/reportsDonutTotalText"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="182"
+                                android:text="—"
                                 android:textColor="@color/brand_deep_blue"
                                 android:textSize="20sp"
                                 android:textStyle="bold" />
@@ -415,7 +416,7 @@
                             android:id="@+id/reportsDonutVigentesText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0%"
+                            android:text="—"
                             android:textColor="@color/brand_deep_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -438,7 +439,7 @@
                             android:id="@+id/reportsDonutVencidasText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0%"
+                            android:text="—"
                             android:textColor="@color/brand_deep_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -492,7 +493,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:visibility="gone">
 
                             <TextView
                                 android:id="@+id/companyRow1Name"
@@ -518,7 +520,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="8dp"
                             android:layout_marginTop="4dp"
-                            android:background="@color/slate_200">
+                            android:background="@color/slate_200"
+                            android:visibility="gone">
 
                             <View
                                 android:id="@+id/companyRow1Fill"
@@ -539,7 +542,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:visibility="gone">
 
                             <TextView
                                 android:id="@+id/companyRow2Name"
@@ -565,7 +569,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="8dp"
                             android:layout_marginTop="4dp"
-                            android:background="@color/slate_200">
+                            android:background="@color/slate_200"
+                            android:visibility="gone">
 
                             <View
                                 android:id="@+id/companyRow2Fill"
@@ -586,7 +591,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:visibility="gone">
 
                             <TextView
                                 android:id="@+id/companyRow3Name"
@@ -612,7 +618,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="8dp"
                             android:layout_marginTop="4dp"
-                            android:background="@color/slate_200">
+                            android:background="@color/slate_200"
+                            android:visibility="gone">
 
                             <View
                                 android:id="@+id/companyRow3Fill"
@@ -633,7 +640,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:visibility="gone">
 
                             <TextView
                                 android:id="@+id/companyRow4Name"
@@ -659,7 +667,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="8dp"
                             android:layout_marginTop="4dp"
-                            android:background="@color/slate_200">
+                            android:background="@color/slate_200"
+                            android:visibility="gone">
 
                             <View
                                 android:id="@+id/companyRow4Fill"
@@ -744,7 +753,7 @@
                                 android:id="@+id/reportsGrowthValueText"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="34%"
+                                android:text="—"
                                 android:textColor="@color/success_green"
                                 android:textSize="20sp"
                                 android:textStyle="bold" />
@@ -776,7 +785,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="end"
-                                android:text="89%"
+                                android:text="—"
                                 android:textColor="@color/brand_deep_blue"
                                 android:textSize="20sp"
                                 android:textStyle="bold" />

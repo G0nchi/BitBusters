@@ -8,11 +8,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bitbusters.databinding.ActivityConfirmacionSeparacionBinding;
 import com.example.bitbusters.utils.AsesorNotificationHelper;
+import com.example.bitbusters.utils.LogHelper;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,6 +64,7 @@ public class ConfirmacionSeparacionActivity extends AppCompatActivity {
                                                String hora, String metodoPago) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         String uidAsesor  = (user != null) ? user.getUid() : "anonimo";
+        String emailAsesor = (user != null && user.getEmail() != null) ? user.getEmail() : uidAsesor;
 
         Map<String, Object> data = new HashMap<>();
         data.put("uidAsesor",    uidAsesor);
@@ -74,11 +77,27 @@ public class ConfirmacionSeparacionActivity extends AppCompatActivity {
         data.put("estado",       "Pendiente");
         data.put("timestamp",    FieldValue.serverTimestamp());
 
+        String proyectoLog   = (proyecto   != null && !proyecto.isEmpty())   ? proyecto   : "el proyecto";
+        String clienteLog    = (cliente    != null && !cliente.isEmpty())    ? cliente    : "el cliente";
+        String montoLog      = monto       != null ? monto       : "0";
+        String metodoPagoLog = metodoPago  != null ? metodoPago  : "Tarjeta";
+
         FirebaseFirestore.getInstance()
             .collection("separaciones")
             .add(data)
-            .addOnSuccessListener(ref ->
-                Log.d("Separacion", "Guardada con ID: " + ref.getId()))
+            .addOnSuccessListener(ref -> {
+                Log.d("Separacion", "Guardada con ID: " + ref.getId());
+                LogHelper.logEvent(
+                    LogHelper.TYPE_RESERVATION,
+                    LogHelper.STATUS_CONFIRMED,
+                    "Reserva registrada en proyecto " + proyectoLog,
+                    emailAsesor,
+                    "Se registro una nueva separacion",
+                    "Recurso Afectado",
+                    "Reserva #" + ref.getId() + " - S/ " + montoLog,
+                    "Cliente: " + clienteLog + " | Metodo: " + metodoPagoLog,
+                    Arrays.asList("modulo:reservas"));
+            })
             .addOnFailureListener(e ->
                 Log.e("Separacion", "Error al guardar: " + e.getMessage()));
     }

@@ -28,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bitbusters.R;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -37,6 +38,7 @@ import com.google.firebase.firestore.WriteBatch;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -249,7 +251,7 @@ public class SuperadminLogsActivity extends AppCompatActivity {
 
     private void loadOrSeedLogsFromFirestore() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("logs").orderBy("id", Query.Direction.ASCENDING).get()
+        db.collection("logs").orderBy("timestamp", Query.Direction.DESCENDING).get()
             .addOnSuccessListener(snapshots -> {
                 allLogs.clear();
                 if (!snapshots.isEmpty()) {
@@ -353,6 +355,10 @@ public class SuperadminLogsActivity extends AppCompatActivity {
                 LogItem item = allLogs.get(j);
                 Map<String, Object> data = new HashMap<>();
                 data.put("id",           item.id);
+                // Ids bajos representan eventos mas recientes dentro del set de
+                // ejemplo, asi que se siembran con timestamps decrecientes para
+                // que el orden cronologico coincida con el orden narrativo original.
+                data.put("timestamp",    new Timestamp(new Date(System.currentTimeMillis() - item.id * 60_000L)));
                 data.put("type",         item.type);
                 data.put("status",       item.status);
                 data.put("time",         item.time);

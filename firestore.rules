@@ -2,14 +2,52 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function currentUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdminInmobiliaria() {
+      return request.auth != null &&
+        (currentUser().role == 'admin' || currentUser().rol == 'ADMIN');
+    }
+
+    function isSuperadmin() {
+      return request.auth != null &&
+        (currentUser().role == 'superadmin' || currentUser().rol == 'SUPERADMIN');
+    }
+
     // === Usuarios ===
     match /users/{userId} {
       allow read: if request.auth != null;
+
+      // Cada usuario puede escribir su propio perfil
       allow write: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin';
-      allow create: if request.auth != null &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+
+      // Admin inmobiliaria puede crear asesores pendientes
+      allow create: if isAdminInmobiliaria() &&
+        request.resource.data.role == 'asesor' &&
+        request.resource.data.rol == 'ASESOR' &&
+        request.resource.data.activo == false &&
+        request.resource.data.habilitado == false;
+
+      // Superadmin puede habilitar/aprobar usuarios
+      allow update: if isSuperadmin();
+
+      allow delete: if false;
+    }
+
+    match /usuarios/{userId} {
+      allow read: if request.auth != null;
+
+      // Admin inmobiliaria puede crear el espejo del asesor pendiente
+      allow create: if isAdminInmobiliaria() &&
+        request.resource.data.rol == 'ASESOR' &&
+        request.resource.data.activo == false;
+
+      // Superadmin puede actualizar/habilitar si su pantalla usa esta colección
+      allow update: if isSuperadmin();
+
+      allow delete: if false;
     }
 
     // === OTPs ===
@@ -48,6 +86,11 @@ service cloud.firestore {
     match /logs/{logId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
+    }
+
+    // === Metadata interna de la app (contador de logs, etc.) ===
+    match /app_meta/{docId} {
+      allow read, write: if request.auth != null;
     }
 
     // === CHATS (corregido para permitir verificar antes de crear) ===
@@ -98,19 +141,7 @@ service cloud.firestore {
     // === Slots de disponibilidad ===
     // Creado por: auditoría Cliente (Pedro/Branch-1) — 2026-07-13
     match /slots/{slotId} {
-      // Cualquier usuario autenticado puede leer disponibilidad
-      allow read: if request.auth != null;
-
-      // Solo el dueño del slot puede crearlo (reserva)
-      allow create: if request.auth != null
-        && request.resource.data.uidCliente == request.auth.uid
-        && request.resource.data.ocupado == true;
-
-      // El dueño puede liberar el slot (cancelación/reagendamiento)
-      allow update: if request.auth != null
-        && resource.data.uidCliente == request.auth.uid;
-
-      allow delete: if false;
+      allow read, write: if request.auth != null;
     }
   }
 }
