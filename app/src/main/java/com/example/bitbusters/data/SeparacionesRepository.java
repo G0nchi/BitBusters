@@ -1,6 +1,7 @@
 package com.example.bitbusters.data;
 
 import com.example.bitbusters.models.AdminSeparacion;
+import com.example.bitbusters.utils.LogHelper;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.Timestamp;
@@ -13,6 +14,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -150,6 +152,7 @@ public final class SeparacionesRepository {
         DocumentReference separacionRef = db.collection(COLECCION_SEPARACIONES).document(id);
         FirebaseUser admin = FirebaseAuth.getInstance().getCurrentUser();
         String adminUid = admin != null ? admin.getUid() : "";
+        String adminEmail = (admin != null && admin.getEmail() != null) ? admin.getEmail() : adminUid;
         AdminSeparacion separacion = getById(id);
 
         Map<String, Object> cambios = new HashMap<>();
@@ -175,6 +178,7 @@ public final class SeparacionesRepository {
         batch.commit()
                 .addOnSuccessListener(unused -> {
                     actualizarEstado(id, nuevoEstado);
+                    logCambioEstadoPago(id, nuevoEstado, separacion, adminEmail);
                     if (callback != null) callback.onSuccess();
                 })
                 .addOnFailureListener(e -> {
@@ -184,6 +188,28 @@ public final class SeparacionesRepository {
                                 : "No se pudo actualizar la separación");
                     }
                 });
+    }
+
+    private static void logCambioEstadoPago(String id, String nuevoEstado,
+                                             AdminSeparacion separacion, String adminEmail) {
+        boolean aprobada = "Aprobada".equalsIgnoreCase(nuevoEstado);
+        boolean rechazada = "Rechazada".equalsIgnoreCase(nuevoEstado);
+        if (!aprobada && !rechazada) return;
+
+        String proyecto = separacion != null ? separacion.getNombreProyecto() : "";
+        String cliente = separacion != null ? separacion.getCliente() : "";
+        String monto = separacion != null ? separacion.getMonto() : "0";
+
+        LogHelper.logEvent(
+                LogHelper.TYPE_PAYMENT,
+                aprobada ? LogHelper.STATUS_CONFIRMED : LogHelper.STATUS_FAILED,
+                aprobada ? "Pago de separación aprobado" : "Pago de separación rechazado",
+                adminEmail != null && !adminEmail.isEmpty() ? adminEmail : "admin",
+                "Separación " + id + " marcada como " + nuevoEstado,
+                "Recurso Afectado",
+                "Reserva #" + id + " - S/ " + monto,
+                "Proyecto: " + proyecto + " | Cliente: " + cliente,
+                Arrays.asList("modulo:pagos"));
     }
 
     /**

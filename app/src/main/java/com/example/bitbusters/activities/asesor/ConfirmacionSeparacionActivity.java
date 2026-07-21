@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bitbusters.databinding.ActivityConfirmacionSeparacionBinding;
 import com.example.bitbusters.utils.AsesorNotificationHelper;
+import com.example.bitbusters.utils.LogHelper;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -15,7 +16,9 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -80,6 +83,7 @@ public class ConfirmacionSeparacionActivity extends AppCompatActivity {
                                                String citaId, String uidCliente, String proyectoId) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         String uidAsesor  = (user != null) ? user.getUid() : "anonimo";
+        String emailAsesor = (user != null && user.getEmail() != null) ? user.getEmail() : uidAsesor;
 
         double monto;
         try {
@@ -92,6 +96,9 @@ public class ConfirmacionSeparacionActivity extends AppCompatActivity {
         String proyectoNombre = proyecto != null ? proyecto : "";
         String uidClienteVal  = uidCliente != null ? uidCliente : "";
         double montoFinal = monto;
+        String proyectoLog = !proyectoNombre.isEmpty() ? proyectoNombre : "el proyecto";
+        String clienteLog = !clienteNombre.isEmpty() ? clienteNombre : "el cliente";
+        String metodoPagoLog = metodoPago != null ? metodoPago : "Tarjeta";
 
         Map<String, Object> data = new HashMap<>();
         // Cliente — campos + alias que exige el contrato del equipo
@@ -119,7 +126,10 @@ public class ConfirmacionSeparacionActivity extends AppCompatActivity {
 
         if (proyectoId == null || proyectoId.isEmpty()) {
             db.collection("separaciones").add(data)
-                .addOnSuccessListener(ref -> Log.d(TAG, "Guardada con ID: " + ref.getId()))
+                .addOnSuccessListener(ref -> {
+                    Log.d(TAG, "Guardada con ID: " + ref.getId());
+                    logReservaRegistrada(ref.getId(), proyectoLog, clienteLog, montoFinal, metodoPagoLog, emailAsesor);
+                })
                 .addOnFailureListener(e -> Log.e(TAG, "Error al guardar: " + e.getMessage()));
             return;
         }
@@ -133,6 +143,7 @@ public class ConfirmacionSeparacionActivity extends AppCompatActivity {
                 db.collection("separaciones").add(data)
                     .addOnSuccessListener(ref -> {
                         Log.d(TAG, "Guardada con ID: " + ref.getId());
+                        logReservaRegistrada(ref.getId(), proyectoLog, clienteLog, montoFinal, metodoPagoLog, emailAsesor);
                         if (inmobiliariaId != null && !inmobiliariaId.isEmpty()) {
                             notificarAdmins(inmobiliariaId, ref, clienteNombre, proyectoNombre,
                                     uidClienteVal, uidAsesor, montoFinal);
@@ -143,9 +154,26 @@ public class ConfirmacionSeparacionActivity extends AppCompatActivity {
             .addOnFailureListener(e -> {
                 // Sin inmobiliariaId no podemos notificar al Admin, pero igual guardamos la separación.
                 db.collection("separaciones").add(data)
-                    .addOnSuccessListener(ref -> Log.d(TAG, "Guardada con ID: " + ref.getId()))
+                    .addOnSuccessListener(ref -> {
+                        Log.d(TAG, "Guardada con ID: " + ref.getId());
+                        logReservaRegistrada(ref.getId(), proyectoLog, clienteLog, montoFinal, metodoPagoLog, emailAsesor);
+                    })
                     .addOnFailureListener(ex -> Log.e(TAG, "Error al guardar: " + ex.getMessage()));
             });
+    }
+
+    private void logReservaRegistrada(String separacionId, String proyectoLog, String clienteLog,
+                                       double monto, String metodoPagoLog, String emailAsesor) {
+        LogHelper.logEvent(
+            LogHelper.TYPE_RESERVATION,
+            LogHelper.STATUS_CONFIRMED,
+            "Reserva registrada en proyecto " + proyectoLog,
+            emailAsesor,
+            "Se registro una nueva separacion",
+            "Recurso Afectado",
+            "Reserva #" + separacionId + " - S/ " + String.format(Locale.US, "%,.0f", monto),
+            "Cliente: " + clienteLog + " | Metodo: " + metodoPagoLog,
+            Arrays.asList("modulo:reservas"));
     }
 
     /**

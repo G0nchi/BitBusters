@@ -178,7 +178,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
-                                android:text="12"
+                                android:text="—"
                                 android:textColor="@color/brand_deep_blue"
                                 android:textSize="24sp"
                                 android:textStyle="bold" />
@@ -247,7 +247,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
-                                android:text="37"
+                                android:text="—"
                                 android:textColor="@color/brand_deep_blue"
                                 android:textSize="24sp"
                                 android:textStyle="bold" />
@@ -322,7 +322,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
-                                android:text="31%"
+                                android:text="—"
                                 android:textColor="@color/brand_deep_blue"
                                 android:textSize="24sp"
                                 android:textStyle="bold" />
@@ -391,7 +391,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
-                                android:text="64"
+                                android:text="—"
                                 android:textColor="@color/brand_deep_blue"
                                 android:textSize="24sp"
                                 android:textStyle="bold" />
@@ -467,7 +467,7 @@
                                 android:id="@+id/quickUsersValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="124"
+                                android:text="—"
                                 android:textColor="@color/brand_deep_blue"
                                 android:textSize="22sp"
                                 android:textStyle="bold" />
@@ -518,7 +518,7 @@
                                 android:id="@+id/quickApprovalsValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="5"
+                                android:text="—"
                                 android:textColor="@color/brand_deep_blue"
                                 android:textSize="22sp"
                                 android:textStyle="bold" />
@@ -569,7 +569,7 @@
                                 android:id="@+id/quickLogsValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="18"
+                                android:text="—"
                                 android:textColor="@color/brand_deep_blue"
                                 android:textSize="22sp"
                                 android:textStyle="bold" />
@@ -620,7 +620,7 @@
                                 android:id="@+id/quickReportsValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="12"
+                                android:text="—"
                                 android:textColor="@color/brand_deep_blue"
                                 android:textSize="22sp"
                                 android:textStyle="bold" />
